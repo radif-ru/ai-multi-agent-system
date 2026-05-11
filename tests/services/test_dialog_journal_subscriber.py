@@ -29,7 +29,7 @@ async def journal(tmp_path):
 @pytest.fixture
 def conversations(tmp_path):
     return ConversationStore(
-        max_messages=10, file_contexts_db=tmp_path / "file_contexts.db",
+        max_messages=10, journal_db_path=tmp_path / "memory.db",
     )
 
 

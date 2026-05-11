@@ -93,6 +93,7 @@ async def _build_components(settings: Settings) -> _Components:
     conversations = ConversationStore(
         max_messages=settings.history_max_messages,
         session_log_max_messages=settings.session_log_max_messages,
+        journal_db_path=settings.memory_db_path,
     )
     summarizer = Summarizer(
         llm=llm,
