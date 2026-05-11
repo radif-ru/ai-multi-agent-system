@@ -152,6 +152,72 @@ async def test_handle_document_success(
 
 
 @pytest.mark.asyncio
+async def test_handle_document_publishes_event_with_kind_and_file_meta(
+    mock_settings,
+    mock_user_settings,
+    mock_conversations,
+    mock_summarizer,
+    mock_executor,
+    mock_llm,
+    mock_semantic_memory,
+    event_bus_with_conversations,
+    tmp_path: Path,
+) -> None:
+    """В MessageReceived проброшены kind=document, file_id и file_path (для dialog_journal)."""
+    event_bus, mock_users = event_bus_with_conversations
+    received: list[MessageReceived] = []
+
+    async def recorder(event: MessageReceived) -> None:
+        received.append(event)
+
+    event_bus.subscribe(MessageReceived, recorder)
+
+    test_file = tmp_path / "doc.txt"
+    test_file.write_text("hi", encoding="utf-8")
+
+    from app.adapters.telegram.handlers import messages
+    original_download = messages.download_telegram_file
+    original_handle = messages.handle_user_task
+
+    async def mock_download(bot, file_id, *, max_size_mb, tmp_dir, user_id=None, mime_type=None):
+        return test_file
+
+    messages.download_telegram_file = mock_download
+    messages.handle_user_task = AsyncMock(return_value="ok")
+
+    try:
+        message = MagicMock()
+        message.from_user = MagicMock(id=123)
+        message.chat = MagicMock(id=456)
+        message.document = MagicMock(file_id="file123", mime_type="text/plain")
+        message.caption = "Test"
+        message.bot = MagicMock()
+        message.answer = AsyncMock()
+
+        await handle_document(
+            message,
+            settings=mock_settings,
+            user_settings=mock_user_settings,
+            conversations=mock_conversations,
+            summarizer=mock_summarizer,
+            executor=mock_executor,
+            llm=mock_llm,
+            semantic_memory=mock_semantic_memory,
+            users=mock_users,
+            event_bus=event_bus,
+        )
+
+        assert len(received) == 1
+        ev = received[0]
+        assert ev.kind == "document"
+        assert ev.file_id  # сгенерирован mapper'ом
+        assert ev.file_path == str(test_file)
+    finally:
+        messages.download_telegram_file = original_download
+        messages.handle_user_task = original_handle
+
+
+@pytest.mark.asyncio
 async def test_handle_document_too_large(
     mock_settings,
     mock_user_settings,

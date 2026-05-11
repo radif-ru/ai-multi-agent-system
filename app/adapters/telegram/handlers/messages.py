@@ -300,7 +300,10 @@ async def handle_document(
             user=user,
             text=goal,
             conversation_id=str(chat_id),
-            channel="telegram"
+            channel="telegram",
+            kind="document",
+            file_id=file_id,
+            file_path=str(file_path),
         ))
 
     # Сохраняем контекст файла по message_id для ответов на конкретный файл
@@ -474,13 +477,16 @@ async def handle_voice(
     # Сохраняем полный путь в контексте для восстановления file_id при перезапуске
     goal = f"Голосовое сообщение (ID: {file_id}, путь: {file_path})\nТранскрипция: {text}"
 
-    # Публикуем MessageReceived
+    # Публикуем MessageReceived с kind=voice (для dialog_journal)
     if event_bus and user:
         await event_bus.publish(MessageReceived(
             user=user,
             text=goal,
             conversation_id=str(chat_id),
-            channel="telegram"
+            channel="telegram",
+            kind="voice",
+            file_id=file_id,
+            file_path=str(file_path),
         ))
 
     # Сохраняем контекст голосового файла по message_id для ответов на конкретный файл
@@ -596,13 +602,16 @@ async def handle_photo(
         f"Выбери подходящий инструмент и ответь по сути."
     )
 
-    # Публикуем MessageReceived
+    # Публикуем MessageReceived с kind=image (для dialog_journal)
     if event_bus and user:
         await event_bus.publish(MessageReceived(
             user=user,
             text=goal,
             conversation_id=str(chat_id),
-            channel="telegram"
+            channel="telegram",
+            kind="image",
+            file_id=file_id,
+            file_path=str(file_path),
         ))
 
     # Сохраняем контекст файла по message_id для ответов на конкретный файл

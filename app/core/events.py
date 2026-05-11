@@ -43,6 +43,11 @@ class MessageReceived(Event):
     """Событие получения сообщения от пользователя.
 
     Публикуется хендлером при входящем тексте или файле после получения user.
+
+    Поле ``kind`` различает типы входов (для журналирования и аудита):
+    ``"text"`` — обычный текст (default), ``"document"``/``"voice"``/``"image"``
+    — файл соответствующего типа. ``file_id`` и ``file_path`` заполняются
+    только для файлов и пробрасываются в `dialog_journal` (см. `memory.md` §4).
     """
 
     event_type: ClassVar[str] = "message_received"
@@ -50,6 +55,9 @@ class MessageReceived(Event):
     text: str
     conversation_id: str
     channel: str
+    kind: str = "text"
+    file_id: str | None = None
+    file_path: str | None = None
 
 
 @dataclass
