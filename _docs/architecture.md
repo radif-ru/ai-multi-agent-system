@@ -219,7 +219,7 @@ class Executor:
 ### 3.14 Безопасность (`app/security/`)
 
 - `input_sanitizer.py`: функция `sanitize_user_input` для защиты от prompt injection. Детектирует подозрительные паттерны (ignore instructions, repeat system prompt и т.д.) и возвращает очищенный текст или текст с предупреждением.
-- `file_id_mapper.py`: класс `FileIdMapper` для маскирования путей к файлам во избежание data leakage. Генерирует временные ID для файлов и умеет восстанавливать путь по ID. Использует общую таблицу `file_contexts` из ConversationStore для персистентности между перезапусками агента.
+- `file_id_mapper.py`: класс `FileIdMapper` для маскирования путей к файлам во избежание data leakage. Генерирует временные ID для файлов и умеет восстанавливать путь по ID. Персистентный слой — колонки `file_id`/`file_path` в таблице `dialog_journal` (`data/memory.db`); запись делает подписчик `on_message_received_journal` при публикации `MessageReceived` (см. `_docs/memory.md` §2.6.1 и `_docs/security.md` §2).
 - `response_sanitizer.py`: функция `sanitize_response` для фильтрации системной информации в ответах модели. Маскирует пути к файлам, конфигурационные ключи и фрагменты системного промпта.
 - Интеграция:
   - `InputSanitizer` — в Telegram-хендлеры и консольный адаптер перед вызовом `core.handle_user_task`.
@@ -322,7 +322,7 @@ class Executor:
 - **OCR (опционально):** если включён `DOCUMENT_OCR_ENABLED` и установлен tesseract-ocr:
   - Для PDF с малым количеством текста (< 100 символов) извлекается текст из изображений через pytesseract.
   - Для отдельных изображений (JPG, PNG и др.) выполняется OCR напрямую.
-  - OCR текст кешируется в файл `.ocr.txt` рядом с исходным файлом для ускорения повторного чтения.
+  - Дисковый кеш `.ocr.txt` рядом с исходным файлом убран (задача 06.3-bis.4); результат OCR попадает в `dialog_journal.content` через goal.
   - Поддержка кириллицы через `tesseract-ocr-rus`.
 - **Извлечение изображений из PDF:** tool извлекает изображения из PDF (до `DOCUMENT_MAX_IMAGES` по умолчанию 20). Изображения сохраняются во временной директории. Если OCR не сработал, возвращается информация о картинках для описания через `describe_image`.
 
