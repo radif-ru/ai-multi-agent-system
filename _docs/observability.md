@@ -68,10 +68,34 @@ finally:
 - **Console adapter**: `ConsoleAdapter.run` (`app/adapters/console/adapter.py`) — на каждую введённую команду или текст свежий `trace_id`, сбрасывается после обработки.
 - **Фоновая архивация (recovery)**: планируется как отдельная задача (см. спринт 06 этап 4.3 / будущие спринты) — пока `recover_pending_journals` пишет логи без `trace_id` (`null`).
 
-## 3. Маскирование секретов
+## 3. Границы внешних вызовов
 
-(задача 4.3 спринта 06) — хелпер `mask_secrets(d)` маскирует значения полей, похожих на токены/ключи/`Authorization`, прежде чем их кладут в `extra`.
+Все сервисы, дёргающие внешние ресурсы, пишут согласованные записи вокруг каждого вызова:
 
-## 4. Error tracking (GlitchTip)
+- `external.call service=<name> ...` — перед вызовом (info).
+- `external.ok service=<name> dur_ms=<n> ...` — успешное завершение (info).
+- `external.fail service=<name> dur_ms=<n> error=<str> ...` — ошибка (error).
+
+Поля в `extra`: `service`, `duration_ms`, `status`, плюс сервис-специфичные (`model`, `host`, `engine`, `http_status`, `len_in/len_out`, `n_results` …). Сырые payload'ы и сами ответы LLM/поиска в логи не попадают.
+
+Точки установки (`grep -n external.call app`):
+
+- `app/services/llm.py` — `service=ollama`, `kind=chat|embed`.
+- `app/services/transcribe.py` — `service=transcribe`.
+- `app/services/vision.py` — `service=vision`.
+- `app/services/ocr.py` — `service=ocr`.
+- `app/tools/http_request.py` — `service=http_request`, `host`.
+- `app/tools/web_search.py` — `service=web_search`, `engine`.
+
+## 4. Маскирование секретов
+
+`app/utils/secrets.py::mask_secrets(d)` рекурсивно заменяет значения секретных ключей на `"***"`:
+
+- Ключи, содержащие `token`, `secret`, `password`, `passwd`, `api_key`/`apikey`, `authorization`.
+- Точные имена `auth`, `bearer`, `key`, `x-api-key` (регистронезависимо).
+
+Использовать **перед** тем как положить структуру в `extra=` (или при логировании заголовков/конфигов). URL и тела HTTP-ответов по текущим настройкам в логи не пишутся — тем самым заголовок `Authorization` туда не уезжает. Тесты: `tests/utils/test_secrets.py`.
+
+## 5. Error tracking (GlitchTip)
 
 (задачи 5.1–5.3 спринта 06) — `sentry-sdk` с hook'ом `before_send`, прокидывающим `trace_id` и `user_id` в событие. Self-host через `docker-compose.observability.yml`.
