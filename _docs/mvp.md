@@ -72,7 +72,7 @@ LLM — локальная (Ollama, `qwen3.5:4b` для чата, `nomic-embed-t
 - **Web-адаптер** — `roadmap.md` Этап 5; **MAX-адаптер** — Этап 6.
 - **Webhook**-режим Telegram — `roadmap.md` Этап 7.
 - **Облачные LLM** (OpenAI, Anthropic и пр.) — изначально запрещено по принципу `local-first` (`requirements.md` CON-2); опциональный opt-in — `roadmap.md` Этап 4.
-- **Файловые загрузки** в Telegram (фото, аудио, документы) — закрыты Спринтом 02; добор (видео, geolocation) — `roadmap.md` Этап 16.
+- **Файловые загрузки** в Telegram (фото, аудио, документы) — закрыты Спринтом 02; добор (видео, geolocation) — `roadmap.md` Этап 15.
 - **Стриминг ответа** LLM в Telegram — `roadmap.md` Этап 2.
 - **Throttling middleware** (rate-limit на пользователя) — `roadmap.md` Этап 8.
 - **Docker / docker-compose** — `roadmap.md` Этап 10.
