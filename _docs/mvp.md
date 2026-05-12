@@ -76,7 +76,7 @@ LLM — локальная (Ollama, `qwen3.5:4b` для чата, `nomic-embed-t
 - **Стриминг ответа** LLM в Telegram — `roadmap.md` Этап 2.
 - **Throttling middleware** (rate-limit на пользователя) — `roadmap.md` Этап 8.
 - **Docker / docker-compose** — `roadmap.md` Этап 10.
-- **CI** (GitHub Actions) — `roadmap.md` Этап 11.
+- **CI** (GitHub Actions) — закрыто в Спринте 06 (`_board/sprints/06-reliability-and-observability.md` Этап 6).
 
 ## 4. Модель по умолчанию
 
