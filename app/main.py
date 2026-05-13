@@ -22,7 +22,7 @@ from app.adapters.telegram.handlers.messages import build_messages_router
 from app.agents.executor import Executor
 from app.config import Settings
 from app.core import orchestrator as _orchestrator  # импорт для DI/тестов
-from app.logging_config import setup_logging
+from app.core.logging_config import setup_logging
 from app.observability import setup_sentry
 from app.middlewares.logging_mw import LoggingMiddleware
 from app.services.archiver import Archiver

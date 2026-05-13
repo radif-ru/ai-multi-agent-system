@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from app.logging_config import ContextFilter
+from app.core.logging_config import ContextFilter
 from app.middlewares.logging_mw import LoggingMiddleware
 from app.utils.tracing import get_trace_id, get_user_id
 

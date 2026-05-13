@@ -84,10 +84,14 @@ class JsonFormatter(logging.Formatter):
 
 
 def setup_logging(settings: Settings, console_output: bool = True) -> None:
-    """Настроить root-логгер: консоль + RotatingFileHandler.
+    """Настроить root-логгер: консоль + TimedRotatingFileHandler.
 
     Оба handler'а пишут JSON через `JsonFormatter`; `ContextFilter`
     автоматически подмешивает `trace_id`/`user_id` из contextvars.
+    Файловый handler ротируется каждый день в полночь (UTC) и хранит
+    максимум 14 ротированных файлов — таким образом срок хранения логов
+    на диске ограничен ~2 неделями, более старые файлы удаляются
+    автоматически.
 
     Args:
         settings: конфигурация приложения.
@@ -117,13 +121,15 @@ def setup_logging(settings: Settings, console_output: bool = True) -> None:
                 "level": settings.log_level_console,
             },
             "file": {
-                "class": "logging.handlers.RotatingFileHandler",
+                "class": "logging.handlers.TimedRotatingFileHandler",
                 "formatter": "json",
                 "filters": ["context"],
                 "level": settings.log_level_file,
                 "filename": str(log_file),
-                "maxBytes": 5 * 1024 * 1024,
-                "backupCount": 3,
+                "when": "midnight",
+                "interval": 1,
+                "backupCount": 14,
+                "utc": True,
                 "encoding": "utf-8",
             },
         },

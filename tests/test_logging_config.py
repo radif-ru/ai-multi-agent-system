@@ -1,4 +1,4 @@
-"""Тесты `app.logging_config.setup_logging`."""
+"""Тесты `app.core.logging_config.setup_logging`."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from app.config import Settings
-from app.logging_config import JsonFormatter, SERVICE_NAME, setup_logging
+from app.core.logging_config import JsonFormatter, SERVICE_NAME, setup_logging
 from app.utils.tracing import bind_trace_id, bind_user_id, reset_trace_id, reset_user_id
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -99,6 +99,27 @@ def test_json_formatter_includes_extra_fields():
     assert payload["message"] == "external.call"
     assert payload["extra"]["duration_ms"] == 42
     assert payload["extra"]["model"] == "qwen3.5:4b"
+
+
+def test_file_handler_uses_daily_rotation_with_14_day_retention(base_settings):
+    """Файловый handler должен ротироваться раз в сутки и хранить ровно
+    14 ротированных файлов (~2 недели), удаляя более старые автоматически."""
+    from logging.handlers import TimedRotatingFileHandler
+
+    try:
+        setup_logging(base_settings)
+        root = logging.getLogger()
+        file_handlers = [
+            h for h in root.handlers if isinstance(h, TimedRotatingFileHandler)
+        ]
+        assert len(file_handlers) == 1
+        h = file_handlers[0]
+        assert h.when == "MIDNIGHT"
+        assert h.interval == 24 * 60 * 60
+        assert h.backupCount == 14
+        assert h.utc is True
+    finally:
+        _teardown_root()
 
 
 def test_json_formatter_serialises_exception():

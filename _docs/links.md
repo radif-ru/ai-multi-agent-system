@@ -55,8 +55,8 @@
 |-----|--------|---------------|
 | pydantic | https://docs.pydantic.dev/latest/ | `field_validator`, `model_validator`, `SecretStr` в `app/config.py` |
 | pydantic-settings | https://docs.pydantic.dev/latest/concepts/pydantic_settings/ | `app/config.py::Settings(BaseSettings)`, парсинг `.env` |
-| Python `logging` | https://docs.python.org/3/library/logging.html | `app/logging_config.py`, логгеры во всех модулях |
-| Python `logging.handlers` | https://docs.python.org/3/library/logging.handlers.html | `RotatingFileHandler` в `app/logging_config.py` |
+| Python `logging` | https://docs.python.org/3/library/logging.html | `app/core/logging_config.py`, логгеры во всех модулях |
+| Python `logging.handlers` | https://docs.python.org/3/library/logging.handlers.html | `TimedRotatingFileHandler` в `app/core/logging_config.py` (ежедневная ротация, ~14 дней хранения) |
 | `logging.config.dictConfig` | https://docs.python.org/3/library/logging.config.html#logging.config.dictConfig | конфигурация логирования через словарь |
 | Python `sqlite3` | https://docs.python.org/3/library/sqlite3.html | базовый драйвер для `sqlite-vec` |
 

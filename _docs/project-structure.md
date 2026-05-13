@@ -61,12 +61,12 @@ ai-multi-agent-system/
 │   ├── __main__.py           # entrypoint: python -m app
 │   ├── main.py               # async def main(): сборка зависимостей, регистрация роутеров, polling
 │   ├── config.py             # Settings на pydantic-settings
-│   ├── logging_config.py     # dictConfig + RotatingFileHandler
 │   │
 │   ├── core/
 │   │   ├── __init__.py
 │   │   ├── orchestrator.py   # handle_user_task(text, user_id, chat_id) — единая точка входа от любого адаптера
-│   │   └── events.py         # EventBus: событийная шина для pub/sub между компонентами
+│   │   ├── events.py         # EventBus: событийная шина для pub/sub между компонентами
+│   │   └── logging_config.py # dictConfig + TimedRotatingFileHandler (~14 дней хранения)
 │   │
 │   ├── agents/
 │   │   ├── __init__.py
@@ -209,7 +209,7 @@ ai-multi-agent-system/
 | `app/__main__.py` | Запуск `asyncio.run(main())`. |
 | `app/main.py` | Собирает все сервисы, `Bot`, `Dispatcher`, регистрирует роутеры/middleware, стартует polling. |
 | `app/config.py` | Класс `Settings(BaseSettings)`, парсинг `.env`, валидация. |
-| `app/logging_config.py` | Функция `setup_logging(settings)` → `dictConfig`. |
+| `app/core/logging_config.py` | Функция `setup_logging(settings)` → `dictConfig`. |
 | `app/core/orchestrator.py` | `async handle_user_task(...)` — единая точка входа от любого адаптера; вызывает `Executor`. |
 | `app/core/events.py` | `EventBus`: событийная шина для pub/sub между компонентами (UserCreated, MessageReceived, ResponseGenerated, ConversationArchived). |
 | `app/agents/executor.py` | Агентный цикл `thought → action → observation`. |

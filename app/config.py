@@ -65,7 +65,7 @@ class Settings(BaseSettings):
     agent_system_prompt_path: Path = Path("_prompts/agent_system.md")
 
     # --- Logging ---
-    log_level: str = "INFO"
+    log_level: str = "DEBUG"
     log_level_console: str = "DEBUG"
     log_level_file: str = "INFO"
     log_file: Path = Path("logs/agent.log")

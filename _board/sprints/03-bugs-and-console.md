@@ -842,8 +842,8 @@ Tool `web_search` читает активный поисковик из конт
 - **Приоритет:** medium
 - **Объём:** XS
 - **Зависит от:** —
-- **Связанные документы:** `app/logging_config.py`; `app/config.py`.
-- **Затрагиваемые файлы:** `app/logging_config.py`, `app/config.py`, `.env.example`.
+- **Связанные документы:** `app/core/logging_config.py`; `app/config.py`.
+- **Затрагиваемые файлы:** `app/core/logging_config.py`, `app/config.py`, `.env.example`.
 
 #### Описание
 

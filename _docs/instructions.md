@@ -58,7 +58,7 @@
 
 ## 6. Логирование
 
-- Конфиг один — `app/logging_config.py`.
+- Конфиг один — `app/core/logging_config.py`.
 - Каждый шаг агентного цикла логируется одной INFO-строкой (см. `agent-loop.md` §6).
 - Каждый запрос к LLM — отдельной строкой (`model`, `len_in`, `len_out`, `dur_ms`, `status`).
 - Каждый запуск tool — строкой из реестра (`tool=<name> dur_ms=<n> status=ok|error`).

@@ -1,10 +1,10 @@
 # Наблюдаемость
 
-Единый раздел про логи, трассировку и (в следующих задачах спринта 06) error tracking. Источник истины по коду — `app/logging_config.py`, `app/utils/tracing.py`, `app/middlewares/logging_mw.py`.
+Единый раздел про логи, трассировку и (в следующих задачах спринта 06) error tracking. Источник истины по коду — `app/core/logging_config.py`, `app/utils/tracing.py`, `app/middlewares/logging_mw.py`.
 
 ## 1. Структурные JSON-логи
 
-Все логи приложения — валидные JSON-объекты, по одной записи на строку. Формирует `JsonFormatter` (`app/logging_config.py`), подключён как к `StreamHandler` (консоль), так и к `RotatingFileHandler` (файл `LOG_FILE`, по умолчанию `logs/agent.log`).
+Все логи приложения — валидные JSON-объекты, по одной записи на строку. Формирует `JsonFormatter` (`app/core/logging_config.py`), подключён как к `StreamHandler` (консоль), так и к `TimedRotatingFileHandler` (файл `LOG_FILE`, по умолчанию `logs/agent.log`; ротация ежедневно в полночь UTC, хранятся 14 последних ротированных файлов, более старые удаляются автоматически).
 
 ### Формат записи
 
@@ -60,7 +60,7 @@ finally:
     reset_trace_id(trace_token)
 ```
 
-`ContextFilter` (`app/logging_config.py`) автоматически подмешивает значения в каждую запись лога. Прокидывать их вручную через `extra=` не нужно; это имеет смысл только чтобы явно переопределить (например, в фоновой задаче с другим trace_id).
+`ContextFilter` (`app/core/logging_config.py`) автоматически подмешивает значения в каждую запись лога. Прокидывать их вручную через `extra=` не нужно; это имеет смысл только чтобы явно переопределить (например, в фоновой задаче с другим trace_id).
 
 Где устанавливается:
 

@@ -112,9 +112,9 @@ Telegram-адаптер принимает текст, оборачивает е
 
 Валидация: `OLLAMA_DEFAULT_MODEL ∈ OLLAMA_AVAILABLE_MODELS`, `HISTORY_SUMMARY_THRESHOLD ≤ HISTORY_MAX_MESSAGES`, оба `> 0`, `EMBEDDING_DIMENSIONS > 0`, путь `AGENT_SYSTEM_PROMPT_PATH` существует.
 
-### 3.3 Логирование (`app/logging_config.py`)
+### 3.3 Логирование (`app/core/logging_config.py`)
 
-`logging.config.dictConfig` с двумя handler'ами: консоль и файл (`RotatingFileHandler`). Формат: `%(asctime)s | %(levelname)s | %(name)s | %(message)s`. Уровень — из `LOG_LEVEL`. Файл — `LOG_FILE`, каталог создаётся автоматически. См. `_docs/agent-loop.md` §6 про логирование шагов цикла.
+`logging.config.dictConfig` с двумя handler'ами: консоль и файл (`TimedRotatingFileHandler`). Формат: `%(asctime)s | %(levelname)s | %(name)s | %(message)s`. Уровень — из `LOG_LEVEL`. Файл — `LOG_FILE`, каталог создаётся автоматически. Ротация — ежедневно в полночь (UTC), хранится максимум 14 ротированных файлов (~2 недели); более старые файлы удаляются автоматически. См. `_docs/agent-loop.md` §6 про логирование шагов цикла.
 
 ### 3.4 LLM-сервис (`app/services/llm.py`)
 

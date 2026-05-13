@@ -102,7 +102,7 @@
 - **Объём:** S
 - **Зависит от:** Задача 1.1
 - **Связанные документы:** `_docs/stack.md` §8; `_docs/architecture.md` §3.3.
-- **Затрагиваемые файлы:** `app/logging_config.py`, `tests/test_logging_config.py`.
+- **Затрагиваемые файлы:** `app/core/logging_config.py`, `tests/test_logging_config.py`.
 
 #### Описание
 
@@ -621,7 +621,7 @@ Dataclass `AgentDecision(kind, thought, action, args, final_answer)`. Функц
 
 - **2026-04-28** — спринт открыт, ветка `feature/mvp-agent` создана от `main` (Спринт 00 закрыт коммитом `c54b0c2`).
 - **2026-04-28** — закрыта задача 1.1 (`Settings` + тесты): `app/config.py`, `tests/test_config.py` (9 тестов). Коммит `40977a1`.
-- **2026-04-28** — закрыта задача 1.2 (`setup_logging` + тест): `app/logging_config.py`, `tests/test_logging_config.py`. Коммит `1b24c2e`.
+- **2026-04-28** — закрыта задача 1.2 (`setup_logging` + тест): `app/core/logging_config.py`, `tests/test_logging_config.py`. Коммит `1b24c2e`.
 - **2026-04-28** — закрыта задача 1.3 (`OllamaClient` + тесты): `app/services/llm.py`, `tests/services/test_llm_client.py` (13 тестов). Коммит `1997316`. Этап 1 завершён.
 - **2026-04-28** — закрыта задача 2.1 (`ConversationStore` + тесты): `app/services/conversation.py`, `tests/services/test_conversation_store.py` (9 тестов).
 - **2026-04-28** — закрыта задача 2.2 (`Summarizer` + тесты): `app/services/summarizer.py`, `tests/services/test_summarizer.py` (2 теста).

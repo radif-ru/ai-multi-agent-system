@@ -15,7 +15,7 @@ from app.adapters.console.adapter import ConsoleAdapter
 from app.agents.executor import Executor
 from app.config import Settings
 from app.core import orchestrator as _orchestrator
-from app.logging_config import setup_logging
+from app.core.logging_config import setup_logging
 from app.observability import setup_sentry
 from app.services.archiver import Archiver
 from app.services.conversation import ConversationStore
