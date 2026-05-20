@@ -166,15 +166,16 @@ Telegram-адаптер принимает текст, оборачивает е
 
 ### 3.11 Core (`app/core/orchestrator.py`)
 
-В MVP — тонкая прослойка-функция `async def handle_user_task(text: str, *, user_id: int, chat_id: int, conversations, executor, model=None) -> str`, которая:
+`async def handle_user_task(text: str, *, user_id: int, chat_id: int, conversations, executor, model=None, settings=None, llm=None, semantic_memory=None, planner=None, critic=None, user_settings=None) -> str`:
 
 1. Берёт текущий `conversation_id` из `ConversationStore`.
 2. Достаёт `history = conversations.get_history(user_id)` (адаптер уже дописал текущий user-message в `ConversationStore` до вызова core, см. `memory.md` §2.4).
 3. Если это первый ход новой сессии (`len(history) == 1`) и `SESSION_BOOTSTRAP_ENABLED=true` — делает авто-подгрузку архива через `SemanticMemory.search` и дописывает найденные чанки `system`-сообщением в начало `history` (см. `memory.md` §3.6). Падение embed/search — `WARNING`, ход продолжается.
-4. Запускает `Executor.run(goal=text, user_id=..., conversation_id=..., history=history)`.
-5. Возвращает финальный текст.
+4. Определяет эффективный режим рефлексии: `user_settings.get_reflection_mode(user_id)` имеет приоритет, иначе `settings.agent_reflection_mode` (см. `multi-agent.md`).
+5. **Режим `OFF`** (или если `planner`/`critic` не переданы) — `Executor.run(goal=text, ..., history=history)`, как в MVP.
+6. **Режимы `NORMAL`/`DEEP`:** `Planner` строит план, план подмешивается в `goal` Executor'а как контекст; полученный draft проходит через `Critic`. `PASS` → возврат draft; `REVISE` → повторный вызов Executor с фидбеком (`NORMAL` — ровно один проход Critic, `DEEP` — до `agent_reflection_max_iterations`). Любая ошибка Planner/Critic → graceful degradation: возвращается последний доступный draft (см. `multi-agent.md`).
 
-В архитектурном смысле это **единственная точка входа от любого адаптера** (Telegram сейчас, web/MAX в будущем). Адаптер не знает про Executor напрямую.
+В архитектурном смысле это **единственная точка входа от любого адаптера** (Telegram сейчас, web/MAX в будущем). Адаптер не знает про Executor / Planner / Critic напрямую.
 
 ### 3.12 Executor (`app/agents/executor.py`)
 
