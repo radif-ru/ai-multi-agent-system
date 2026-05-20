@@ -325,7 +325,38 @@
 - [ ] **Тесты добавлены / обновлены** — `n/a`.
 - [ ] `git status` чист.
 
-## 9. Риски и смягчение
+## 9. Этап 6. Перенос ассетов агента в `app/`
+
+Промпты и скиллы — рантайм-ассеты пакета `app/`, а не мета-каталоги уровня репо (как `_docs/` и `_board/`). Перенос убирает неоднозначность с возможными будущими «скиллами для ИИ-кодера» в корне и кладёт ассеты рядом с кодом, который их грузит (`app/services/prompts.py`, `app/services/skills.py`).
+
+### Задача 6.1. Перенести `_prompts/` → `app/prompts/`, `_skills/` → `app/skills/`
+
+- **Статус:** ToDo
+- **Приоритет:** medium
+- **Объём:** S
+- **Зависит от:** — (внеочередно по запросу пользователя 2026-05-20; не блокирует задачи 5.1 / 5.2)
+- **Связанные документы:** `_docs/prompts.md`, `_docs/skills.md`, `_docs/project-structure.md`, `_docs/architecture.md`, `_docs/instructions.md`, `_board/process.md` §4.2/§8.1.
+- **Затрагиваемые файлы:** `_prompts/` → `app/prompts/`, `_skills/` → `app/skills/`; `app/config.py`, `app/main.py`, `app/console_main.py`, `app/services/prompts.py`, `app/services/skills.py`, `app/tools/load_skill.py`, `app/tools/weather.py`, `app/agents/{planner,critic,executor,protocol}.py`; `tests/test_config.py`, `tests/test_logging_config.py`; `.env.example`; `_docs/*` (актуальные); `_board/process.md` (правила DoD/документации).
+
+#### Описание
+
+1. `git mv _prompts app/prompts`, `git mv _skills app/skills`.
+2. Обновить дефолты путей: `Settings.agent_system_prompt_path`, `PromptLoader._DEFAULT_SUMMARIZER_PATH` / `_DEFAULT_PLANNER_PATH` / `_DEFAULT_CRITIC_PATH`, передача `SkillRegistry("app/skills")` в `app/main.py` и `app/console_main.py`.
+3. Обновить `.env.example`: `AGENT_SYSTEM_PROMPT_PATH=app/prompts/agent_system.md`.
+4. Обновить тесты с фиксированными путями (`tests/test_config.py`, `tests/test_logging_config.py`).
+5. Обновить документацию `_docs/*` (актуальные файлы) и правила процесса `_board/process.md` (§4.2 пункт DoD «Тесты», §8.1 пункт 6 и финальный абзац). Закрытые спринты в `_board/sprints/` не трогаем (архив, см. `_board/process.md` §2 п.5).
+6. Перенести `_prompts/README.md` → `app/prompts/README.md`, `_skills/README.md` → `app/skills/README.md`; обновить кросс-ссылки.
+
+#### Definition of Done
+
+- [ ] `_prompts/` и `_skills/` отсутствуют в корне; `app/prompts/` и `app/skills/` существуют со всем содержимым.
+- [ ] `pytest -q` зелёный; `flake8 app tests` зелёный.
+- [ ] `python -c "import app"` и `python -c "from app.main import main; print(main)"` не падают.
+- [ ] **Документация обновлена** — `_docs/project-structure.md`, `_docs/prompts.md`, `_docs/skills.md`, `_docs/architecture.md`, `_docs/instructions.md`, `_docs/tools.md`, `_docs/README.md`, `_board/process.md`, `app/prompts/README.md`, `app/skills/README.md`.
+- [ ] **Тесты добавлены / обновлены** — обновлены пути в `tests/test_config.py`, `tests/test_logging_config.py`; новых тестов не требуется (рефакторинг расположения файлов, поведение не меняется).
+- [ ] `git status` чист.
+
+## 10. Риски и смягчение
 
 | # | Риск | Смягчение |
 |---|------|-----------|
@@ -335,7 +366,7 @@
 | 4 | Capability graph (`{{nodeId}}`) при попытке «дотащить в этот же спринт» раздует scope. | Явный non-goal §2; вынесено в roadmap как отдельный кандидат. |
 | 5 | `/mode` нарушит существующий тест на список команд. | Тесты `tests/adapters/telegram/test_commands.py` и `tests/adapters/console/*` правятся в задаче 4.2 синхронно с реализацией. |
 
-## 10. Сводная таблица задач спринта
+## 11. Сводная таблица задач спринта
 
 | #   | Задача                                                | Приоритет | Объём | Статус | Зависит от        |
 |-----|-------------------------------------------------------|:---------:|:-----:|:------:|:-----------------:|
@@ -350,10 +381,11 @@
 | 4.3 | Сквозной интеграционный тест оркестратора             | medium    | S     | Done   | 4.1, 4.2          |
 | 5.1 | Новый `_docs/multi-agent.md`                          | high      | M     | ToDo   | 4.1, 4.2          |
 | 5.2 | Обновить `current-state.md` и `roadmap.md`            | medium    | S     | ToDo   | 5.1               |
+| 6.1 | Перенести `_prompts/`/`_skills/` в `app/`             | medium    | S     | ToDo   | —                 |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
-## 11. История изменений спринта
+## 12. История изменений спринта
 
 - **2026-05-20** — спринт открыт, ветка `feature/07-multi-agent` создана от `main`.
 - **2026-05-20** — задача 07.1.1 взята в работу (`ToDo` → `Progress`).
@@ -374,3 +406,4 @@
 - **2026-05-20** — закрыта задача 07.4.2: `cmd_mode` в `app/commands/registry.py` + Telegram-handler + регистрация в `_BOT_COMMANDS`, 3 telegram-теста + 1 консольный, обновлены `commands.md` и `console-adapter.md`.
 - **2026-05-20** — задача 07.4.3 взята в работу (`ToDo` → `Progress`).
 - **2026-05-20** — закрыта задача 07.4.3: сквозной e2e-тест `tests/test_multi_agent_e2e.py` на реальных Planner/Executor/Critic с мок-LLM (5 вызовов, DEEP → REVISE → PASS). Этап 4 завершён.
+- **2026-05-20** — добавлен Этап 6 «Перенос ассетов агента в `app/`» и задача 07.6.1 (внеочередно, по запросу пользователя): `_prompts/` → `app/prompts/`, `_skills/` → `app/skills/`.
