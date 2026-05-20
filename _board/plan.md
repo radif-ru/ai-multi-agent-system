@@ -10,7 +10,7 @@
 
 | ID | Название | Файл | Ветка | Статус | Открыт | Закрыт |
 |:--:|----------|------|-------|:------:|:------:|:------:|
-| — | — | — | — | — | — | — |
+| 07 | Multi-agent (Planner + Critic) | [`sprints/07-multi-agent.md`](./sprints/07-multi-agent.md) | `feature/07-multi-agent` | Active | 2026-05-20 | — |
 
 ### Закрытые
 
@@ -43,6 +43,7 @@
 | 04. Событийная модель и модуль Users | Closed | 0 / 0 / 9 | `sprints/04-events-and-users.md` |
 | 05. Усиление безопасности и OCR-рефакторинг | Closed | 0 / 0 / 13 | `sprints/05-security-ocr.md` |
 | 06. Надёжность диалога и observability | Closed | 0 / 0 / 24 | `sprints/06-reliability-and-observability.md` |
+| 07. Multi-agent (Planner + Critic) | Active | 11 / 0 / 0 | `sprints/07-multi-agent.md` |
 
 > Таблицу обновлять одновременно с переходами статусов в файлах спринтов (см. `process.md` §7.3 и §7.9).
 
