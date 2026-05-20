@@ -258,7 +258,7 @@
 
 ### Задача 4.3. Сквозной интеграционный тест оркестратора
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** Задача 4.1, Задача 4.2.
@@ -347,7 +347,7 @@
 | 3.2 | `CriticAgent`                                         | high      | M     | Done   | 3.1, 1.2          |
 | 4.1 | Расширить `core.handle_user_task`                     | high      | L     | Done   | 2.2, 3.2, 1.1     |
 | 4.2 | Команда `/mode`                                       | medium    | S     | Done   | 1.1, 4.1          |
-| 4.3 | Сквозной интеграционный тест оркестратора             | medium    | S     | ToDo   | 4.1, 4.2          |
+| 4.3 | Сквозной интеграционный тест оркестратора             | medium    | S     | Progress | 4.1, 4.2        |
 | 5.1 | Новый `_docs/multi-agent.md`                          | high      | M     | ToDo   | 4.1, 4.2          |
 | 5.2 | Обновить `current-state.md` и `roadmap.md`            | medium    | S     | ToDo   | 5.1               |
 
@@ -372,3 +372,4 @@
 - **2026-05-20** — закрыта задача 07.4.1: оркестратор расширен режимами OFF/NORMAL/DEEP (Planner+Executor+Critic), DI в `main.py`/`console_main.py`, 9 новых юнит-тестов, обновлён `architecture.md` §3.11.
 - **2026-05-20** — задача 07.4.2 взята в работу (`ToDo` → `Progress`).
 - **2026-05-20** — закрыта задача 07.4.2: `cmd_mode` в `app/commands/registry.py` + Telegram-handler + регистрация в `_BOT_COMMANDS`, 3 telegram-теста + 1 консольный, обновлены `commands.md` и `console-adapter.md`.
+- **2026-05-20** — задача 07.4.3 взята в работу (`ToDo` → `Progress`).
