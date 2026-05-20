@@ -7,7 +7,7 @@ ai-multi-agent-system/
 ├── .env.example              # шаблон конфигурации (коммитится)
 ├── .env                      # реальные секреты (в .gitignore)
 ├── .gitignore
-├── CLAUDE.md                 # поведенческие гайдлайны LLM-агента (общие)
+├── AGENTS.md                 # поведенческие гайдлайны LLM-агента (общие)
 ├── README.md                 # инструкция запуска + команды бота
 ├── requirements.txt          # runtime + dev-зависимости
 ├── pyproject.toml            # конфиг pytest (asyncio_mode=auto)
@@ -195,7 +195,7 @@ ai-multi-agent-system/
 
 | Путь | Ответственность |
 |------|-----------------|
-| `CLAUDE.md` | Общие поведенческие гайдлайны LLM-агента (think before coding, simplicity, surgical changes, goal-driven). Читается первым перед любой задачей. |
+| `AGENTS.md` | Общие поведенческие гайдлайны LLM-агента (think before coding, simplicity, surgical changes, goal-driven). Читается первым перед любой задачей. |
 | `_docs/*.md` | Проектная документация: требования, архитектура, стек, инструкции, roadmap, агентный цикл, память, tools, skills, prompts. |
 | `_docs/current-state.md` | Фактическое состояние кода: что работает, легаси, известные проблемы. **Читать перед правками.** Технический долг текущего кода — в §2 этого файла. |
 | `_docs/links.md` | Каталог внешних ссылок (aiogram, Ollama, sqlite-vec, ddgs, pytest и др.). |

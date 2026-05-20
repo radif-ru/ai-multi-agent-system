@@ -5,7 +5,7 @@ AI-агент с локальной LLM (Ollama), работающий в цик
 ## Источник истины
 
 - Корневой `README.md` — пользовательское описание проекта (что это, как установить, какие команды).
-- `CLAUDE.md` — поведенческие гайдлайны LLM-агента (общие, не проектные).
+- `AGENTS.md` — поведенческие гайдлайны LLM-агента (общие, не проектные).
 - Документы в этой папке — формализация фактического состояния кода в `app/` на момент написания. **При расхождении с кодом приоритет у кода**, документ должен быть подправлен следующим коммитом.
 - `_skills/` и `_prompts/` — содержательные артефакты, которые подмешиваются в системный промпт агента в рантайме (см. `skills.md`, `prompts.md`).
 
@@ -46,7 +46,7 @@ AI-агент с локальной LLM (Ollama), работающий в цик
 
 ## Порядок чтения
 
-1. **Новый агент / разработчик на проекте**: `CLAUDE.md` → `_docs/README.md` (этот файл) → `architecture.md` → `agent-loop.md` → `project-structure.md` → `current-state.md` → `roadmap.md`.
+1. **Новый агент / разработчик на проекте**: `AGENTS.md` → `_docs/README.md` (этот файл) → `architecture.md` → `agent-loop.md` → `project-structure.md` → `current-state.md` → `roadmap.md`.
 2. **Перед написанием кода**: `instructions.md` + `stack.md` + затронутый раздел (`commands.md` / `architecture.md` / `tools.md` / `memory.md`).
 3. **При багфиксе или изменении конфигурации**: `current-state.md` (есть ли уже запись) → `stack.md` §9 (env-переменные) → код в `app/`.
 4. **При планировании спринта**: `roadmap.md` → задача попадает в `_board/sprints/<NN>-<short-name>.md`.
@@ -55,7 +55,7 @@ AI-агент с локальной LLM (Ollama), работающий в цик
 
 - `_docs/` — спецификация и состояние проекта (что и как).
 - `_board/` — процесс и текущие задачи (что делаем сейчас).
-- Точка входа для нового LLM-агента: `CLAUDE.md` → `_docs/README.md` → `_board/README.md` → `_board/plan.md` → `_board/sprints/<active>.md` → `_board/process.md`.
+- Точка входа для нового LLM-агента: `AGENTS.md` → `_docs/README.md` → `_board/README.md` → `_board/plan.md` → `_board/sprints/<active>.md` → `_board/process.md`.
 
 ## Связь с `_skills/` и `_prompts/`
 
