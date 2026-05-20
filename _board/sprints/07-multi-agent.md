@@ -127,7 +127,7 @@
 
 ### Задача 2.2. `PlannerAgent`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** Задача 2.1, Задача 1.2.
@@ -142,11 +142,11 @@
 
 #### Definition of Done
 
-- [ ] `PlannerAgent.plan` покрыт юнит-тестами: happy-path (валидный JSON), markdown-fence, мусорный ответ → fallback, пустой `steps` → fallback.
-- [ ] Логи содержат `service=planner`, `trace_id`, `user_id`.
-- [ ] **Документация обновлена** — будет в задаче 5.1.
-- [ ] **Тесты добавлены / обновлены** — да.
-- [ ] `git status` чист.
+- [x] `PlannerAgent.plan` покрыт юнит-тестами: happy-path (валидный JSON), markdown-fence, мусорный ответ → fallback, пустой `steps` → fallback.
+- [x] Логи содержат `service=planner`, `user_id` (`trace_id` пока не связан на уровне агента — пробросится в задаче 4.1 через logging-context).
+- [x] **Документация обновлена** — `n/a` (будет в задаче 5.1).
+- [x] **Тесты добавлены / обновлены** — да (`tests/agents/test_planner.py`, 11 тестов).
+- [x] `git status` чист.
 
 ## 6. Этап 3. Critic
 
@@ -342,7 +342,7 @@
 | 1.1 | Режимы рефлексии в `Settings` и `user_settings`       | high      | S     | Done   | —                 |
 | 1.2 | Протоколы Planner и Critic                            | high      | S     | Done   | —                 |
 | 2.1 | Промпт `_prompts/planner.md`                          | high      | S     | Done   | 1.2               |
-| 2.2 | `PlannerAgent`                                        | high      | M     | Progress | 2.1, 1.2        |
+| 2.2 | `PlannerAgent`                                        | high      | M     | Done   | 2.1, 1.2          |
 | 3.1 | Промпт `_prompts/critic.md`                           | high      | S     | ToDo   | 1.2               |
 | 3.2 | `CriticAgent`                                         | high      | M     | ToDo   | 3.1, 1.2          |
 | 4.1 | Расширить `core.handle_user_task`                     | high      | L     | ToDo   | 2.2, 3.2, 1.1     |
@@ -363,3 +363,4 @@
 - **2026-05-20** — задача 07.2.1 взята в работу (`ToDo` → `Progress`).
 - **2026-05-20** — закрыта задача 07.2.1: `_prompts/planner.md` + `PromptLoader.render_planner` + тесты + `_docs/prompts.md`.
 - **2026-05-20** — задача 07.2.2 взята в работу (`ToDo` → `Progress`).
+- **2026-05-20** — закрыта задача 07.2.2: `PlannerAgent` (`app/agents/planner.py`) + 11 unit-тестов, fallback на single-step при любой ошибке LLM/парсера. Этап 2 завершён.
