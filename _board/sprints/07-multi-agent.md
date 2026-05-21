@@ -331,7 +331,7 @@
 
 ### Задача 6.1. Перенести `_prompts/` → `app/prompts/`, `_skills/` → `app/skills/`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** — (внеочередно по запросу пользователя 2026-05-20; не блокирует задачи 5.1 / 5.2)
@@ -349,12 +349,12 @@
 
 #### Definition of Done
 
-- [ ] `_prompts/` и `_skills/` отсутствуют в корне; `app/prompts/` и `app/skills/` существуют со всем содержимым.
-- [ ] `pytest -q` зелёный; `flake8 app tests` зелёный.
-- [ ] `python -c "import app"` и `python -c "from app.main import main; print(main)"` не падают.
-- [ ] **Документация обновлена** — `_docs/project-structure.md`, `_docs/prompts.md`, `_docs/skills.md`, `_docs/architecture.md`, `_docs/instructions.md`, `_docs/tools.md`, `_docs/README.md`, `_board/process.md`, `app/prompts/README.md`, `app/skills/README.md`.
-- [ ] **Тесты добавлены / обновлены** — обновлены пути в `tests/test_config.py`, `tests/test_logging_config.py`; новых тестов не требуется (рефакторинг расположения файлов, поведение не меняется).
-- [ ] `git status` чист.
+- [x] `_prompts/` и `_skills/` отсутствуют в корне; `app/prompts/` и `app/skills/` существуют со всем содержимым.
+- [x] `pytest -q` зелёный (508 passed); `flake8 app tests` зелёный.
+- [x] `python -c "import app"` и `python -c "from app.main import main; print(main)"` не падают.
+- [x] **Документация обновлена** — `_docs/project-structure.md`, `_docs/prompts.md`, `_docs/skills.md`, `_docs/architecture.md`, `_docs/instructions.md`, `_docs/tools.md`, `_docs/README.md`, `_board/process.md`, `app/prompts/README.md`, `app/skills/README.md`.
+- [x] **Тесты добавлены / обновлены** — обновлены пути в `tests/test_config.py`, `tests/test_logging_config.py`, `tests/test_main.py`; новых тестов не требуется (рефакторинг расположения файлов, поведение не меняется).
+- [x] `git status` чист.
 
 ## 10. Риски и смягчение
 
@@ -381,7 +381,7 @@
 | 4.3 | Сквозной интеграционный тест оркестратора             | medium    | S     | Done   | 4.1, 4.2          |
 | 5.1 | Новый `_docs/multi-agent.md`                          | high      | M     | ToDo   | 4.1, 4.2          |
 | 5.2 | Обновить `current-state.md` и `roadmap.md`            | medium    | S     | ToDo   | 5.1               |
-| 6.1 | Перенести `_prompts/`/`_skills/` в `app/`             | medium    | S     | Progress | —               |
+| 6.1 | Перенести `_prompts/`/`_skills/` в `app/`             | medium    | S     | Done   | —                 |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
@@ -408,3 +408,4 @@
 - **2026-05-20** — закрыта задача 07.4.3: сквозной e2e-тест `tests/test_multi_agent_e2e.py` на реальных Planner/Executor/Critic с мок-LLM (5 вызовов, DEEP → REVISE → PASS). Этап 4 завершён.
 - **2026-05-20** — добавлен Этап 6 «Перенос ассетов агента в `app/`» и задача 07.6.1 (внеочередно, по запросу пользователя): `_prompts/` → `app/prompts/`, `_skills/` → `app/skills/`.
 - **2026-05-20** — задача 07.6.1 взята в работу (`ToDo` → `Progress`).
+- **2026-05-21** — закрыта задача 07.6.1: `_prompts/` → `app/prompts/`, `_skills/` → `app/skills/`; обновлены дефолты в `Settings` и `PromptLoader`, DI в `app/main.py`/`app/console_main.py`, `.env.example`, документация (`_docs/*`, `_board/process.md`, `README.md`) и тесты (`tests/test_config.py`, `tests/test_logging_config.py`, `tests/test_main.py`); 508 passed, flake8 зелёный.
