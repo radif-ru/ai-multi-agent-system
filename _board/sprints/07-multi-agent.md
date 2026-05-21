@@ -303,7 +303,7 @@
 
 ### Задача 5.2. Обновить `current-state.md` и `roadmap.md`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** Задача 5.1.
@@ -319,11 +319,11 @@
 
 #### Definition of Done
 
-- [ ] `_docs/current-state.md` §1.8 и §3 актуальны.
-- [ ] `_docs/roadmap.md` не содержит «Этап 3» в прежнем виде; capability graph либо отдельным backlog-пунктом, либо запись «закрыт спринтом 07».
-- [ ] **Документация обновлена** — да.
-- [ ] **Тесты добавлены / обновлены** — `n/a`.
-- [ ] `git status` чист.
+- [x] `_docs/current-state.md` §1.8 и §3 актуальны.
+- [x] `_docs/roadmap.md` не содержит «Этап 3» в прежнем виде; capability graph либо отдельным backlog-пунктом, либо запись «закрыт спринтом 07» — «Этап 3» переписан в «Capability graph для multi-agent» (Backlog), базовый multi-agent помечен как закрытый спринтом 07; «Этап 14» обновил зависимость.
+- [x] **Документация обновлена** — да.
+- [x] **Тесты добавлены / обновлены** — `n/a`.
+- [x] `git status` чист.
 
 ## 9. Этап 6. Перенос ассетов агента в `app/`
 
@@ -406,7 +406,7 @@
 | 4.2 | Команда `/mode`                                       | medium    | S     | Done   | 1.1, 4.1          |
 | 4.3 | Сквозной интеграционный тест оркестратора             | medium    | S     | Done   | 4.1, 4.2          |
 | 5.1 | Новый `_docs/multi-agent.md`                          | high      | M     | Done   | 4.1, 4.2          |
-| 5.2 | Обновить `current-state.md` и `roadmap.md`            | medium    | S     | Progress | 5.1             |
+| 5.2 | Обновить `current-state.md` и `roadmap.md`            | medium    | S     | Done   | 5.1               |
 | 6.1 | Перенести `_prompts/`/`_skills/` в `app/`             | medium    | S     | Done   | —                 |
 | 6.2 | Унифицировать источник промпта суммаризации              | medium    | XS    | Done   | 6.1               |
 
@@ -441,3 +441,5 @@
 - **2026-05-21** — закрыта задача 07.6.2: `Summarizer` получает промпт из `PromptLoader.summarizer_prompt` в `app/main.py`/`app/console_main.py`; удалены `Settings.summarization_prompt`, `SUMMARIZATION_PROMPT` из `.env.example`, `_docs/stack.md`, `tests/test_config.py`, `tests/test_main.py`; 508 passed, flake8 зелёный.
 - **2026-05-21** — задача 07.5.1 взята в работу (`ToDo` → `Progress`).
 - **2026-05-21** — закрыта задача 07.5.1: создан `_docs/multi-agent.md` (роли Planner/Executor/Critic, JSON-контракты, режимы OFF/NORMAL/DEEP, fallback'ы, поток, логирование, команда `/mode`); добавлен в навигацию `_docs/README.md` и в `_docs/project-structure.md`.
+- **2026-05-21** — задача 07.5.2 взята в работу (`ToDo` → `Progress`).
+- **2026-05-21** — закрыта задача 07.5.2: в `_docs/current-state.md` добавлены §1.8 (Multi-agent) и пункт §3 о graceful degradation Planner/Critic; `_docs/roadmap.md` «Этап 3» переписан под Backlog «Capability graph для multi-agent», зависимость «Этапа 14» обновлена. Этап 5 завершён.
