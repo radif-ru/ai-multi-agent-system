@@ -107,7 +107,7 @@ async def _build_components(settings: Settings) -> tuple:
     except Exception as exc:  # noqa: BLE001
         logger.error("ошибка инициализации FileIdMapper: %s", exc)
 
-    skills = SkillRegistry("_skills")
+    skills = SkillRegistry("app/skills")
     skills.load()
     prompts = PromptLoader(settings.agent_system_prompt_path)
     user_settings = UserSettingsRegistry(

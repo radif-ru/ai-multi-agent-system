@@ -1,6 +1,6 @@
 """PlannerAgent — декомпозиция задачи в линейный план.
 
-См. `_board/sprints/07-multi-agent.md` §5 (Этап 2) и `_prompts/planner.md`.
+См. `_board/sprints/07-multi-agent.md` §5 (Этап 2) и `app/prompts/planner.md`.
 
 Контракт: на вход — текст задачи пользователя, на выход — `Plan` (см.
 `app/agents/protocol.py`). При любой ошибке LLM или парсинга — возвращаем

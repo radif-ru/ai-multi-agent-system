@@ -20,10 +20,10 @@ Telegram-бот, работающий как **AI-агент** на локаль
 - **Краткосрочная память** per-user (in-memory FIFO + in-session суммаризация + полный лог сессии + контекст файлов для reply) — [`app/services/conversation.py`](./app/services/conversation.py), [`app/services/summarizer.py`](./app/services/summarizer.py).
 - **Долгосрочная семантическая память** на `sqlite-vec`: `/new` суммирует сессию, режет на чанки, пишет с embedding'ом в `data/memory.db`; поиск через `memory_search` — [`app/services/memory.py`](./app/services/memory.py), [`app/services/archiver.py`](./app/services/archiver.py).
 - **Авто-подгрузка архива** при старте новой сессии через `SemanticMemory.search` — [`app/core/orchestrator.py`](./app/core/orchestrator.py).
-- **Skills** из [`_skills/`](./_skills): markdown с `Description:` в первой строке или YAML frontmatter; описания инжектятся в системный промпт, полное тело — через tool `load_skill` — [`app/services/skills.py`](./app/services/skills.py).
+- **Skills** из [`app/skills/`](./pp/skills): markdown с `Description:` в первой строке или YAML frontmatter; описания инжектятся в системный промпт, полное тело — через tool `load_skill` — [`app/services/skills.py`](./app/services/skills.py).
 - **Пользователи и событийная шина**: модуль Users с `UserRepository` + `EventBus` для развязки компонентов (события `UserCreated`, `MessageReceived`, `ResponseGenerated`, `ConversationArchived`) — [`app/users/`](./app/users), [`app/core/events.py`](./app/core/events.py).
 - **Безопасность**: `InputSanitizer` (prompt injection), `FileIdMapper` (маскировка путей), `ResponseSanitizer` (фильтрация системной информации), allowlist для опасных tools — [`app/security/`](./app/security).
-- **Prompts** (`_prompts/`): системный промпт агента и промпт суммаризации в markdown — [`app/services/prompts.py`](./app/services/prompts.py).
+- **Prompts** (`app/prompts/`): системный промпт агента и промпт суммаризации в markdown — [`app/services/prompts.py`](./app/services/prompts.py).
 - **Настройки на пользователя** (выбранная модель, промпт) — [`app/services/model_registry.py`](./app/services/model_registry.py).
 - **Логирование** через `TimedRotatingFileHandler` (ежедневная ротация, хранение ~14 дней) + middleware на каждый update; структурные JSON-логи со сквозным `trace_id` и опциональный error tracking в self-hosted GlitchTip (`SENTRY_DSN`) — [`app/core/logging_config.py`](./app/core/logging_config.py), [`app/observability/`](./app/observability), [`docker-compose.observability.yml`](./docker-compose.observability.yml). Подробнее — [`_docs/observability.md`](./_docs/observability.md).
 - **Журнал диалога** (`dialog_journal` в `data/memory.db`, append-only) и фоновое восстановление незаархивированных сессий при старте — [`app/services/dialog_journal.py`](./app/services/dialog_journal.py), [`app/services/journal_recovery.py`](./app/services/journal_recovery.py); раздел `_docs/memory.md` §4.
@@ -98,7 +98,7 @@ ollama serve & .venv/bin/python -m app.console_main
 | `/reset`           | —               | Очищает текущую in-memory историю и per-user настройки. Архив **не трогает**. |
 | `/models`          | —               | Список `OLLAMA_AVAILABLE_MODELS` с пометкой активной.                    |
 | `/model <name>`    | имя модели      | Переключить активную LLM для пользователя.                               |
-| `/prompt [<text>]` | текст \| пусто  | Задать системный промпт; без аргумента — сброс к default из `_prompts/`. |
+| `/prompt [<text>]` | текст \| пусто  | Задать системный промпт; без аргумента — сброс к default из `app/prompts/`. |
 | `/search_engines`  | —               | Список доступных поисковиков с пометкой активного.                       |
 | `/search_engine <name>` | имя        | Переключить активный поисковик для пользователя.                         |
 | *произвольный текст* | —             | Запустить агентный цикл с этой задачей; вернуть финальный ответ.         |
@@ -111,8 +111,8 @@ ollama serve & .venv/bin/python -m app.console_main
 ai-multi-agent-system/
 ├── _docs/        # проектная документация (см. _docs/README.md)
 ├── _board/       # доска задач: спринты + процесс
-├── _skills/      # markdown-скиллы (SKILL.md в каждой подпапке)
-├── _prompts/     # системные промпты в markdown
+├── app/skills/      # markdown-скиллы (SKILL.md в каждой подпапке)
+├── app/prompts/     # системные промпты в markdown
 ├── app/          # код приложения (агент, tools, adapters)
 ├── tests/        # unit-тесты, зеркалят app/
 ├── data/         # runtime-данные: SQLite с sqlite-vec (в .gitignore)
@@ -142,7 +142,7 @@ pytest --cov=app --cov-report=term-missing
 - 🔁 [`_docs/agent-loop.md`](./_docs/agent-loop.md) — формат JSON ответа, шаги цикла, лимиты.
 - 🧠 [`_docs/memory.md`](./_docs/memory.md) — краткосрочная и долгосрочная память, контекст файлов.
 - 🧰 [`_docs/tools.md`](./_docs/tools.md) — реестр инструментов и контракт нового tool.
-- 🪄 [`_docs/skills.md`](./_docs/skills.md) — формат `_skills/<name>/SKILL.md`.
+- 🪄 [`_docs/skills.md`](./_docs/skills.md) — формат `app/skills/<name>/SKILL.md`.
 - 💬 [`_docs/commands.md`](./_docs/commands.md) — команды бота.
 - 🛠️ [`_docs/console-adapter.md`](./_docs/console-adapter.md) — консольный режим (REPL-цикл, запуск).
 - 🛠️ [`_docs/instructions.md`](./_docs/instructions.md) — правила разработки (включая обязательные тесты перед коммитом).

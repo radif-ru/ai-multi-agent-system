@@ -171,7 +171,7 @@ def _parse_action(payload: dict[str, Any]) -> AgentDecision:
 # Multi-agent контракты (Planner / Critic). См. _docs/multi-agent.md.
 # --------------------------------------------------------------------------
 
-# Жёсткие лимиты плана — синхронизированы с `_prompts/planner.md`
+# Жёсткие лимиты плана — синхронизированы с `app/prompts/planner.md`
 # (см. задачу 2.1 спринта 07).
 PLAN_MIN_STEPS = 1
 PLAN_MAX_STEPS = 6

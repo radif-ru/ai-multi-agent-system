@@ -86,7 +86,7 @@
 | `MEMORY_SEARCH_TOP_K`       | Сколько чанков возвращать tool'ом `memory_search`.               | `5`                       |
 | `SESSION_BOOTSTRAP_ENABLED` | Авто-подгрузка архива в первый ход новой сессии (см. `_docs/memory.md` §3.6). | `true`         |
 | `SESSION_BOOTSTRAP_TOP_K`   | Сколько чанков подмешивать при авто-подгрузке.                   | `3`                       |
-| `AGENT_SYSTEM_PROMPT_PATH`  | Путь к markdown-файлу системного промпта агента.                 | `_prompts/agent_system.md`|
+| `AGENT_SYSTEM_PROMPT_PATH`  | Путь к markdown-файлу системного промпта агента.                 | `app/prompts/agent_system.md`|
 | `LOG_LEVEL`                 | Уровень логов (`DEBUG\|INFO\|WARNING\|ERROR`).                   | `DEBUG`                   |
 | `LOG_FILE`                  | Путь к файлу логов.                                              | `logs/agent.log`          |
 | `LOG_LLM_CONTEXT`           | Логировать полный JSON контекста перед LLM-запросом.             | `true`                    |

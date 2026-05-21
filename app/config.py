@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     session_bootstrap_top_k: int = 3
 
     # --- Prompts ---
-    agent_system_prompt_path: Path = Path("_prompts/agent_system.md")
+    agent_system_prompt_path: Path = Path("app/prompts/agent_system.md")
 
     # --- Logging ---
     log_level: str = "DEBUG"

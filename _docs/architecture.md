@@ -49,7 +49,7 @@ Telegram-адаптер принимает текст, оборачивает е
         +-------+--------+   +-------------------+         |        |
                 |                                          v        v
                 | HTTP                               +----------+ +----------+
-                v                                    |sqlite-vec| | _skills/ |
+                v                                    |sqlite-vec| | app/skills/ |
         +----------------+                           |  KNN     | |          |
         | Ollama (local) |                           +----------+ +----------+
         | qwen3.5:4b +   |
@@ -74,7 +74,7 @@ Telegram-адаптер принимает текст, оборачивает е
 - **Структурированный диалог с моделью.** Ответ LLM в цикле — **строго JSON** одной из двух форм. Никаких prose-ответов в цикле. См. `agent-loop.md`.
 - **Memory split.** Краткосрочная память — in-memory per-user (`ConversationStore`), теряется при рестарте. Долгосрочная — `sqlite-vec` (`SemanticMemory`), пополняется только саммари (не сырыми сообщениями) при `/new`. См. `memory.md`.
 - **Tools as a registry.** Каждый tool — отдельный модуль с фиксированным контрактом (`name`, `description`, `args_schema`, `async run(args, ctx) -> str`). Регистрация — централизованная в `app/tools/registry.py`. См. `tools.md`.
-- **Skills как промпт-инжект.** `_skills/<name>/SKILL.md` — markdown-инструкции; в системный промпт инжектируется только их описание (первая строка), полное содержание подгружается агентом по требованию через tool `load_skill`. См. `skills.md`.
+- **Skills как промпт-инжект.** `app/skills/<name>/SKILL.md` — markdown-инструкции; в системный промпт инжектируется только их описание (первая строка), полное содержание подгружается агентом по требованию через tool `load_skill`. См. `skills.md`.
 - **Async-first.** `async/await` сверху донизу. Никаких синхронных HTTP / `time.sleep` в hot path.
 - **Polling, не webhook.** Соответствует CON-4. Webhook отложен в roadmap.
 - **Отказоустойчивость.** Любая ошибка (таймаут LLM, сетевой сбой, недоступность Ollama, битый JSON, упавший tool, превышение лимита шагов) ловится и превращается в понятное сообщение пользователю + запись в лог.
@@ -149,9 +149,9 @@ Telegram-адаптер принимает текст, оборачивает е
   - `async run(args: dict, ctx: ToolContext) -> str` — возврат — текст для `observation`.
 - **MVP-набор**: `calculator.py`, `read_file.py`, `http_request.py`, `web_search.py`, `memory_search.py`, `load_skill.py`. Подробно — в `tools.md`.
 
-### 3.8 Skills (`app/services/skills.py`, `_skills/`)
+### 3.8 Skills (`app/services/skills.py`, `app/skills/`)
 
-- **`SkillRegistry`** сканирует каталог `_skills/`, для каждой подпапки с `SKILL.md` парсит первую строку (`Description: ...`), остальное держит в памяти как тело скилла.
+- **`SkillRegistry`** сканирует каталог `app/skills/`, для каждой подпапки с `SKILL.md` парсит первую строку (`Description: ...`), остальное держит в памяти как тело скилла.
 - API: `list_descriptions() -> list[{name, description}]` (для инжекции в системный промпт), `get_body(name) -> str` (для tool `load_skill`).
 - Перезагрузка не требуется в MVP — скиллы читаются один раз при старте процесса. Hot-reload — кандидат на отдельный спринт.
 
@@ -160,9 +160,9 @@ Telegram-адаптер принимает текст, оборачивает е
 - **`User`** — dataclass с полями `id: int` (внутренний автоинкремент), `channel: str` ("telegram" или "console"), `external_id: str` (внешний идентификатор в канале), `display_name: str | None`, `created_at: datetime`.
 - **`UserRepository`** — in-memory репозиторий, единственная точка «получить или создать» пользователя по внешнему ключу. API: `async get_or_create(channel, external_id, display_name) -> tuple[User, bool]`, `async get(user_id) -> User | None`, `async get_by_external(channel, external_id) -> User | None`. Потокобезопасность через `asyncio.Lock`. В будущем будет использоваться для публикации события `UserCreated` и для идентификации пользователей в адаптерах.
 
-### 3.10 Prompts (`app/services/prompts.py`, `_prompts/`)
+### 3.10 Prompts (`app/services/prompts.py`, `app/prompts/`)
 
-- **`PromptLoader`** при старте процесса читает `AGENT_SYSTEM_PROMPT_PATH` (`_prompts/agent_system.md`) и `_prompts/summarizer.md`. Хранит их как строки. Plug-точки `{{TOOLS_DESCRIPTION}}` и `{{SKILLS_DESCRIPTION}}` подставляются в момент сборки промпта (при инициализации Executor) — см. `prompts.md` §3.
+- **`PromptLoader`** при старте процесса читает `AGENT_SYSTEM_PROMPT_PATH` (`app/prompts/agent_system.md`) и `app/prompts/summarizer.md`. Хранит их как строки. Plug-точки `{{TOOLS_DESCRIPTION}}` и `{{SKILLS_DESCRIPTION}}` подставляются в момент сборки промпта (при инициализации Executor) — см. `prompts.md` §3.
 
 ### 3.11 Core (`app/core/orchestrator.py`)
 
@@ -353,7 +353,7 @@ class Executor:
 
 ### 8.2 Новый skill
 
-1. Создать `_skills/<name>/SKILL.md` с первой строкой `Description: ...`.
+1. Создать `app/skills/<name>/SKILL.md` с первой строкой `Description: ...`.
 2. Перезапустить процесс — `SkillRegistry` подхватит автоматически.
 3. Описание попадёт в `{{SKILLS_DESCRIPTION}}` системного промпта; агент сможет вызвать `load_skill("<name>")` для получения тела.
 

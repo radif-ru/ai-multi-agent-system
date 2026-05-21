@@ -1,6 +1,6 @@
 """CriticAgent — валидация draft-ответа Executor'а.
 
-См. `_board/sprints/07-multi-agent.md` §6 (Этап 3) и `_prompts/critic.md`.
+См. `_board/sprints/07-multi-agent.md` §6 (Этап 3) и `app/prompts/critic.md`.
 
 Контракт: на вход — задача пользователя, план Planner'а и черновик Executor'а,
 на выход — `CriticVerdict` (см. `app/agents/protocol.py`). При любой ошибке

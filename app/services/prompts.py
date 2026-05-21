@@ -1,4 +1,4 @@
-"""PromptLoader — загрузка системных промптов из `_prompts/`.
+"""PromptLoader — загрузка системных промптов из `app/prompts/`.
 
 См. `_docs/prompts.md` §2 (загрузка) и §3 (плейсхолдеры).
 
@@ -6,9 +6,9 @@
 
 - `Settings.agent_system_prompt_path` — главный системный промпт агентного цикла
   (содержит плейсхолдеры `{{TOOLS_DESCRIPTION}}` и `{{SKILLS_DESCRIPTION}}`).
-- `_prompts/summarizer.md` — промпт суммаризатора (фиксированный путь).
-- `_prompts/planner.md` — промпт Planner-агента (плейсхолдер `{{TASK}}`).
-- `_prompts/critic.md` — промпт Critic-агента (плейсхолдеры `{{TASK}}`, `{{PLAN}}`, `{{DRAFT}}`).
+- `app/prompts/summarizer.md` — промпт суммаризатора (фиксированный путь).
+- `app/prompts/planner.md` — промпт Planner-агента (плейсхолдер `{{TASK}}`).
+- `app/prompts/critic.md` — промпт Critic-агента (плейсхолдеры `{{TASK}}`, `{{PLAN}}`, `{{DRAFT}}`).
 
 Если файла нет — `FileNotFoundError` (это явная ошибка конфигурации).
 """
@@ -21,9 +21,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from app.agents.protocol import Plan
 
-_DEFAULT_SUMMARIZER_PATH = Path("_prompts/summarizer.md")
-_DEFAULT_PLANNER_PATH = Path("_prompts/planner.md")
-_DEFAULT_CRITIC_PATH = Path("_prompts/critic.md")
+_DEFAULT_SUMMARIZER_PATH = Path("app/prompts/summarizer.md")
+_DEFAULT_PLANNER_PATH = Path("app/prompts/planner.md")
+_DEFAULT_CRITIC_PATH = Path("app/prompts/critic.md")
 _TOOLS_PLACEHOLDER = "{{TOOLS_DESCRIPTION}}"
 _SKILLS_PLACEHOLDER = "{{SKILLS_DESCRIPTION}}"
 _TASK_PLACEHOLDER = "{{TASK}}"
@@ -70,7 +70,7 @@ class PromptLoader:
     def render_planner(self, task: str) -> str:
         """Подставить задачу пользователя в шаблон Planner-промпта.
 
-        См. `_docs/prompts.md` §3 и `_prompts/planner.md`. Если в шаблоне
+        См. `_docs/prompts.md` §3 и `app/prompts/planner.md`. Если в шаблоне
         нет плейсхолдера `{{TASK}}` — возвращаем исходный текст без ошибки
         (поведение симметрично `render_agent_system`).
         """
@@ -85,7 +85,7 @@ class PromptLoader:
 
         План форматируется как нумерованный список `"<id>. <description>"`,
         по одному шагу на строку — этот формат фиксирует контракт Critic'а
-        (см. `_prompts/critic.md`, секция «План Executor'а»).
+        (см. `app/prompts/critic.md`, секция «План Executor'а»).
         """
         plan_text = "\n".join(
             f"{step.id}. {step.description}" for step in plan.steps
