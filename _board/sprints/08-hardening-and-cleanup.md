@@ -78,7 +78,7 @@
 
 ### Задача 1.2. Bypass-тесты для `InputSanitizer` и `ResponseSanitizer`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** —
@@ -99,11 +99,11 @@
 
 #### Definition of Done
 
-- [ ] Параметризованный тест `pytest.mark.parametrize` минимум на 8 bypass-кейсов на каждый санитайзер.
-- [ ] Паттерны, которые тесты ловят, — обновлены в коде; не ловят — задокументированы в `_docs/security.md` § «Известные ограничения».
-- [ ] **Документация обновлена** — да.
-- [ ] **Тесты добавлены / обновлены** — да.
-- [ ] `git status` чист.
+- [x] Параметризованный тест `pytest.mark.parametrize` на 8 bypass-кейсов для каждого санитайзера + отдельные тесты на known-limitations.
+- [x] Паттерны, которые тесты ловят, — работают без правки кода (`re.IGNORECASE` + `\s+` покрывают регистр/пробелы/NBSP); не ловят (юникод-эскейп, base64, `~/file`, относительные пути) — задокументированы в `_docs/security.md` §5.
+- [x] **Документация обновлена** — да.
+- [x] **Тесты добавлены / обновлены** — да.
+- [x] `git status` чист.
 
 ## 5. Этап 2. Персистентность `UserRepository`
 
@@ -265,7 +265,7 @@ DoD задачи 03.1.1 «< 30 секунд на 50+ сообщений» был
 | #   | Задача                                                | Приоритет | Объём | Статус | Зависит от        |
 |-----|-------------------------------------------------------|:---------:|:-----:|:------:|:-----------------:|
 | 1.1 | Secure-by-default `dangerous_tools_allowlist`         | high      | S     | Done   | —                 |
-| 1.2 | Bypass-тесты для `InputSanitizer` / `ResponseSanitizer` | high    | S     | ToDo   | —                 |
+| 1.2 | Bypass-тесты для `InputSanitizer` / `ResponseSanitizer` | high    | S     | Done   | —                 |
 | 2.1 | SQLite-реализация `UserRepository` с миграцией        | high      | M     | ToDo   | —                 |
 | 3.1 | Удалить миграционный код и legacy `file_contexts.db`  | medium    | S     | ToDo   | —                 |
 | 4.1 | Регрессионный тест `Archiver.archive` с бюджетом      | medium    | S     | ToDo   | —                 |
@@ -280,3 +280,4 @@ DoD задачи 03.1.1 «< 30 секунд на 50+ сообщений» был
 - **2026-05-21** — спринт открыт, ветка `feature/08-hardening-and-cleanup` создана от `main`. Добавлен Этап 6 / Задача 6.1 (top-level логирование необработанных исключений) на основании рабочей правки `app/main.py` от 21.05.2026.
 - **2026-05-21** — закрыта задача 08.6.1: top-level логирование необработанных исключений в `app/main.py::run` и `app/console_main.py::run` (коммиты `cb59183` docs, `8c77cd0` feat).
 - **2026-05-21** — закрыта задача 08.1.1: secure-by-default для `dangerous_tools_allowlist` (WARNING при отказе, INFO-подсказка при старте, `.env.example` и `_docs/security.md` обновлены; коммиты `14855c2` docs, `27a6829` feat).
+- **2026-05-21** — закрыта задача 08.1.2: bypass-тесты для `InputSanitizer`/`ResponseSanitizer` (8+8 кейсов, known-limitations зафиксированы в `_docs/security.md` §5; коммиты `fb42297` docs, `67ef911` test).
