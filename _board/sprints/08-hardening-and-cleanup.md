@@ -78,7 +78,7 @@
 
 ### Задача 1.2. Bypass-тесты для `InputSanitizer` и `ResponseSanitizer`
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** —
