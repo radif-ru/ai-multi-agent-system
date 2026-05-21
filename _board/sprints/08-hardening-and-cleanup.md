@@ -54,7 +54,7 @@
 
 ### Задача 1.1. Сменить дефолт `dangerous_tools_allowlist` на «запрет»
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** —
@@ -70,11 +70,11 @@
 
 #### Definition of Done
 
-- [ ] `tests/tools/test_registry.py` покрывает: пустой allowlist + dangerous tool → `ToolError`; явный allowlist разрешает; неопасный tool (например, `weather`) всегда разрешён.
-- [ ] `.env.example` и `_docs/security.md` обновлены; добавлена краткая инструкция «как мигрировать» в `_docs/current-state.md` §6 (история).
-- [ ] **Документация обновлена** — да.
-- [ ] **Тесты добавлены / обновлены** — да.
-- [ ] `git status` чист.
+- [x] `tests/tools/test_registry.py` покрывает: пустой allowlist + dangerous tool → `ToolError`; явный allowlist разрешает; неопасный tool (например, `weather`) всегда разрешён; добавлен отдельный тест `test_dangerous_tool_block_logs_warning`.
+- [x] `.env.example` и `_docs/security.md` обновлены; добавлена краткая инструкция «как мигрировать» в `_docs/current-state.md` §6.3.
+- [x] **Документация обновлена** — да.
+- [x] **Тесты добавлены / обновлены** — да.
+- [x] `git status` чист.
 
 ### Задача 1.2. Bypass-тесты для `InputSanitizer` и `ResponseSanitizer`
 
@@ -264,7 +264,7 @@ DoD задачи 03.1.1 «< 30 секунд на 50+ сообщений» был
 
 | #   | Задача                                                | Приоритет | Объём | Статус | Зависит от        |
 |-----|-------------------------------------------------------|:---------:|:-----:|:------:|:-----------------:|
-| 1.1 | Secure-by-default `dangerous_tools_allowlist`         | high      | S     | Progress | —               |
+| 1.1 | Secure-by-default `dangerous_tools_allowlist`         | high      | S     | Done   | —                 |
 | 1.2 | Bypass-тесты для `InputSanitizer` / `ResponseSanitizer` | high    | S     | ToDo   | —                 |
 | 2.1 | SQLite-реализация `UserRepository` с миграцией        | high      | M     | ToDo   | —                 |
 | 3.1 | Удалить миграционный код и legacy `file_contexts.db`  | medium    | S     | ToDo   | —                 |
@@ -279,3 +279,4 @@ DoD задачи 03.1.1 «< 30 секунд на 50+ сообщений» был
 - **2026-05-20** — файл спринта создан (статус `ToDo`, ветка ещё не открыта). Открытие — после закрытия спринта 07; см. `_board/process.md` §2 п.1.
 - **2026-05-21** — спринт открыт, ветка `feature/08-hardening-and-cleanup` создана от `main`. Добавлен Этап 6 / Задача 6.1 (top-level логирование необработанных исключений) на основании рабочей правки `app/main.py` от 21.05.2026.
 - **2026-05-21** — закрыта задача 08.6.1: top-level логирование необработанных исключений в `app/main.py::run` и `app/console_main.py::run` (коммиты `cb59183` docs, `8c77cd0` feat).
+- **2026-05-21** — закрыта задача 08.1.1: secure-by-default для `dangerous_tools_allowlist` (WARNING при отказе, INFO-подсказка при старте, `.env.example` и `_docs/security.md` обновлены; коммиты `14855c2` docs, `27a6829` feat).
