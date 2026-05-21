@@ -10,9 +10,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
+import aiohttp
 from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand
 
@@ -51,6 +53,25 @@ from app.tools.weather import WeatherTool
 from app.users.repository import UserRepository
 from app.core.events import EventBus, MessageReceived, ResponseGenerated
 from app.security import get_global_mapper
+
+# Monkey-patch aiohttp ClientSession для поддержки прокси через переменные окружения
+_original_init = aiohttp.ClientSession.__init__
+
+
+def patched_init(self, *args, **kwargs):
+    # Если прокси настроен в переменных окружения, добавляем trust_env=True
+    proxy_env = (
+        os.environ.get("HTTP_PROXY")
+        or os.environ.get("HTTPS_PROXY")
+        or os.environ.get("http_proxy")
+        or os.environ.get("https_proxy")
+    )
+    if proxy_env:
+        kwargs.setdefault("trust_env", True)
+    return _original_init(self, *args, **kwargs)
+
+
+aiohttp.ClientSession.__init__ = patched_init
 
 logger = logging.getLogger(__name__)
 
@@ -256,7 +277,15 @@ async def _build_components(settings: Settings) -> _Components:
 
 
 def _wire_telegram(c: _Components) -> tuple[Bot, Dispatcher]:
-    bot = Bot(token=c.settings.telegram_bot_token)
+    # Monkey-patch добавляет trust_env=True, также передаем proxy явно
+    http_proxy = os.environ.get("HTTP_PROXY") or os.environ.get("http_proxy")
+    https_proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+
+    bot = Bot(
+        token=c.settings.telegram_bot_token,
+        request_timeout=30,
+        proxy=https_proxy or http_proxy,
+    )
     dispatcher = Dispatcher()
     dispatcher["users"] = c.users
     dispatcher["event_bus"] = c.event_bus
