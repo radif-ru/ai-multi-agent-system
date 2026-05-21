@@ -282,7 +282,7 @@
 
 ### Задача 5.1. Новый `_docs/multi-agent.md`
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** Задача 4.1, Задача 4.2.
@@ -405,7 +405,7 @@
 | 4.1 | Расширить `core.handle_user_task`                     | high      | L     | Done   | 2.2, 3.2, 1.1     |
 | 4.2 | Команда `/mode`                                       | medium    | S     | Done   | 1.1, 4.1          |
 | 4.3 | Сквозной интеграционный тест оркестратора             | medium    | S     | Done   | 4.1, 4.2          |
-| 5.1 | Новый `_docs/multi-agent.md`                          | high      | M     | ToDo   | 4.1, 4.2          |
+| 5.1 | Новый `_docs/multi-agent.md`                          | high      | M     | Progress | 4.1, 4.2        |
 | 5.2 | Обновить `current-state.md` и `roadmap.md`            | medium    | S     | ToDo   | 5.1               |
 | 6.1 | Перенести `_prompts/`/`_skills/` в `app/`             | medium    | S     | Done   | —                 |
 | 6.2 | Унифицировать источник промпта суммаризации              | medium    | XS    | Done   | 6.1               |
