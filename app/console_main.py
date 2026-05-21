@@ -255,6 +255,13 @@ async def main() -> None:
     setup_logging(settings, console_output=False)
     setup_sentry(settings)
 
+    if not settings.dangerous_tools_allowlist:
+        logger.info(
+            "DANGEROUS_TOOLS_ALLOWLIST пуст: опасные tools (http_request, read_file) "
+            "запрещены (secure by default). Чтобы включить — задайте в .env, например: "
+            "DANGEROUS_TOOLS_ALLOWLIST=http_request,read_file"
+        )
+
     (
         settings,
         llm,
