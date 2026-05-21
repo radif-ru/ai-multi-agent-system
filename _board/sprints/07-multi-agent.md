@@ -3,7 +3,7 @@
 - **Источник:** `_docs/roadmap.md` § «Этап 3. Multi-agent (Planner + Critic)»; запрос пользователя (20.05.2026).
 - **Ветка:** `feature/07-multi-agent` (от `main`; см. `_board/process.md` §2 п.2).
 - **Открыт:** 2026-05-20
-- **Закрыт:** —
+- **Закрыт:** 2026-05-21
 
 ## 1. Цель спринта
 
@@ -36,15 +36,15 @@
 
 ## 3. Acceptance Criteria спринта
 
-- [ ] Контракт `core.handle_user_task(text, user_id, chat_id)` не изменился; Telegram- и console-адаптеры не правились (кроме регистрации новой команды `/mode`).
-- [ ] При `AGENT_REFLECTION_MODE=OFF` поведение бота идентично спринту 06 (один Executor, никаких лишних LLM-вызовов).
-- [ ] При `AGENT_REFLECTION_MODE=NORMAL` для тестового сценария выполняется ровно один проход Critic; при `DEEP` — Critic итерируется не более `AGENT_REFLECTION_MAX_ITERATIONS` раз.
-- [ ] `Planner` возвращает валидный линейный план (список шагов); при невалидном ответе оркестратор откатывается к single-step выполнению через Executor (graceful degradation), факт фиксируется в логах.
-- [ ] `Critic` возвращает строго `{"verdict": "PASS"|"REVISE", "feedback": "..."}`; при невалидном ответе считается `PASS` (fail-open), факт фиксируется в логах.
-- [ ] Команда `/mode` доступна в Telegram и console, меняет режим в `user_settings`, документирована в `_docs/commands.md`.
-- [ ] `pytest -q` и `flake8 app tests` зелёные; добавлены тесты Planner, Critic, orchestrator-интеграция (мок LLM).
-- [ ] `_docs/multi-agent.md` создан; `_docs/architecture.md` §3.10 / §3.11, `_docs/agent-loop.md`, `_docs/current-state.md` §1, `_docs/roadmap.md` (удалить Этап 3) актуализированы.
-- [ ] Все задачи спринта — `Done`, сводная таблица актуальна.
+- [x] Контракт `core.handle_user_task(text, user_id, chat_id)` не изменился; Telegram- и console-адаптеры не правились (кроме регистрации новой команды `/mode`).
+- [x] При `AGENT_REFLECTION_MODE=OFF` поведение бота идентично спринту 06 (один Executor, никаких лишних LLM-вызовов) — ветка OFF в `app/core/orchestrator.py:82–95`, покрыта в `tests/core/test_orchestrator.py`.
+- [x] При `AGENT_REFLECTION_MODE=NORMAL` для тестового сценария выполняется ровно один проход Critic; при `DEEP` — Critic итерируется не более `AGENT_REFLECTION_MAX_ITERATIONS` раз (`_resolve_mode` + цикл в `orchestrator.py:141–193`; e2e-тест `tests/test_multi_agent_e2e.py`).
+- [x] `Planner` возвращает валидный линейный план (список шагов); при невалидном ответе оркестратор откатывается к single-step выполнению через Executor (graceful degradation), факт фиксируется в логах (`orchestrator.planner_fallback`, `planner.fallback`).
+- [x] `Critic` возвращает строго `{"verdict": "PASS"|"REVISE", "feedback": "..."}`; при невалидном ответе считается `PASS` (fail-open), факт фиксируется в логах (`critic.fallback`, `orchestrator.critic_error`).
+- [x] Команда `/mode` доступна в Telegram и console, меняет режим в `user_settings`, документирована в `_docs/commands.md` (`app/commands/registry.py::cmd_mode`).
+- [x] `pytest -q` и `flake8 app tests` зелёные (508 passed, 0 flake8 предупреждений); добавлены тесты Planner (`tests/agents/test_planner.py`), Critic (`tests/agents/test_critic.py`), orchestrator-интеграция (`tests/core/test_orchestrator.py`, `tests/test_multi_agent_e2e.py`).
+- [x] `_docs/multi-agent.md` создан; `_docs/architecture.md` §3.10 / §3.11, `_docs/agent-loop.md`, `_docs/current-state.md` §1 (§1.8) и §3, `_docs/roadmap.md` («Этап 3» переписан под capability graph backlog) актуализированы. Дополнительно обновлён корневой `README.md` (возможности, команда `/mode`).
+- [x] Все задачи спринта — `Done`, сводная таблица актуальна.
 
 ## 4. Этап 1. Конфиг и протоколы
 
@@ -443,3 +443,5 @@
 - **2026-05-21** — закрыта задача 07.5.1: создан `_docs/multi-agent.md` (роли Planner/Executor/Critic, JSON-контракты, режимы OFF/NORMAL/DEEP, fallback'ы, поток, логирование, команда `/mode`); добавлен в навигацию `_docs/README.md` и в `_docs/project-structure.md`.
 - **2026-05-21** — задача 07.5.2 взята в работу (`ToDo` → `Progress`).
 - **2026-05-21** — закрыта задача 07.5.2: в `_docs/current-state.md` добавлены §1.8 (Multi-agent) и пункт §3 о graceful degradation Planner/Critic; `_docs/roadmap.md` «Этап 3» переписан под Backlog «Capability graph для multi-agent», зависимость «Этапа 14» обновлена. Этап 5 завершён.
+- **2026-05-21** — аудит спринта: `pytest -q` 508 passed, `flake8 app tests` зелёный, AC все выполнены. Обновлён корневой `README.md` (multi-agent, команда `/mode`, индекс спринтов).
+- **2026-05-21** — спринт закрыт (`Active` → `Closed`); все 13 задач в `Done`, AC полностью выполнены. Merge `feature/07-multi-agent` → `main` и удаление ветки — за пользователем (см. `_board/process.md` §2 п.8).

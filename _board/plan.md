@@ -10,7 +10,7 @@
 
 | ID | Название | Файл | Ветка | Статус | Открыт | Закрыт |
 |:--:|----------|------|-------|:------:|:------:|:------:|
-| 07 | Multi-agent (Planner + Critic) | [`sprints/07-multi-agent.md`](./sprints/07-multi-agent.md) | `feature/07-multi-agent` | Active | 2026-05-20 | — |
+| —  | (нет активных спринтов) | — | — | — | — | — |
 
 ### Закрытые
 
@@ -23,6 +23,7 @@
 | 04 | Событийная модель и модуль Users | [`sprints/04-events-and-users.md`](./sprints/04-events-and-users.md) | `feature/04-events-and-users` | Closed | 2026-05-05 | 2026-05-06 |
 | 05 | Усиление безопасности и OCR-рефакторинг | [`sprints/05-security-ocr.md`](./sprints/05-security-ocr.md) | `feature/05-security-ocr` | Closed | 2026-05-06 | 2026-05-06 |
 | 06 | Надёжность диалога и observability | [`sprints/06-reliability-and-observability.md`](./sprints/06-reliability-and-observability.md) | `feature/06-reliability-and-observability` | Closed | 2026-05-10 | 2026-05-12 |
+| 07 | Multi-agent (Planner + Critic) | [`sprints/07-multi-agent.md`](./sprints/07-multi-agent.md) | `feature/07-multi-agent` | Closed | 2026-05-20 | 2026-05-21 |
 
 ### Запланированные
 
@@ -43,7 +44,7 @@
 | 04. Событийная модель и модуль Users | Closed | 0 / 0 / 9 | `sprints/04-events-and-users.md` |
 | 05. Усиление безопасности и OCR-рефакторинг | Closed | 0 / 0 / 13 | `sprints/05-security-ocr.md` |
 | 06. Надёжность диалога и observability | Closed | 0 / 0 / 24 | `sprints/06-reliability-and-observability.md` |
-| 07. Multi-agent (Planner + Critic) | Active | 2 / 0 / 11 | `sprints/07-multi-agent.md` |
+| 07. Multi-agent (Planner + Critic) | Closed | 0 / 0 / 13 | `sprints/07-multi-agent.md` |
 | 08. Hardening и зачистка техдолга | ToDo | 6 / 0 / 0 | `sprints/08-hardening-and-cleanup.md` |
 
 > Таблицу обновлять одновременно с переходами статусов в файлах спринтов (см. `process.md` §7.3 и §7.9).
