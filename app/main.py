@@ -127,22 +127,6 @@ async def _build_components(settings: Settings) -> _Components:
         logger.error("dialog_journal: инициализация не удалась, журнал выключен: %s", exc)
         dialog_journal = None
 
-    # Одноразовая миграция data/file_contexts.db → dialog_journal (этап 06.3-bis.1).
-    if dialog_journal is not None:
-        try:
-            from app.services.file_contexts_migration import (
-                migrate_file_contexts_to_journal,
-            )
-            legacy_db = settings.memory_db_path.parent / "file_contexts.db"
-            moved = migrate_file_contexts_to_journal(
-                legacy_db_path=legacy_db,
-                journal_db_path=settings.memory_db_path,
-            )
-            if moved:
-                logger.info("file_contexts_migration: перенесено %d строк", moved)
-        except Exception as exc:  # noqa: BLE001
-            logger.error("file_contexts_migration: %s", exc)
-
     # Инициализируем FileIdMapper для загрузки существующих маппингов
     try:
         get_global_mapper().init()
@@ -191,7 +175,8 @@ async def _build_components(settings: Settings) -> _Components:
     planner = PlannerAgent(llm=llm, prompts=prompts, settings=settings)
     critic = CriticAgent(llm=llm, prompts=prompts, settings=settings)
     event_bus = EventBus()
-    users = UserRepository(event_bus=event_bus)
+    users = UserRepository(db_path=settings.memory_db_path, event_bus=event_bus)
+    await users.init()
     archiver = Archiver(
         llm=llm,
         summarizer=summarizer,
@@ -335,6 +320,10 @@ async def _shutdown(bot: Bot, components: _Components) -> None:
             await components.dialog_journal.close()
         except Exception:  # noqa: BLE001
             logger.exception("ошибка при закрытии dialog_journal")
+    try:
+        await components.users.close()
+    except Exception:  # noqa: BLE001
+        logger.exception("ошибка при закрытии UserRepository")
     try:
         from app.security import get_global_mapper
         get_global_mapper().close()
