@@ -54,7 +54,7 @@
 
 ### 1.5 Пользователи и события
 
-- **UserRepository** — `app/users/repository.py` — хранилище пользователей с методом `get_or_create(channel, external_id, display_name)`. Публикует событие `UserCreated` при создании нового пользователя. Интегрирован в точки входа (main.py, console_main.py) и хендлеры.
+- **UserRepository** — `app/users/repository.py` — хранилище пользователей с методом `get_or_create(channel, external_id, display_name)`. **Персистентность (спринт 08):** SQLite-таблица `users` в `data/memory.db` (отдельное соединение, как у `DialogJournal`), стабильный `user.id` между рестартами. Публикует событие `UserCreated` при создании нового пользователя. Интегрирован в точки входа (main.py, console_main.py) и хендлеры.
 - **EventBus** — `app/core/events.py` — событийная шина для pub/sub между компонентами. Поддерживает регистрацию подписчиков и публикацию событий с гарантией порядка вызова (FIFO регистрации).
 - **События спринта 04:**
   - `UserCreated` — публикуется при создании нового пользователя.

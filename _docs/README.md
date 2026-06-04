@@ -1,6 +1,6 @@
 # Документация проекта
 
-AI-агент с локальной LLM (Ollama), работающий в цикле `thought → action → observation`. Сейчас — Telegram-интерфейс через [aiogram 3](https://docs.aiogram.dev/), в перспективе — мульти-агентная система (Planner / Executor / Critic) с web-адаптером и адаптером в мессенджер MAX. Документы здесь описывают цели, архитектуру, текущее состояние кода, правила разработки и процесса.
+AI-агент с локальной LLM (Ollama), работающий в цикле `thought → action → observation`. Адаптеры — Telegram (через [aiogram 3](https://docs.aiogram.dev/)) и консоль; реализована мульти-агентная надстройка (Planner / Executor / Critic, режимы `OFF | NORMAL | DEEP`). В перспективе — web-адаптер и адаптер в мессенджер MAX. Документы здесь описывают цели, архитектуру, текущее состояние кода, правила разработки и процесса.
 
 ## Источник истины
 
@@ -25,7 +25,7 @@ AI-агент с локальной LLM (Ollama), работающий в цик
 - [`multi-agent.md`](./multi-agent.md) — мульти-агентная надстройка над Executor (Planner + Critic), режимы рефлексии `OFF | NORMAL | DEEP`, JSON-протоколы, fallback'ы, команда `/mode`.
 - [`memory.md`](./memory.md) — краткосрочная in-memory история и долгосрочная семантическая память на `sqlite-vec` (RAG), сценарий `/new`, журнал диалога `dialog_journal`.
 - [`events.md`](./events.md) — событийная шина (`EventBus`), типы событий (`UserCreated`, `MessageReceived`, `ResponseGenerated`, `ConversationArchived`), подписчики.
-- [`tools.md`](./tools.md) — реестр tools, контракт нового инструмента, текущий набор (calculator, read_file, http_request, web_search, memory_search, load_skill).
+- [`tools.md`](./tools.md) — реестр tools, контракт нового инструмента, текущий набор (calculator, read_file, http_request, web_search, memory_search, load_skill, read_document, describe_image, ocr_image, weather).
 - [`skills.md`](./skills.md) — формат `app/skills/<name>/SKILL.md`, как агент решает их подгрузить, как описание инжектится в промпт.
 - [`prompts.md`](./prompts.md) — формат `app/prompts/`, как файлы прокидываются через `.env`-пути.
 - [`security.md`](./security.md) — `InputSanitizer`, `FileIdMapper`, `ResponseSanitizer`, allowlist для опасных tools.
