@@ -47,7 +47,7 @@
 | 06. Надёжность диалога и observability | Closed | 0 / 0 / 24 | `sprints/06-reliability-and-observability.md` |
 | 07. Multi-agent (Planner + Critic) | Closed | 0 / 0 / 13 | `sprints/07-multi-agent.md` |
 | 08. Hardening и зачистка техдолга | Closed | 0 / 0 / 12 | `sprints/08-hardening-and-cleanup.md` |
-| 09. MAX-адаптер | Active | 10 / 1 / 0 | `sprints/09-max-adapter.md` |
+| 09. MAX-адаптер | Active | 9 / 0 / 1 | `sprints/09-max-adapter.md` |
 
 > Таблицу обновлять одновременно с переходами статусов в файлах спринтов (см. `process.md` §7.3 и §7.9).
 
