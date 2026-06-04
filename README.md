@@ -113,6 +113,7 @@ ollama serve & .venv/bin/python -m app.console_main
 ai-multi-agent-system/
 ├── _docs/        # проектная документация (см. _docs/README.md)
 ├── _board/       # доска задач: спринты + процесс
+├── .agents/      # промпты и скиллы для AI-ассистента разработки (не runtime бота)
 ├── app/skills/      # markdown-скиллы (SKILL.md в каждой подпапке)
 ├── app/prompts/     # системные промпты в markdown
 ├── app/          # код приложения (агент, tools, adapters)
@@ -154,6 +155,7 @@ pytest --cov=app --cov-report=term-missing
 - 📋 [`_board/README.md`](./_board/README.md) — процесс спринтов и задач.
 - 📌 [`_docs/current-state.md`](./_docs/current-state.md) — фактическое состояние кода (читать перед правками).
 - 🗺️ [`_docs/roadmap.md`](./_docs/roadmap.md) — этапы развития, в т.ч. multi-agent (Planner/Critic) и web/MAX-адаптеры.
+- 🤖 [`.agents/README.md`](./.agents/README.md) — переиспользуемые промпты и скиллы для **AI-ассистента разработки**; здесь же разделение: `app/skills/` — runtime-скиллы бота, `.agents/skills/` — дисциплины ассистента.
 
 ## Ограничения и принципы
 
