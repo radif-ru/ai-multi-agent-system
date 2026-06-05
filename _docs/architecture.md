@@ -217,7 +217,7 @@ class Executor:
 
 Адаптер **не знает** про executor / tools / memory напрямую — только про `core.handle_user_task`, `ConversationStore`, `UserSettingsRegistry`, `Archiver`, `UserRepository` (для получения пользователя через `get_or_create`).
 
-> **MAX-адаптер (`app/adapters/max/`, черновик спринта 09)** — новый канал поверх той же доменной модели (`channel="max"`). Транспорт: `client.py::MaxClient` — тонкий async-клиент MAX Bot API (`dev.max.ru/docs-api`) на общем `httpx.AsyncClient` без сторонних SDK; методы `get_me` / `get_updates` (long polling) / `send_message`; авторизация заголовком `Authorization: <token>`, токен маскируется в логах через `mask_secrets`; ошибки сети/HTTP → собственные `MaxTimeout` / `MaxUnavailable` / `MaxBadResponse`. Точка входа — `app/max_main.py` (long polling). Маршрутизация — `adapter.py::MaxUpdateDispatcher`: текст проходит `sanitize_user_input` → `core.handle_user_task` → ответ через `MaxClient.send_message` (длинный режется `split_long_message` под лимит 4000), публикуются `MessageReceived`/`ResponseGenerated` с `channel="max"`, ошибки LLM-слоя превращаются в человекочитаемые подсказки. Команды (`/...`) идут через общий `CommandRegistry` с `CommandContext(channel="max", ...)` (тот же набор, что в console/telegram), `/new` — с прогресс-коллбэком. Финальное описание потоков (текст/команды/файлы) — Этап 5 спринта 09.
+> **MAX-адаптер (`app/adapters/max/`, спринт 09)** — новый канал поверх той же доменной модели (`channel="max"`). Транспорт: `client.py::MaxClient` — тонкий async-клиент MAX Bot API (`dev.max.ru/docs-api`) на общем `httpx.AsyncClient` без сторонних SDK; методы `get_me` / `get_updates` (long polling) / `send_message`; авторизация заголовком `Authorization: <token>`, токен маскируется в логах через `mask_secrets`; ошибки сети/HTTP → собственные `MaxTimeout` / `MaxUnavailable` / `MaxBadResponse`. Точка входа — `app/max_main.py` (long polling). Маршрутизация — `adapter.py::MaxUpdateDispatcher`: текст проходит `sanitize_user_input` → `core.handle_user_task` → ответ через `MaxClient.send_message` (длинный режется `split_long_message` под лимит 4000), публикуются `MessageReceived`/`ResponseGenerated` с `channel="max"`, ошибки LLM-слоя превращаются в человекочитаемые подсказки. Команды (`/...`) идут через общий `CommandRegistry` с `CommandContext(channel="max", ...)` (тот же набор, что в console/telegram), `/new` — с прогресс-коллбэком. Файловые входы — см. §6.6. Long polling MAX-документация не рекомендует для production (webhook через `POST /subscriptions`) — вынесено в `roadmap.md` Этап 6 (см. также §8.5).
 
 ### 3.14 Безопасность (`app/security/`)
 
@@ -329,7 +329,7 @@ class Executor:
   - Поддержка кириллицы через `tesseract-ocr-rus`.
 - **Извлечение изображений из PDF:** tool извлекает изображения из PDF (до `DOCUMENT_MAX_IMAGES` по умолчанию 20). Изображения сохраняются во временной директории. Если OCR не сработал, возвращается информация о картинках для описания через `describe_image`.
 
-### 6.6 Файлы из MAX (черновик, спринт 09; финал — Этап 5)
+### 6.6 Файлы из MAX (спринт 09)
 
 Вложения MAX (`message.body.attachments`) переиспользуют тот же конвейер, что и Telegram: скачивание во временный подкаталог пользователя и маршрутизация в `core.handle_user_task` через существующие сервисы. Адаптер не дублирует бизнес-логику.
 
@@ -415,4 +415,4 @@ class Executor:
 - Не работает с облачными LLM.
 - Не использует webhook в MVP.
 - Не работает с видео и стримами медиа (принимаются только Document/Voice/Photo, см. §6).
-- Не имеет UI кроме Telegram (web — будущий спринт).
+- Не имеет графического UI (каналы: Telegram, консольный REPL, MAX; web — будущий спринт).

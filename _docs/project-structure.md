@@ -65,7 +65,9 @@ ai-multi-agent-system/
 ├── app/                      # код приложения
 │   ├── __init__.py
 │   ├── __main__.py           # entrypoint: python -m app
-│   ├── main.py               # async def main(): сборка зависимостей, регистрация роутеров, polling
+│   ├── main.py               # async def main(): сборка зависимостей, регистрация роутеров, polling (Telegram)
+│   ├── console_main.py       # точка входа консольного адаптера: python -m app.console_main
+│   ├── max_main.py           # точка входа MAX-адаптера (long polling): python -m app.max_main
 │   ├── config.py             # Settings на pydantic-settings
 │   │
 │   ├── core/
@@ -118,15 +120,20 @@ ai-multi-agent-system/
 │   │   ├── console/
 │   │   │   ├── __init__.py
 │   │   │   └── adapter.py       # REPL-цикл с теми же командами, что и Telegram-адаптер
-│   │   └── telegram/
+│   │   ├── telegram/
+│   │   │   ├── __init__.py
+│   │   │   ├── files.py          # download_telegram_file: скачивание файлов из Telegram
+│   │   │   ├── handlers/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── commands.py   # /start, /help, /models, /model, /prompt, /new, /reset
+│   │   │   │   ├── messages.py   # F.text & ~F.text.startswith('/') → core.handle_user_task
+│   │   │   │   └── errors.py     # глобальный error handler (router.errors)
+│   │   │   └── __init__.py
+│   │   └── max/                 # MAX-адаптер (dev.max.ru/docs-api), channel="max"
 │   │       ├── __init__.py
-│   │       ├── files.py          # download_telegram_file: скачивание файлов из Telegram
-│   │       ├── handlers/
-│   │       │   ├── __init__.py
-│   │       │   ├── commands.py   # /start, /help, /models, /model, /prompt, /new, /reset
-│   │       │   ├── messages.py   # F.text & ~F.text.startswith('/') → core.handle_user_task
-│   │       │   └── errors.py     # глобальный error handler (router.errors)
-│   │       └── __init__.py
+│   │       ├── client.py         # MaxClient на httpx: get_me / get_updates / send_message / stream
+│   │       ├── adapter.py        # MaxUpdateDispatcher: маршрутизация текст/команды/вложения
+│   │       └── files.py          # download_max_file: потоковое скачивание вложений MAX
 │   │
 │   ├── middlewares/
 │   │   ├── __init__.py
@@ -187,14 +194,22 @@ ai-multi-agent-system/
     └── adapters/
         ├── console/
         │   └── __init__.py
-        └── telegram/
+        ├── telegram/
+        │   ├── __init__.py
+        │   ├── test_commands.py
+        │   ├── test_messages.py
+        │   ├── test_documents.py
+        │   ├── test_voice.py
+        │   ├── test_photo.py
+        │   └── test_events.py
+        └── max/             # тесты MAX-адаптера (моки httpx, без сети)
             ├── __init__.py
-            ├── test_commands.py
+            ├── test_client.py
+            ├── test_adapter.py
             ├── test_messages.py
-            ├── test_documents.py
-            ├── test_voice.py
-            ├── test_photo.py
-            └── test_events.py
+            ├── test_commands.py
+            ├── test_files.py
+            └── test_file_messages.py
 ```
 
 ## Назначение ключевых модулей
@@ -251,6 +266,10 @@ ai-multi-agent-system/
 | `app/adapters/telegram/files.py` | `download_telegram_file`: скачивание файлов из Telegram с проверкой размера. |
 | `app/adapters/telegram/handlers/errors.py` | `@router.errors()` — единая точка для необработанных ошибок. |
 | `app/adapters/console/adapter.py` | REPL-цикл с теми же командами, что и Telegram-адаптер (без файловых операций). |
+| `app/adapters/max/client.py` | `MaxClient` на `httpx`: `get_me` / `get_updates` (long polling) / `send_message` / `stream`; авторизация `Authorization: <token>`, маскирование токена в логах. |
+| `app/adapters/max/adapter.py` | `MaxUpdateDispatcher`: маршрутизация апдейтов MAX (вложение / команда / текст) → `core.handle_user_task` / `CommandRegistry`. |
+| `app/adapters/max/files.py` | `download_max_file`: потоковое скачивание вложений MAX с проверкой размера и изоляцией по пользователю. |
+| `app/max_main.py` | Точка входа MAX-канала: переиспользует `app.main._build_components`, `_wire_max` + long polling loop + graceful shutdown. |
 | `app/middlewares/logging_mw.py` | Логирование каждого апдейта (`user`, `chat`, `type`, `dur_ms`, `status`). |
 | `app/utils/text.py` | `split_long_message` — разбивка длинных ответов LLM по границам строк/пробелов (Telegram limit 4096). |
 | `tests/` | Зеркалирует `app/`, unit-тесты с моками. Сетевых вызовов нет; `sqlite-vec` — на `tmp_path`. |
