@@ -51,10 +51,15 @@
   - **Messages** — `app/adapters/telegram/handlers/messages.py` — обработчик текста и файлов, вызов `core.handle_user_task`, поддержка reply на файлы (фото, документы, голосовые).
   - **Errors** — `app/adapters/telegram/handlers/errors.py` — глобальный error handler.
 - **Консольный адаптер** — `app/adapters/console/adapter.py` — REPL-цикл с теми же командами, что и Telegram-адаптер (кроме файловых операций). Точка входа — `app/console_main.py`. См. `_docs/console-adapter.md`.
+- **MAX-адаптер (спринт 09)** — `app/adapters/max/`:
+  - **MaxClient** — `app/adapters/max/client.py` — тонкий async-клиент MAX Bot API (`dev.max.ru/docs-api`) на общем `httpx.AsyncClient` без сторонних SDK. Методы `get_me` / `get_updates` (long polling) / `send_message` / `stream` (потоковое скачивание вложений); авторизация заголовком `Authorization: <token>` (передача токена через query не поддерживается MAX); собственные исключения `MaxTimeout` / `MaxUnavailable` / `MaxBadResponse`; структурные логи `external.call`/`external.ok`/`external.fail` (`service="max"`), токен маскируется через `mask_secrets`. Лимит текста сообщения — `MAX_MESSAGE_TEXT_LEN=4000`.
+  - **MaxUpdateDispatcher** — `app/adapters/max/adapter.py` — маршрутизирует апдейты `message_created` по типу (вложение → команда `/...` → текст). Текст: `sanitize_user_input` → `core.handle_user_task` → `send_message` (длинный ответ режется `split_long_message` под 4000); команды — через общий `CommandRegistry` с `CommandContext(channel="max", ...)` (тот же набор, что в console/telegram; `/new` — с прогресс-коллбэком); ошибки LLM-слоя → человекочитаемые подсказки. Публикует `MessageReceived`/`ResponseGenerated` с `channel="max"`.
+  - **download_max_file** — `app/adapters/max/files.py` — потоковое скачивание вложения по `attachment.payload.url` (CDN MAX) с проверкой размера (`MAX_MAX_FILE_MB`, default 20) по `Content-Length` и в потоке → `FileTooLargeError`; сохранение в `Settings.tmp_base_dir/{user_id}/` (изоляция по пользователю). Документ/фото/голос маршрутизируются в тот же конвейер (`read_document` / `Vision` / `Transcriber`); пути маскируются через `FileIdMapper`.
+  - **Точка входа** — `app/max_main.py` — переиспользует `app.main._build_components` (channel-agnostic), добавляет `_wire_max` + long polling loop (`get_updates(marker=...)` с backoff) + graceful shutdown (SIGTERM/SIGINT) + фоновое `recover_pending_journals`. Запуск: `python -m app.max_main`. При пустом `MAX_BOT_TOKEN` канал не стартует.
 
 ### 1.5 Пользователи и события
 
-- **UserRepository** — `app/users/repository.py` — хранилище пользователей с методом `get_or_create(channel, external_id, display_name)`. Публикует событие `UserCreated` при создании нового пользователя. Интегрирован в точки входа (main.py, console_main.py) и хендлеры.
+- **UserRepository** — `app/users/repository.py` — хранилище пользователей с методом `get_or_create(channel, external_id, display_name)`. **Персистентность (спринт 08):** SQLite-таблица `users` в `data/memory.db` (отдельное соединение, как у `DialogJournal`), стабильный `user.id` между рестартами. Публикует событие `UserCreated` при создании нового пользователя. Интегрирован в точки входа (main.py, console_main.py) и хендлеры.
 - **EventBus** — `app/core/events.py` — событийная шина для pub/sub между компонентами. Поддерживает регистрацию подписчиков и публикацию событий с гарантией порядка вызова (FIFO регистрации).
 - **События спринта 04:**
   - `UserCreated` — публикуется при создании нового пользователя.
@@ -114,6 +119,18 @@
 
 **Рекомендация:** что делать. См. `roadmap.md`, если запланировано.
 ```
+
+### 2.2 MAX-адаптер: ограничения MVP (спринт 09)
+
+**Файлы:** `app/adapters/max/`. **Серьёзность:** низкая.
+
+Зафиксированы как осознанные ограничения MVP, не баги:
+
+- **Long polling, не webhook.** Документация MAX (`dev.max.ru/docs-api`) прямо указывает, что long polling ограничен по скорости и сроку хранения событий и **не подходит для production** — рекомендуется webhook (`POST /subscriptions`). MVP осознанно на polling (как Telegram, CON-4); webhook вынесен в `_docs/roadmap.md` Этап 6.
+- **Нет reply-контекста файлов.** В Telegram контекст файла сохраняется для reply (`ConversationStore.get_file_context`); для MAX reply-ссылка на исходное вложение в MVP не используется — каждое вложение обрабатывается как самостоятельное сообщение.
+- **Поддерживаемые типы вложений** — только `file` (документ), `image` (фото), `audio` (голос). `video`, `sticker`, `contact` и др. → подсказка «Этот тип вложения пока не поддерживается».
+- **`_display_name` опирается на поле `sender.name`**, которое API MAX помечает как устаревшее (скоро будет удалено; актуальны `first_name`/`last_name`). Есть fallback на `username` и `User {id}`, поэтому на работу не влияет; кандидат на точечную правку при обновлении под актуальные поля.
+- **Кросс-канальная унификация пользователя отсутствует**: MAX-пользователь отдельный по ключу `(channel="max", external_id)`, не связан с Telegram-пользователем. См. `_docs/roadmap.md` Этап 5 (web-адаптер, унифицированный `user_id`).
 
 ## 3. Архитектурные нюансы (не баги, но знать обязательно)
 

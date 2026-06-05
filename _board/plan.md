@@ -25,6 +25,7 @@
 | 06 | Надёжность диалога и observability | [`sprints/06-reliability-and-observability.md`](./sprints/06-reliability-and-observability.md) | `feature/06-reliability-and-observability` | Closed | 2026-05-10 | 2026-05-12 |
 | 07 | Multi-agent (Planner + Critic) | [`sprints/07-multi-agent.md`](./sprints/07-multi-agent.md) | `feature/07-multi-agent` | Closed | 2026-05-20 | 2026-05-21 |
 | 08 | Hardening и зачистка техдолга | [`sprints/08-hardening-and-cleanup.md`](./sprints/08-hardening-and-cleanup.md) | `feature/08-hardening-and-cleanup` | Closed | 2026-05-21 | 2026-05-22 |
+| 09 | MAX-адаптер | [`sprints/09-max-adapter.md`](./sprints/09-max-adapter.md) | `feature/09-max-adapter` | Closed | 2026-06-04 | 2026-06-05 |
 
 ### Запланированные
 
@@ -47,6 +48,7 @@
 | 06. Надёжность диалога и observability | Closed | 0 / 0 / 24 | `sprints/06-reliability-and-observability.md` |
 | 07. Multi-agent (Planner + Critic) | Closed | 0 / 0 / 13 | `sprints/07-multi-agent.md` |
 | 08. Hardening и зачистка техдолга | Closed | 0 / 0 / 12 | `sprints/08-hardening-and-cleanup.md` |
+| 09. MAX-адаптер | Closed | 0 / 0 / 11 | `sprints/09-max-adapter.md` |
 
 > Таблицу обновлять одновременно с переходами статусов в файлах спринтов (см. `process.md` §7.3 и §7.9).
 

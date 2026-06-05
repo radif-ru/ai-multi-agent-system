@@ -24,6 +24,14 @@ class Settings(BaseSettings):
     telegram_bot_token: str
     telegram_max_file_mb: int = 20
 
+    # --- MAX (мессенджер, dev.max.ru/docs-api) ---
+    # Токен бота из business.max.ru → Чат-боты → Интеграция → Получить токен.
+    # Пустой токен = MAX-канал просто не запускается (см. app/max_main.py).
+    max_bot_token: str | None = None
+    max_api_base_url: str = "https://platform-api.max.ru"
+    max_poll_timeout: int = 30
+    max_max_file_mb: int = 20
+
     # --- Ollama (LLM) ---
     ollama_base_url: str = "http://localhost:11434"
     ollama_default_model: str = "qwen3.5:4b"
@@ -176,6 +184,20 @@ class Settings(BaseSettings):
     def _check_telegram_max_file(cls, v: int) -> int:
         if v <= 0:
             raise ValueError("TELEGRAM_MAX_FILE_MB must be > 0")
+        return v
+
+    @field_validator("max_poll_timeout")
+    @classmethod
+    def _check_max_poll_timeout(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("MAX_POLL_TIMEOUT must be > 0")
+        return v
+
+    @field_validator("max_max_file_mb")
+    @classmethod
+    def _check_max_max_file(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("MAX_MAX_FILE_MB must be > 0")
         return v
 
     @field_validator("summarizer_chunk_messages")

@@ -42,6 +42,21 @@ async def test_get_or_create_returns_existing_user(repo: UserRepository) -> None
     assert user1.external_id == user2.external_id
 
 
+async def test_get_or_create_max_channel(repo: UserRepository) -> None:
+    """Канал "max" сохраняется и user.id стабилен между вызовами (спринт 09)."""
+    user1, created1 = await repo.get_or_create("max", "max-42", "Max User")
+
+    assert created1 is True
+    assert user1.channel == "max"
+    assert user1.external_id == "max-42"
+    assert user1.display_name == "Max User"
+
+    user2, created2 = await repo.get_or_create("max", "max-42")
+    assert created2 is False
+    assert user2.id == user1.id
+    assert user2.channel == "max"
+
+
 async def test_get_by_external_finds_created_user(repo: UserRepository) -> None:
     await repo.get_or_create("telegram", "789", "Bob")
 

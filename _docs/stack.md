@@ -65,6 +65,10 @@
 | Переменная                  | Назначение                                                      | Default                  |
 |-----------------------------|------------------------------------------------------------------|---------------------------|
 | `TELEGRAM_BOT_TOKEN`        | Токен бота от @BotFather. **Обязательная.**                      | —                         |
+| `MAX_BOT_TOKEN`             | Токен MAX-бота (business.max.ru). Пусто = MAX-канал не запускается. | —                       |
+| `MAX_API_BASE_URL`          | Базовый URL MAX Bot API (`dev.max.ru/docs-api`).                | `https://platform-api.max.ru` |
+| `MAX_POLL_TIMEOUT`          | Тайм-аут long polling `GET /updates`, секунды.                  | `30`                      |
+| `MAX_MAX_FILE_MB`           | Лимит размера скачиваемого из MAX файла, МБ.                     | `20`                      |
 | `OLLAMA_BASE_URL`           | URL локального Ollama API.                                       | `http://localhost:11434`  |
 | `OLLAMA_DEFAULT_MODEL`      | LLM по умолчанию (должна быть в `OLLAMA_AVAILABLE_MODELS`).      | `qwen3.5:4b`              |
 | `OLLAMA_AVAILABLE_MODELS`   | Список разрешённых LLM через запятую.                            | `qwen3.5:4b`              |
