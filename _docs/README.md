@@ -1,10 +1,11 @@
 # Документация проекта
 
-Локальная мульти-агентная система на self-hosted LLM (Ollama), работающая в цикле `thought → action → observation`. Три оси:
+Локальная мульти-агентная система на self-hosted LLM (Ollama), работающая в цикле `thought → action → observation`. Ключевые оси:
 
 - **Мульти-канальность** — единый контракт `core.handle_user_task(text, user_id, chat_id)` обслуживает Telegram (через [aiogram 3](https://docs.aiogram.dev/)), консоль и MAX (`dev.max.ru/docs-api`, long polling).
 - **Мульти-моделность** — под разные задачи разные локальные модели: чат/рассуждения (`OLLAMA_DEFAULT_MODEL`), эмбеддинги (`EMBEDDING_MODEL`), vision (`VISION_MODEL`), распознавание речи (`faster-whisper`).
 - **Мульти-агентность** — Planner / Executor / Critic с режимами рефлексии `OFF | NORMAL | DEEP`.
+- **Гибрид LLM + инструменты** — детерминированные и фактические операции делегируются tools (`calculator`, OCR через Tesseract, `weather`, `web_search`, `memory_search`…), а не «придумываются»; подробнее — [`tools.md`](./tools.md).
 
 В перспективе — web-адаптер и webhook-режим. Документы здесь описывают цели, архитектуру, текущее состояние кода, правила разработки и процесса.
 
