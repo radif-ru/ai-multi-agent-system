@@ -15,6 +15,8 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from app.adapters.max.client import MAX_MESSAGE_TEXT_LEN, MaxClient
+from app.commands import CommandRegistry
+from app.commands.context import CommandContext
 from app.core.events import MessageReceived, ResponseGenerated
 from app.core.orchestrator import handle_user_task
 from app.security import sanitize_user_input
@@ -43,6 +45,9 @@ class MaxUpdateDispatcher:
     ) -> None:
         self._client = client
         self._c = components
+        self._command_registry = (
+            CommandRegistry() if components is not None else None
+        )
 
     async def dispatch(self, update: dict[str, Any]) -> None:
         """Разобрать апдейт и направить в нужный обработчик.
@@ -144,8 +149,64 @@ class MaxUpdateDispatcher:
         await self._send(chat_id, reply)
 
     async def _handle_command(self, message: dict[str, Any], text: str) -> None:
-        command = text.split(maxsplit=1)[0]
-        logger.info("max: команда %s (обработчик — Этап 3.2)", command)
+        """Команда (`/...`) → общий `CommandRegistry` → ответ в MAX."""
+        c = self._c
+        if c is None or self._command_registry is None:
+            logger.warning("max: команда без компонентов — пропуск")
+            return
+
+        user_id, chat_id = _extract_ids(message)
+        if user_id is None or chat_id is None:
+            logger.warning("max: не удалось определить user_id/chat_id")
+            return
+
+        parts = text.split(maxsplit=1)
+        command_name = parts[0][1:]  # убираем ведущий слеш
+        args = parts[1] if len(parts) > 1 else ""
+
+        ctx = await self._build_command_context(user_id, chat_id, message)
+
+        if command_name == "new":
+
+            async def _progress_callback(progress_text: str) -> None:
+                await self._send(chat_id, progress_text)
+
+            result = await self._command_registry.execute(
+                command_name, ctx, args=args,
+                progress_callback=_progress_callback,
+            )
+        else:
+            result = await self._command_registry.execute(
+                command_name, ctx, args=args
+            )
+
+        await self._send(chat_id, result.text)
+
+    async def _build_command_context(
+        self, user_id: int, chat_id: int, message: dict[str, Any]
+    ) -> CommandContext:
+        c = self._c
+        assert c is not None
+        user = None
+        if c.users is not None:
+            user, _ = await c.users.get_or_create(
+                CHANNEL, str(user_id), _display_name(message, user_id)
+            )
+        return CommandContext(
+            user_id=user_id,
+            chat_id=chat_id,
+            settings=c.settings,
+            user_settings=c.user_settings,
+            prompts=c.prompts,
+            tools=c.tools,
+            skills=c.skills,
+            conversations=c.conversations,
+            archiver=c.archiver,
+            users=c.users,
+            user=user,
+            channel=CHANNEL,
+            journal=c.dialog_journal,
+        )
 
     async def _handle_attachments(
         self, message: dict[str, Any], attachments: list[Any]
