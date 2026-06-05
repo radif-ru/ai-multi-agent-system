@@ -1,6 +1,12 @@
 # Документация проекта
 
-AI-агент с локальной LLM (Ollama), работающий в цикле `thought → action → observation`. Адаптеры — Telegram (через [aiogram 3](https://docs.aiogram.dev/)), консоль и MAX (`dev.max.ru/docs-api`, long polling); реализована мульти-агентная надстройка (Planner / Executor / Critic, режимы `OFF | NORMAL | DEEP`). В перспективе — web-адаптер и webhook-режим. Документы здесь описывают цели, архитектуру, текущее состояние кода, правила разработки и процесса.
+Локальная мульти-агентная система на self-hosted LLM (Ollama), работающая в цикле `thought → action → observation`. Три оси:
+
+- **Мульти-канальность** — единый контракт `core.handle_user_task(text, user_id, chat_id)` обслуживает Telegram (через [aiogram 3](https://docs.aiogram.dev/)), консоль и MAX (`dev.max.ru/docs-api`, long polling).
+- **Мульти-моделность** — под разные задачи разные локальные модели: чат/рассуждения (`OLLAMA_DEFAULT_MODEL`), эмбеддинги (`EMBEDDING_MODEL`), vision (`VISION_MODEL`), распознавание речи (`faster-whisper`).
+- **Мульти-агентность** — Planner / Executor / Critic с режимами рефлексии `OFF | NORMAL | DEEP`.
+
+В перспективе — web-адаптер и webhook-режим. Документы здесь описывают цели, архитектуру, текущее состояние кода, правила разработки и процесса.
 
 ## Источник истины
 
@@ -20,7 +26,7 @@ AI-агент с локальной LLM (Ollama), работающий в цик
 
 ### Как устроено
 
-- [`architecture.md`](./architecture.md) — компоненты, поток данных, агентный цикл, обработка ошибок, точки расширения под мульти-агент.
+- [`architecture.md`](./architecture.md) — компоненты, поток данных, агентный цикл, мульти-агентная надстройка, обработка ошибок, точки расширения (новые адаптеры/агенты).
 - [`agent-loop.md`](./agent-loop.md) — формат JSON-ответа модели (`{thought, action, args}` / `{final_answer}`), правила цикла, лимиты, защита от зацикливания.
 - [`multi-agent.md`](./multi-agent.md) — мульти-агентная надстройка над Executor (Planner + Critic), режимы рефлексии `OFF | NORMAL | DEEP`, JSON-протоколы, fallback'ы, команда `/mode`.
 - [`memory.md`](./memory.md) — краткосрочная in-memory история и долгосрочная семантическая память на `sqlite-vec` (RAG), сценарий `/new`, журнал диалога `dialog_journal`.

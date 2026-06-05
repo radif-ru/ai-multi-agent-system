@@ -16,7 +16,7 @@ ai-multi-agent-system/
 │   ├── README.md             # индекс документации
 │   ├── mvp.md                # scope MVP и критерии приёмки (Спринт 01)
 │   ├── requirements.md       # FR / NFR / CON / ASM
-│   ├── architecture.md       # компоненты, поток данных, мульти-агент в перспективе
+│   ├── architecture.md       # компоненты, поток данных, мульти-агент, точки расширения
 │   ├── agent-loop.md         # формат JSON ответа модели и правила цикла
 │   ├── multi-agent.md        # Planner + Critic поверх Executor, режимы рефлексии
 │   ├── memory.md             # краткосрочная и долгосрочная память (sqlite-vec)
