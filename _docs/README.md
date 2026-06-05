@@ -1,6 +1,6 @@
 # Документация проекта
 
-AI-агент с локальной LLM (Ollama), работающий в цикле `thought → action → observation`. Адаптеры — Telegram (через [aiogram 3](https://docs.aiogram.dev/)) и консоль; реализована мульти-агентная надстройка (Planner / Executor / Critic, режимы `OFF | NORMAL | DEEP`). В перспективе — web-адаптер и адаптер в мессенджер MAX. Документы здесь описывают цели, архитектуру, текущее состояние кода, правила разработки и процесса.
+AI-агент с локальной LLM (Ollama), работающий в цикле `thought → action → observation`. Адаптеры — Telegram (через [aiogram 3](https://docs.aiogram.dev/)), консоль и MAX (`dev.max.ru/docs-api`, long polling); реализована мульти-агентная надстройка (Planner / Executor / Critic, режимы `OFF | NORMAL | DEEP`). В перспективе — web-адаптер и webhook-режим. Документы здесь описывают цели, архитектуру, текущее состояние кода, правила разработки и процесса.
 
 ## Источник истины
 

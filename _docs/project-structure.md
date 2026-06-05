@@ -281,7 +281,7 @@ ai-multi-agent-system/
 - **Один skill — одна подпапка.** `app/skills/<name>/SKILL.md`.
 - **DI через aiogram `workflow_data`**: `dp["settings"]`, `dp["llm"]`, `dp["registry"]`, `dp["conversation"]`, `dp["summarizer"]`, `dp["memory"]`, `dp["archiver"]`, `dp["skills"]`, `dp["prompts"]`, `dp["tools"]`, `dp["executor"]`. Хендлеры получают их через параметры (aiogram 3 умеет инжектить по имени).
 - **Тесты рядом с тем, что тестируют**: `tests/services/` зеркалит `app/services/`, `tests/tools/` — `app/tools/`, и т. д.
-- **Адаптеры изолированы**: при добавлении web/MAX в `app/adapters/<channel>/` корневая структура не меняется, только подкаталог; единая точка входа — `core/orchestrator.py::handle_user_task`.
+- **Адаптеры изолированы**: добавление нового канала (например, web) в `app/adapters/<channel>/` не меняет корневую структуру, только подкаталог; единая точка входа — `core/orchestrator.py::handle_user_task`. Так уже сделаны console- и MAX-адаптеры.
 
 ## Что должно попасть в `.gitignore`
 
