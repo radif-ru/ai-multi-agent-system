@@ -37,7 +37,7 @@ def _wire_max(c: _Components) -> tuple[MaxClient, MaxUpdateDispatcher]:
         base_url=c.settings.max_api_base_url,
         poll_timeout=c.settings.max_poll_timeout,
     )
-    dispatcher = MaxUpdateDispatcher(client=client)
+    dispatcher = MaxUpdateDispatcher(client=client, components=c)
     return client, dispatcher
 
 
