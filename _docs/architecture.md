@@ -329,6 +329,18 @@ class Executor:
   - Поддержка кириллицы через `tesseract-ocr-rus`.
 - **Извлечение изображений из PDF:** tool извлекает изображения из PDF (до `DOCUMENT_MAX_IMAGES` по умолчанию 20). Изображения сохраняются во временной директории. Если OCR не сработал, возвращается информация о картинках для описания через `describe_image`.
 
+### 6.6 Файлы из MAX (черновик, спринт 09; финал — Этап 5)
+
+Вложения MAX (`message.body.attachments`) переиспользуют тот же конвейер, что и Telegram: скачивание во временный подкаталог пользователя и маршрутизация в `core.handle_user_task` через существующие сервисы. Адаптер не дублирует бизнес-логику.
+
+- **`download_max_file`** (`app/adapters/max/files.py`): потоковое скачивание по `attachment.payload.url` (CDN MAX) через `MaxClient.stream`. Лимит `MAX_MAX_FILE_MB` (default 20) проверяется по `Content-Length` и во время загрузки → `FileTooLargeError`. Файл сохраняется в `Settings.tmp_base_dir/{user_id}/` (изоляция по пользователю, защита от path traversal).
+- **`MaxUpdateDispatcher._handle_attachments`** (`app/adapters/max/adapter.py`): берёт первое поддерживаемое вложение и строит goal по типу:
+  - `file` → goal с `file_id` (агент читает через tool `read_document`);
+  - `image` → `Vision.describe(path, caption)` → goal с описанием; при пустом `VISION_MODEL` — подсказка без скачивания;
+  - `audio` → `Transcriber.transcribe(path)` (через `asyncio.to_thread`) → goal с транскрипцией; при отсутствии faster-whisper — fallback-сообщение.
+- Неподдерживаемые типы (`video`, `sticker`, `contact` и др.) → подсказка «Этот тип вложения пока не поддерживается».
+- Пути маскируются через `FileIdMapper` (как в Telegram); события `MessageReceived`/`ResponseGenerated` публикуются с `channel="max"` и `kind` (`document`/`image`/`voice`).
+
 ## 7. Обработка ошибок
 
 | Сценарий                                    | Действие                                                                  |
