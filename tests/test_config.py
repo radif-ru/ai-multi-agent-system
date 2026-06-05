@@ -138,3 +138,44 @@ def test_reflection_mode_invalid_raises(base_env):
 def test_reflection_max_iterations_non_positive_raises(base_env):
     with pytest.raises(ValidationError):
         _build(base_env, AGENT_REFLECTION_MAX_ITERATIONS=0)
+
+
+# --- MAX-адаптер (спринт 09, задача 2.1) ---
+
+
+def test_max_defaults(base_env):
+    s = _build(base_env)
+    assert s.max_bot_token is None
+    assert s.max_api_base_url == "https://platform-api.max.ru"
+    assert s.max_poll_timeout == 30
+    assert s.max_max_file_mb == 20
+
+
+def test_max_token_optional_does_not_fail(base_env):
+    """Пустой MAX_BOT_TOKEN не ломает валидацию (канал просто не стартует)."""
+    s = _build(base_env)
+    assert s.max_bot_token is None
+
+
+def test_max_fields_loaded_from_env(base_env):
+    s = _build(
+        base_env,
+        MAX_BOT_TOKEN="secret-token",
+        MAX_API_BASE_URL="https://example.test",
+        MAX_POLL_TIMEOUT=15,
+        MAX_MAX_FILE_MB=50,
+    )
+    assert s.max_bot_token == "secret-token"
+    assert s.max_api_base_url == "https://example.test"
+    assert s.max_poll_timeout == 15
+    assert s.max_max_file_mb == 50
+
+
+def test_max_poll_timeout_non_positive_raises(base_env):
+    with pytest.raises(ValidationError):
+        _build(base_env, MAX_POLL_TIMEOUT=0)
+
+
+def test_max_max_file_non_positive_raises(base_env):
+    with pytest.raises(ValidationError):
+        _build(base_env, MAX_MAX_FILE_MB=0)
