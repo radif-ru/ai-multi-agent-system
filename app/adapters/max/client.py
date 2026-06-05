@@ -119,6 +119,15 @@ class MaxClient:
             "POST", "/messages", params=params, json={"text": text}
         )
 
+    def stream(self, url: str) -> Any:
+        """Контекст-менеджер потокового `GET` по абсолютному URL вложения.
+
+        Используется для скачивания файлов из MAX (`payload.url` указывает на
+        CDN, отличный от `base_url`). Возвращает `httpx`-stream как есть, чтобы
+        вызывающий код мог контролировать размер на лету.
+        """
+        return self._client.stream("GET", url)
+
     async def close(self) -> None:
         await self._client.aclose()
 
