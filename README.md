@@ -2,22 +2,27 @@
 
 [![tests](https://github.com/radif-ru/ai_multi_agent_system/actions/workflows/test.yml/badge.svg)](https://github.com/radif-ru/ai_multi_agent_system/actions/workflows/test.yml)
 
-**Локальный AI-агент** на локальной LLM с адаптерами **Telegram** и **консоль**. Принимает задачу от пользователя, **выполняет цикл `thought → action → observation`** до получения финального ответа: думает, выбирает инструмент, наблюдает результат, повторяет. Ответ модели — строго в JSON-формате (`{"thought", "action", "args"}` либо `{"final_answer"}`).
+**Локальная мульти-агентная система** на self-hosted LLM через [Ollama](https://ollama.com). Принимает задачу от пользователя и **выполняет цикл `thought → action → observation`** до финального ответа: думает, выбирает инструмент, наблюдает результат, повторяет. Ответ модели в цикле — строго JSON (`{"thought", "action", "args"}` либо `{"final_answer"}`).
 
-Реализована **мульти-агентная система**: роли Planner / Executor / Critic с режимами рефлексии `OFF | NORMAL | DEEP` (`AGENT_REFLECTION_MODE`, default `OFF` — поведение MVP), переключение per-user командой `/mode`. Подробнее — [`_docs/multi-agent.md`](./_docs/multi-agent.md). Будущие спринты добавят capability graph и новые адаптеры (web-версия, мессенджер MAX) поверх той же доменной модели.
+Ключевые свойства:
 
-Построен на [`aiogram 3`](https://docs.aiogram.dev/) (long polling) + [`ollama`](https://ollama.com) (LLM + embeddings) + [`sqlite-vec`](https://github.com/asg017/sqlite-vec) (долгосрочная семантическая память) + `pydantic-settings` + `pytest`.
+- **Мульти-канальность.** Один и тот же доменный контракт `core.handle_user_task(text, user_id, chat_id)` обслуживает три канала: **Telegram** ([aiogram 3](https://docs.aiogram.dev/), long polling), **консоль** (REPL) и **MAX** ([dev.max.ru/docs-api](https://dev.max.ru/docs-api), long polling). Адаптеры тонкие — добавление нового канала не трогает `core` / `agents` / `tools` / `memory`.
+- **Мульти-моделность.** Под разные задачи — разные локальные модели, а не одна: LLM для агентного цикла/рассуждений (`OLLAMA_DEFAULT_MODEL`, default `qwen3.5:4b`, переключается per-user через `/model`), embedding-модель для семантической памяти (`EMBEDDING_MODEL`, default `nomic-embed-text`), vision-модель для описания изображений (`VISION_MODEL`, default `gemma3:4b`, см. [`_docs/vision-models.md`](./_docs/vision-models.md)) и `faster-whisper` для распознавания речи.
+- **Мульти-агентность.** Роли Planner / Executor / Critic с режимами рефлексии `OFF | NORMAL | DEEP` (`AGENT_REFLECTION_MODE`, default `OFF` — поведение MVP), graceful degradation при сбоях, переключение per-user командой `/mode`. Подробнее — [`_docs/multi-agent.md`](./_docs/multi-agent.md).
+
+Стек: [`ollama`](https://ollama.com) (LLM + embeddings + vision) + [`aiogram 3`](https://docs.aiogram.dev/) + [`httpx`](https://www.python-httpx.org/) (MAX-клиент) + [`sqlite-vec`](https://github.com/asg017/sqlite-vec) (долгосрочная семантическая память) + `pydantic-settings` + `pytest`. Всё локально — **без облачных LLM-API**.
 
 ## Возможности
 
-Реализовано в спринтах 01 (MVP Agent), 02 (Память и файловые входы), 03 (Баги и консольный режим), 04 (Событийная модель и модуль Users), 05 (Безопасность и OCR-рефакторинг), 06 (Надёжность диалога и observability), 07 (Multi-agent: Planner + Critic) и 08 (Hardening и зачистка). Индекс спринтов — [`_board/plan.md`](./_board/plan.md). Фактическое состояние кода — [`_docs/current-state.md`](./_docs/current-state.md).
+Реализовано в спринтах 01 (MVP Agent), 02 (Память и файловые входы), 03 (Баги и консольный режим), 04 (Событийная модель и модуль Users), 05 (Безопасность и OCR-рефакторинг), 06 (Надёжность диалога и observability), 07 (Multi-agent: Planner + Critic), 08 (Hardening и зачистка) и 09 (MAX-адаптер). Индекс спринтов — [`_board/plan.md`](./_board/plan.md). Фактическое состояние кода — [`_docs/current-state.md`](./_docs/current-state.md).
 
 - **Агентный цикл** `thought → action → observation` со строгим JSON-форматом, лимитом `AGENT_MAX_STEPS` и лимитом размера output’а — [`app/agents/executor.py`](./app/agents/executor.py), [`app/agents/protocol.py`](./app/agents/protocol.py).
 - **Multi-agent** (Planner + Executor + Critic) с режимами `OFF | NORMAL | DEEP` (`AGENT_REFLECTION_MODE`, `AGENT_REFLECTION_MAX_ITERATIONS`), graceful degradation при ошибках Planner/Critic, команда `/mode` для per-user override — [`app/agents/planner.py`](./app/agents/planner.py), [`app/agents/critic.py`](./app/agents/critic.py), [`app/core/orchestrator.py`](./app/core/orchestrator.py); подробнее в [`_docs/multi-agent.md`](./_docs/multi-agent.md).
-- **Локальная LLM** через Ollama (`qwen3.5:4b` по умолчанию для чата, `nomic-embed-text` для эмбеддингов, `gemma3:4b` для описания изображений, см. `_docs/vision-models.md`), клиент с `chat` и `embed` — [`app/services/llm.py`](./app/services/llm.py).
+- **Локальные LLM под разные задачи** через Ollama: `qwen3.5:4b` (по умолчанию для агентного цикла/чата), `nomic-embed-text` (эмбеддинги для семантической памяти), `gemma3:4b` (vision-описание изображений, см. `_docs/vision-models.md`); активная чат-модель переключается per-user (`/model`). Клиент с `chat` и `embed` — [`app/services/llm.py`](./app/services/llm.py).
 - **Tools (инструменты)**: `calculator`, `read_file`, `http_request`, `web_search` (DuckDuckGo `ddgs`), `memory_search`, `load_skill`, `read_document`, `describe_image`, `ocr_image`, `weather` — [`app/tools/`](./app/tools).
 - **Telegram-интерфейс** на aiogram 3 (long polling), команды `/start`, `/help`, `/new`, `/reset`, `/models`, `/model`, `/prompt`, `/search_engines`, `/search_engine`, `/mode` + обработчик произвольного текста и файлов — [`app/adapters/telegram/handlers/`](./app/adapters/telegram/handlers).
 - **Консольный адаптер** — REPL-цикл с теми же командами без Telegram — [`app/adapters/console/adapter.py`](./app/adapters/console/adapter.py), точка входа [`app/console_main.py`](./app/console_main.py); см. [`_docs/console-adapter.md`](./_docs/console-adapter.md).
+- **MAX-адаптер** ([dev.max.ru/docs-api](https://dev.max.ru/docs-api)) — канал `channel="max"` поверх той же доменной модели: тонкий async-клиент `MaxClient` на `httpx` (`get_me` / `get_updates` long polling / `send_message`, авторизация заголовком `Authorization: <token>`, токен маскируется в логах), текст/команды/вложения (документ/фото/голос) через тот же конвейер и общий `CommandRegistry` — [`app/adapters/max/`](./app/adapters/max), точка входа [`app/max_main.py`](./app/max_main.py).
 - **Файловые входы**: документы (PDF/TXT/MD), голосовые сообщения (Voice/Audio), фотографии (Photo) — [`app/adapters/telegram/files.py`](./app/adapters/telegram/files.py), [`app/services/transcribe.py`](./app/services/transcribe.py), [`app/services/vision.py`](./app/services/vision.py).
 - **Краткосрочная память** per-user (in-memory FIFO + in-session суммаризация + полный лог сессии + контекст файлов для reply) — [`app/services/conversation.py`](./app/services/conversation.py), [`app/services/summarizer.py`](./app/services/summarizer.py).
 - **Долгосрочная семантическая память** на `sqlite-vec`: `/new` суммирует сессию, режет на чанки, пишет с embedding'ом в `data/memory.db`; поиск через `memory_search` — [`app/services/memory.py`](./app/services/memory.py), [`app/services/archiver.py`](./app/services/archiver.py).
@@ -37,7 +42,8 @@
 
 - **Python** 3.14+.
 - **Ollama** (`https://ollama.com`) с предзагруженными моделями `qwen3.5:4b`, `nomic-embed-text` и `gemma3:4b` (или другая vision-модель, см. `_docs/vision-models.md`).
-- **Telegram bot token** от [@BotFather](https://t.me/BotFather).
+- **Telegram bot token** от [@BotFather](https://t.me/BotFather) — для Telegram-канала.
+- **MAX bot token** (`MAX_BOT_TOKEN`) — для MAX-канала; получается на [business.max.ru](https://business.max.ru/self) (Чат-боты → Интеграция → Получить токен). Опционален: при пустом значении MAX-канал не запускается.
 - **tesseract-ocr** (опционально, для OCR в PDF): `sudo apt-get install tesseract-ocr tesseract-ocr-rus`
 - ОС: Linux / WSL2 / macOS. Windows нативно — не приоритет.
 
@@ -82,6 +88,14 @@ pip install -r requirements.txt
 ollama serve & .venv/bin/python -m app
 ```
 
+**MAX-бот:**
+
+```bash
+ollama serve & .venv/bin/python -m app.max_main
+```
+
+Требует `MAX_BOT_TOKEN` в `.env`; при пустом токене канал не стартует. Каналы независимы: Telegram и MAX запускаются отдельными процессами.
+
 **Консольный режим:**
 
 ```bash
@@ -117,7 +131,7 @@ ai-multi-agent-system/
 ├── .agents/      # промпты и скиллы для AI-ассистента разработки (не runtime бота)
 ├── app/skills/      # markdown-скиллы (SKILL.md в каждой подпапке)
 ├── app/prompts/     # системные промпты в markdown
-├── app/          # код приложения (агент, tools, adapters)
+├── app/          # код приложения (агент, tools, adapters: telegram/console/max)
 ├── tests/        # unit-тесты, зеркалят app/
 ├── data/         # runtime-данные: SQLite с sqlite-vec (в .gitignore)
 └── logs/         # файлы логов (в .gitignore)
@@ -155,17 +169,17 @@ pytest --cov=app --cov-report=term-missing
 - 🔭 [`_docs/observability.md`](./_docs/observability.md) — структурные JSON-логи, `trace_id`, маскирование секретов, error tracking (GlitchTip).
 - 📋 [`_board/README.md`](./_board/README.md) — процесс спринтов и задач.
 - 📌 [`_docs/current-state.md`](./_docs/current-state.md) — фактическое состояние кода (читать перед правками).
-- 🗺️ [`_docs/roadmap.md`](./_docs/roadmap.md) — этапы развития, в т.ч. multi-agent (Planner/Critic) и web/MAX-адаптеры.
+- 🗺️ [`_docs/roadmap.md`](./_docs/roadmap.md) — этапы развития (capability graph, внешние онлайн-LLM, web-адаптер, MAX-webhook и др.).
 - 🤖 [`.agents/README.md`](./.agents/README.md) — переиспользуемые промпты и скиллы для **AI-ассистента разработки**; здесь же разделение: `app/skills/` — runtime-скиллы бота, `.agents/skills/` — дисциплины ассистента.
 
 ## Ограничения и принципы
 
 - Только **локальная LLM** через Ollama, никаких облачных API.
-- Только **long polling**, без webhook (см. `_docs/architecture.md` §2).
+- Только **long polling** для всех каналов (Telegram и MAX), без webhook (см. `_docs/architecture.md` §2). MAX-документация рекомендует webhook для production — это вынесено в `_docs/roadmap.md`.
 - **In-memory** история текущей сессии, **долгосрочная** память — только саммари (не сырые сообщения), для приватности.
 - Поддерживаются файловые входы: документы (PDF/TXT/MD), голосовые сообщения (Voice/Audio), фотографии (Photo) — через `faster-whisper` (опционально) и Ollama vision API (опционально).
 - Документация и сообщения коммитов ведутся **на русском**, технические идентификаторы — латиницей.
 
 ## История спринтов
 
-Полный индекс и история спринтов — в [`_board/plan.md`](./_board/plan.md). Планируемые этапы (capability graph, web-адаптер, MAX, webhook и др.) — в [`_docs/roadmap.md`](./_docs/roadmap.md).
+Полный индекс и история спринтов — в [`_board/plan.md`](./_board/plan.md). Планируемые этапы (capability graph, внешние онлайн-LLM, web-адаптер, MAX-webhook и др.) — в [`_docs/roadmap.md`](./_docs/roadmap.md).
