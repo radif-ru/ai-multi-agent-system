@@ -217,6 +217,8 @@ class Executor:
 
 Адаптер **не знает** про executor / tools / memory напрямую — только про `core.handle_user_task`, `ConversationStore`, `UserSettingsRegistry`, `Archiver`, `UserRepository` (для получения пользователя через `get_or_create`).
 
+> **MAX-адаптер (`app/adapters/max/`, черновик спринта 09)** — новый канал поверх той же доменной модели (`channel="max"`). Транспорт: `client.py::MaxClient` — тонкий async-клиент MAX Bot API (`dev.max.ru/docs-api`) на общем `httpx.AsyncClient` без сторонних SDK; методы `get_me` / `get_updates` (long polling) / `send_message`; авторизация заголовком `Authorization: <token>`, токен маскируется в логах через `mask_secrets`; ошибки сети/HTTP → собственные `MaxTimeout` / `MaxUnavailable` / `MaxBadResponse`. Точка входа — `app/max_main.py` (long polling). Финальное описание потоков (текст/команды/файлы) — Этап 5 спринта 09.
+
 ### 3.14 Безопасность (`app/security/`)
 
 - `input_sanitizer.py`: функция `sanitize_user_input` для защиты от prompt injection. Детектирует подозрительные паттерны (ignore instructions, repeat system prompt и т.д.) и возвращает очищенный текст или текст с предупреждением.
