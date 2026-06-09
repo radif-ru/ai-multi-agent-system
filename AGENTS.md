@@ -70,3 +70,32 @@
 ---
 
 **Признаки того, что эти гайдлайны работают:** меньше лишних изменений в diff'ах, меньше переписываний из-за переусложнения, уточняющие вопросы появляются **до** реализации, а не после ошибок.
+
+---
+
+## Навигация для агента
+
+`AGENTS.md` — **единая точка входа и источник истины** для всех AI-агентов проекта. Файлы `CLAUDE.md`, `GEMINI.md`, `QWEN.md`, `.github/copilot-instructions.md` — относительные symlink'и на этот файл; правила Cursor (`.cursor/rules/`) и Windsurf (`.windsurf/rules/`) на него ссылаются. Меняй правила **здесь** — изменения подхватят все агенты. Подробно про зеркалирование и добавление нового агента — `.agents/README.md`.
+
+- **Правила разработки** (git, стиль, async, ошибки, тесты, документация) — `_docs/instructions.md`.
+- **Процесс задач** (спринты, ритуал коммитов, DoD) — `_board/process.md`.
+- **Архитектура** — `_docs/architecture.md`.
+
+## Skills
+
+Скиллы-дисциплины для разработки живут один раз в `.agents/skills/<name>/SKILL.md` (не путать с runtime-скиллами бота в `app/skills/` — `_docs/skills.md`). Если тема задачи совпадает со скиллом — прочитай его **до** правок.
+
+- `.agents/skills/architecture-discipline/SKILL.md` — границы слоёв, JSON-цикл, local-first; загружай первым для широкой задачи.
+- `.agents/skills/async-discipline/SKILL.md` — весь I/O через `await`, синхронные либы через `asyncio.to_thread`.
+- `.agents/skills/testing-discipline/SKILL.md` — `pytest` + asyncio, моки внешних систем, тест на новое поведение.
+- `.agents/skills/error-handling-discipline/SKILL.md` — иерархии исключений, нет необработанных, человеческие сообщения.
+- `.agents/skills/prompt-injection-defense/SKILL.md` — InputSanitizer / ResponseSanitizer / FileIdMapper, allowlist опасных tools.
+- `.agents/skills/documentation-discipline/SKILL.md` — относительные пути, синхронизация ссылок, doc-before-code.
+- `.agents/skills/git-discipline/SKILL.md` — Conventional Commits, ритуал задачи, зелёные `pytest` + `flake8` до коммита.
+
+## Рекомендуемый порядок загрузки
+
+- Широкая или неочевидная задача: `architecture-discipline` → профильный скилл.
+- Код в `app/`: `architecture-discipline` → `async-discipline` → `testing-discipline` → `error-handling-discipline`.
+- Новая точка входа пользовательского текста или tool с ФС/сетью: `prompt-injection-defense`.
+- Задача про документацию: `documentation-discipline`. Задача про коммит/ветку: `git-discipline`.
