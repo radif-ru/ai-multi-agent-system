@@ -10,7 +10,7 @@
 
 | ID | Название | Файл | Ветка | Статус | Открыт | Закрыт |
 |:--:|----------|------|-------|:------:|:------:|:------:|
-| —  | (нет активных спринтов) | — | — | — | — | — |
+| 10 | Аудит качества и устранение техдолга | [`sprints/10-audit-and-quality.md`](./sprints/10-audit-and-quality.md) | `feature/10-audit-and-quality` | Active | 2026-06-09 | — |
 
 ### Закрытые
 
@@ -49,6 +49,7 @@
 | 07. Multi-agent (Planner + Critic) | Closed | 0 / 0 / 13 | `sprints/07-multi-agent.md` |
 | 08. Hardening и зачистка техдолга | Closed | 0 / 0 / 12 | `sprints/08-hardening-and-cleanup.md` |
 | 09. MAX-адаптер | Closed | 0 / 0 / 11 | `sprints/09-max-adapter.md` |
+| 10. Аудит качества и устранение техдолга | Active | 9 / 0 / 0 | `sprints/10-audit-and-quality.md` |
 
 > Таблицу обновлять одновременно с переходами статусов в файлах спринтов (см. `process.md` §7.3 и §7.9).
 
