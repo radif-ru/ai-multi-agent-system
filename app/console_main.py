@@ -9,207 +9,21 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from pathlib import Path
 
 from app.adapters.console.adapter import ConsoleAdapter
-from app.agents.critic import CriticAgent
-from app.agents.executor import Executor
-from app.agents.planner import PlannerAgent
 from app.config import Settings
 from app.core import orchestrator as _orchestrator
 from app.core.logging_config import setup_logging
+from app.main import _Components, _build_components
 from app.observability import setup_sentry
-from app.services.archiver import Archiver
 from app.services.conversation import ConversationStore
-from app.services.dialog_journal import DialogJournal
 from app.services.llm import OllamaClient
-from app.services.memory import MemoryUnavailable, SemanticMemory
-from app.services.model_registry import UserSettingsRegistry
-from app.services.prompts import PromptLoader
-from app.services.skills import SkillRegistry
-from app.services.summarizer import Summarizer
-from app.tools.calculator import CalculatorTool
-from app.tools.describe_image import DescribeImageTool
-from app.tools.http_request import HttpRequestTool
-from app.tools.load_skill import LoadSkillTool
-from app.tools.memory_search import MemorySearchTool
-from app.tools.ocr_image import OcrImageTool
-from app.tools.read_document import ReadDocumentTool
-from app.tools.read_file import ReadFileTool
-from app.tools.registry import ToolRegistry
-from app.tools.web_search import WebSearchTool
-from app.tools.weather import WeatherTool
+from app.services.memory import SemanticMemory
 from app.users.repository import UserRepository
-from app.core.events import EventBus, MessageReceived, ResponseGenerated
-from app.security import get_global_mapper
 
 logger = logging.getLogger(__name__)
 
 assert _orchestrator is not None  # явная зависимость для будущего DI
-
-
-async def _build_components(settings: Settings) -> tuple:
-    """Построить компоненты для консольного адаптера."""
-    llm = OllamaClient(
-        base_url=settings.ollama_base_url,
-        timeout=settings.ollama_timeout,
-        num_ctx=settings.ollama_num_ctx,
-    )
-    conversations = ConversationStore(
-        max_messages=settings.history_max_messages,
-        session_log_max_messages=settings.session_log_max_messages,
-        journal_db_path=settings.memory_db_path,
-    )
-    prompts = PromptLoader(settings.agent_system_prompt_path)
-    summarizer = Summarizer(
-        llm=llm,
-        system_prompt=prompts.summarizer_prompt,
-        chunk_messages=settings.summarizer_chunk_messages,
-    )
-
-    semantic_memory: SemanticMemory | None = SemanticMemory(
-        db_path=settings.memory_db_path, dimensions=settings.embedding_dimensions
-    )
-    try:
-        await semantic_memory.init()
-    except MemoryUnavailable as exc:
-        logger.error("долгосрочная память недоступна: %s", exc)
-        semantic_memory = None
-
-    # Журнал диалога для восстановления при рестарте (спринт 06 §3)
-    dialog_journal: DialogJournal | None = DialogJournal(
-        db_path=settings.memory_db_path
-    )
-    try:
-        await dialog_journal.init()
-    except Exception as exc:  # noqa: BLE001
-        logger.error("dialog_journal: инициализация не удалась, журнал выключен: %s", exc)
-        dialog_journal = None
-
-    # Инициализируем FileIdMapper для загрузки существующих маппингов
-    try:
-        get_global_mapper().init()
-    except Exception as exc:  # noqa: BLE001
-        logger.error("ошибка инициализации FileIdMapper: %s", exc)
-
-    skills = SkillRegistry("app/skills")
-    skills.load()
-    user_settings = UserSettingsRegistry(
-        default_model=settings.ollama_default_model,
-        default_search_engine=settings.search_engine_default,
-    )
-
-    tools = ToolRegistry(
-        [
-            CalculatorTool(),
-            ReadFileTool(max_output_chars=settings.max_tool_output_chars),
-            ReadDocumentTool(
-                tmp_files_dir=settings.tmp_base_dir,
-                max_file_size_mb=settings.telegram_max_file_mb,
-                max_document_chars=settings.max_document_chars,
-                max_images=settings.document_max_images,
-                ocr_enabled=settings.document_ocr_enabled,
-                ocr_min_text_threshold=settings.ocr_min_text_threshold,
-            ),
-            HttpRequestTool(max_output_chars=settings.max_tool_output_chars),
-            WebSearchTool(max_output_chars=settings.max_tool_output_chars),
-            MemorySearchTool(max_output_chars=settings.max_tool_output_chars),
-            LoadSkillTool(max_output_chars=settings.max_tool_output_chars),
-            DescribeImageTool(tmp_dir=settings.tmp_base_dir),
-            OcrImageTool(tmp_dir=settings.tmp_base_dir, max_output_chars=settings.max_tool_output_chars),
-            WeatherTool(max_output_chars=settings.max_tool_output_chars),
-        ],
-        max_output_chars=settings.max_tool_output_chars
-    )
-    executor = Executor(
-        settings=settings,
-        llm=llm,
-        tools=tools,
-        prompts=prompts,
-        skills=skills,
-        semantic_memory=semantic_memory,
-        user_settings=user_settings,
-        summarizer=summarizer,
-    )
-    planner = PlannerAgent(llm=llm, prompts=prompts, settings=settings)
-    critic = CriticAgent(llm=llm, prompts=prompts, settings=settings)
-    event_bus = EventBus()
-    users = UserRepository(db_path=settings.memory_db_path, event_bus=event_bus)
-    await users.init()
-    archiver = Archiver(
-        llm=llm,
-        summarizer=summarizer,
-        semantic_memory=semantic_memory,  # type: ignore[arg-type]
-        summarizer_model=settings.ollama_default_model,
-        embedding_model=settings.embedding_model,
-        chunk_size=settings.memory_chunk_size,
-        chunk_overlap=settings.memory_chunk_overlap,
-        concurrency_limit=settings.embedding_concurrency,
-        event_bus=event_bus,
-    )
-
-    # Регистрируем подписчиков для записи в ConversationStore
-    from app.core.events import ConversationArchived
-    from app.services.conversation_subscriber import on_message_received, on_response_generated
-    from app.services.dialog_journal_subscriber import (
-        on_message_received_journal, on_response_generated_journal,
-    )
-    from app.services.summarizer_subscriber import on_response_generated_summarize
-    from app.services.tmp_cleanup import on_conversation_archived_cleanup
-    from functools import partial
-
-    event_bus.subscribe(MessageReceived, partial(on_message_received, conversations=conversations))
-    event_bus.subscribe(ResponseGenerated, partial(on_response_generated, conversations=conversations))
-    if dialog_journal is not None:
-        event_bus.subscribe(
-            MessageReceived,
-            partial(
-                on_message_received_journal,
-                conversations=conversations, journal=dialog_journal,
-            ),
-        )
-        event_bus.subscribe(
-            ResponseGenerated,
-            partial(
-                on_response_generated_journal,
-                conversations=conversations, journal=dialog_journal,
-            ),
-        )
-    # Регистрируем подписчика суммаризации ПОСЛЕ conversation_subscriber, чтобы ответ уже был записан в стор
-    event_bus.subscribe(
-        ResponseGenerated,
-        partial(
-            on_response_generated_summarize,
-            conversations=conversations,
-            summarizer=summarizer,
-            user_settings=user_settings,
-            settings=settings,
-        ),
-    )
-    # Регистрируем подписчика очистки tmp-изображений при успешном архивировании
-    event_bus.subscribe(
-        ConversationArchived,
-        partial(on_conversation_archived_cleanup, tmp_dir=Path(settings.tmp_base_dir)),
-    )
-
-    return (
-        settings,
-        llm,
-        conversations,
-        summarizer,
-        semantic_memory,
-        skills,
-        prompts,
-        user_settings,
-        tools,
-        archiver,
-        executor,
-        planner,
-        critic,
-        users,
-        event_bus,
-        dialog_journal,
-    )
 
 
 async def _shutdown(
@@ -253,24 +67,7 @@ async def main() -> None:
             "DANGEROUS_TOOLS_ALLOWLIST=http_request,read_file"
         )
 
-    (
-        settings,
-        llm,
-        conversations,
-        summarizer,
-        semantic_memory,
-        skills,
-        prompts,
-        user_settings,
-        tools,
-        archiver,
-        executor,
-        planner,
-        critic,
-        users,
-        event_bus,
-        dialog_journal,
-    ) = await _build_components(settings)
+    components: _Components = await _build_components(settings)
 
     # Функция core.handle_user_task для текстовых сообщений
     async def core_handle_user_task(
@@ -290,37 +87,37 @@ async def main() -> None:
             user_id=user_id,
             chat_id=chat_id,
             conversations=conversations,
-            executor=executor,
+            executor=components.executor,
             model=model,
             settings=settings,
-            llm=llm,
-            semantic_memory=semantic_memory,
-            planner=planner,
-            critic=critic,
-            user_settings=user_settings,
+            llm=components.llm,
+            semantic_memory=components.semantic_memory,
+            planner=components.planner,
+            critic=components.critic,
+            user_settings=components.user_settings,
         )
 
     adapter = ConsoleAdapter(
         user_id=-1,
         chat_id=-1,
         settings=settings,
-        user_settings=user_settings,
-        prompts=prompts,
-        tools=tools,
-        skills=skills,
-        conversations=conversations,
-        archiver=archiver,
+        user_settings=components.user_settings,
+        prompts=components.prompts,
+        tools=components.tools,
+        skills=components.skills,
+        conversations=components.conversations,
+        archiver=components.archiver,
         core_handle_user_task=core_handle_user_task,
-        users=users,
-        event_bus=event_bus,
-        journal=dialog_journal,
+        users=components.users,
+        event_bus=components.event_bus,
+        journal=components.dialog_journal,
     )
 
     try:
         logger.info("Console adapter started")
         await adapter.run()
     finally:
-        await _shutdown(llm, semantic_memory, users)
+        await _shutdown(components.llm, components.semantic_memory, components.users)
 
 
 def run() -> None:
