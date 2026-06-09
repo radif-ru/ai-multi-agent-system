@@ -56,6 +56,7 @@ def env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> pytest.MonkeyPatch:
     monkeypatch.setenv("AGENT_SYSTEM_PROMPT_PATH", str(DEFAULT_PROMPT))
     monkeypatch.setenv("MEMORY_DB_PATH", str(tmp_path / "memory.db"))
     monkeypatch.setenv("LOG_FILE", str(tmp_path / "agent.log"))
+    monkeypatch.setenv("SENTRY_DSN", "")  # офлайн: не дёргаем GlitchTip
     return monkeypatch
 
 
@@ -65,7 +66,6 @@ def test_main_is_async_callable() -> None:
     assert asyncio.iscoroutinefunction(main)
 
 
-@pytest.mark.skip("Тест требует глубокого рефакторинга для работы офлайн")
 @pytest.mark.asyncio
 async def test_main_logs_bot_started_and_closes(
     env: pytest.MonkeyPatch,
@@ -97,7 +97,6 @@ async def test_main_logs_bot_started_and_closes(
     assert "Bot started" in log_path.read_text(encoding="utf-8")
 
 
-@pytest.mark.skip("Тест требует глубокого рефакторинга для работы офлайн")
 @pytest.mark.asyncio
 async def test_main_shuts_down_when_polling_raises(
     env: pytest.MonkeyPatch,
