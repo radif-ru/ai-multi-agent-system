@@ -147,17 +147,36 @@ async def main() -> None:
 
     try:
         logger.info("MAX adapter started")
+        # Ждём ПЕРВОЕ из {завершение polling, сигнал shutdown}: иначе при
+        # падении polling main() висел бы на shutdown_event.wait() навсегда,
+        # а исключение терялось бы (см. _docs/current-state.md §3).
         polling_task = asyncio.create_task(
             _run_polling(
                 client, dispatcher, poll_timeout=settings.max_poll_timeout
             )
         )
-        await shutdown_event.wait()
-        polling_task.cancel()
-        try:
-            await polling_task
-        except asyncio.CancelledError:
-            pass
+        shutdown_task = asyncio.create_task(shutdown_event.wait())
+        done, _pending = await asyncio.wait(
+            {polling_task, shutdown_task},
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+        if polling_task in done:
+            # polling завершился сам (штатно или с исключением): снимаем
+            # ожидание сигнала и пробрасываем результат — при падении
+            # сработает top-level логгер run() и Sentry.
+            shutdown_task.cancel()
+            try:
+                await shutdown_task
+            except asyncio.CancelledError:
+                pass
+            polling_task.result()
+        else:
+            # Пришёл сигнал shutdown — гасим polling.
+            polling_task.cancel()
+            try:
+                await polling_task
+            except asyncio.CancelledError:
+                pass
     finally:
         if recovery_task is not None and not recovery_task.done():
             recovery_task.cancel()
