@@ -331,11 +331,13 @@ async def _start_polling(bot: Bot, dispatcher: Dispatcher) -> None:
     await dispatcher.start_polling(bot)
 
 
-async def _shutdown(bot: Bot, components: _Components) -> None:
-    try:
-        await bot.session.close()
-    except Exception:  # noqa: BLE001
-        logger.exception("ошибка при закрытии bot.session")
+async def _shutdown_components(components: _Components) -> None:
+    """Закрыть общие (channel-agnostic) ресурсы приложения.
+
+    Используется всеми точками входа (`app/main.py`, `app/max_main.py`,
+    `app/console_main.py`). Транспорт канала (`bot.session` / `MaxClient`)
+    закрывает сама точка входа до вызова этого хелпера.
+    """
     try:
         await components.llm.close()
     except Exception:  # noqa: BLE001
@@ -359,6 +361,14 @@ async def _shutdown(bot: Bot, components: _Components) -> None:
         get_global_mapper().close()
     except Exception:  # noqa: BLE001
         logger.exception("ошибка при закрытии FileIdMapper")
+
+
+async def _shutdown(bot: Bot, components: _Components) -> None:
+    try:
+        await bot.session.close()
+    except Exception:  # noqa: BLE001
+        logger.exception("ошибка при закрытии bot.session")
+    await _shutdown_components(components)
 
 
 async def main() -> None:

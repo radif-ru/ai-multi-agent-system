@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from pathlib import Path
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -113,6 +113,48 @@ async def test_main_shuts_down_when_polling_raises(
         await main()
 
     shutdown_called.assert_awaited_once()
+
+
+def _components_with_closeables(*, semantic_memory: bool, dialog_journal: bool) -> MagicMock:
+    """Собрать мок `_Components` с AsyncMock-методами `close()`."""
+    components = MagicMock()
+    components.llm.close = AsyncMock()
+    components.users.close = AsyncMock()
+    components.semantic_memory = MagicMock(close=AsyncMock()) if semantic_memory else None
+    components.dialog_journal = MagicMock(close=AsyncMock()) if dialog_journal else None
+    return components
+
+
+@pytest.mark.asyncio
+async def test_shutdown_components_closes_all_resources(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Общий хелпер закрывает llm, semantic_memory, dialog_journal, users и FileIdMapper."""
+    components = _components_with_closeables(semantic_memory=True, dialog_journal=True)
+    mapper = MagicMock()
+    monkeypatch.setattr("app.security.get_global_mapper", lambda: mapper)
+
+    await main_module._shutdown_components(components)
+
+    components.llm.close.assert_awaited_once()
+    components.semantic_memory.close.assert_awaited_once()
+    components.dialog_journal.close.assert_awaited_once()
+    components.users.close.assert_awaited_once()
+    mapper.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_shutdown_components_tolerates_optional_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Если semantic_memory/dialog_journal == None — хелпер не падает, остальное закрывает."""
+    components = _components_with_closeables(semantic_memory=False, dialog_journal=False)
+    monkeypatch.setattr("app.security.get_global_mapper", MagicMock())
+
+    await main_module._shutdown_components(components)
+
+    components.llm.close.assert_awaited_once()
+    components.users.close.assert_awaited_once()
 
 
 def _fake_asyncio_run(exc: BaseException):

@@ -14,43 +14,13 @@ from app.adapters.console.adapter import ConsoleAdapter
 from app.config import Settings
 from app.core import orchestrator as _orchestrator
 from app.core.logging_config import setup_logging
-from app.main import _Components, _build_components
+from app.main import _Components, _build_components, _shutdown_components
 from app.observability import setup_sentry
 from app.services.conversation import ConversationStore
-from app.services.llm import OllamaClient
-from app.services.memory import SemanticMemory
-from app.users.repository import UserRepository
 
 logger = logging.getLogger(__name__)
 
 assert _orchestrator is not None  # явная зависимость для будущего DI
-
-
-async def _shutdown(
-    llm: OllamaClient,
-    semantic_memory: SemanticMemory | None,
-    users: UserRepository | None = None,
-) -> None:
-    """Корректно закрыть ресурсы."""
-    try:
-        await llm.close()
-    except Exception:  # noqa: BLE001
-        logger.exception("ошибка при закрытии llm-клиента")
-    if semantic_memory is not None:
-        try:
-            await semantic_memory.close()
-        except Exception:  # noqa: BLE001
-            logger.exception("ошибка при закрытии семантической памяти")
-    if users is not None:
-        try:
-            await users.close()
-        except Exception:  # noqa: BLE001
-            logger.exception("ошибка при закрытии UserRepository")
-    try:
-        from app.security import get_global_mapper
-        get_global_mapper().close()
-    except Exception:  # noqa: BLE001
-        logger.exception("ошибка при закрытии FileIdMapper")
 
 
 async def main() -> None:
@@ -117,7 +87,7 @@ async def main() -> None:
         logger.info("Console adapter started")
         await adapter.run()
     finally:
-        await _shutdown(components.llm, components.semantic_memory, components.users)
+        await _shutdown_components(components)
 
 
 def run() -> None:

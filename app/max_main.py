@@ -21,9 +21,8 @@ from app.adapters.max.adapter import MaxUpdateDispatcher
 from app.adapters.max.client import MaxClient, MaxError
 from app.config import Settings
 from app.core.logging_config import setup_logging
-from app.main import _Components, _build_components
+from app.main import _Components, _build_components, _shutdown_components
 from app.observability import setup_sentry
-from app.security import get_global_mapper
 from app.services.journal_recovery import recover_pending_journals
 
 logger = logging.getLogger(__name__)
@@ -79,28 +78,7 @@ async def _shutdown(client: MaxClient, components: _Components) -> None:
         await client.close()
     except Exception:  # noqa: BLE001
         logger.exception("ошибка при закрытии MaxClient")
-    try:
-        await components.llm.close()
-    except Exception:  # noqa: BLE001
-        logger.exception("ошибка при закрытии llm-клиента")
-    if components.semantic_memory is not None:
-        try:
-            await components.semantic_memory.close()
-        except Exception:  # noqa: BLE001
-            logger.exception("ошибка при закрытии семантической памяти")
-    if components.dialog_journal is not None:
-        try:
-            await components.dialog_journal.close()
-        except Exception:  # noqa: BLE001
-            logger.exception("ошибка при закрытии dialog_journal")
-    try:
-        await components.users.close()
-    except Exception:  # noqa: BLE001
-        logger.exception("ошибка при закрытии UserRepository")
-    try:
-        get_global_mapper().close()
-    except Exception:  # noqa: BLE001
-        logger.exception("ошибка при закрытии FileIdMapper")
+    await _shutdown_components(components)
 
 
 async def main() -> None:
