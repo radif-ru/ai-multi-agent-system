@@ -47,7 +47,7 @@
 
 ### Задача 1.1. Флаг `think` в `OllamaClient.chat` + настройка `OLLAMA_THINK`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** —
@@ -65,11 +65,11 @@
 
 #### Definition of Done
 
-- [ ] `OLLAMA_THINK` управляет передачей `think` в Ollama; default `false`.
-- [ ] Smoke: при `false` ответ на короткий запрос приходит за доли секунды (ручная проверка/бенч).
-- [ ] **Документация обновлена**: `_docs/architecture.md` §3.4 (упоминание think), `_docs/stack.md` §9 (новый ключ).
-- [ ] **Тесты**: `tests/services/test_llm_client.py` — `think` прокидывается в мок-клиент; `pytest -q` зелёный.
-- [ ] `git status` чист.
+- [x] `OLLAMA_THINK` управляет передачей `think` в Ollama; default `false`.
+- [x] Smoke: при `false` ответ на короткий запрос приходит за доли секунды (зафиксировано в диагностике спринта §1: 5 шагов think-off `~3.4s` против think-on `35.5s` на RTX 5090).
+- [x] **Документация обновлена**: `_docs/architecture.md` §3.4 (упоминание think), `_docs/stack.md` §9 (новый ключ).
+- [x] **Тесты**: `tests/services/test_llm_client.py` — `think` прокидывается в мок-клиент; `pytest -q` зелёный.
+- [x] `git status` чист.
 
 ### Задача 1.2. Все роли (executor/summarizer/planner/critic) учитывают think + замер
 
@@ -394,7 +394,7 @@ Bash-launcher: запускает бот в собственной группе 
 
 | #   | Задача | Приоритет | Объём | Статус | Зависит от |
 |-----|--------|:---------:|:-----:|:------:|:----------:|
-| 1.1 | Флаг `think` в `OllamaClient` + `OLLAMA_THINK` | high | S | Progress | — |
+| 1.1 | Флаг `think` в `OllamaClient` + `OLLAMA_THINK` | high | S | Done | — |
 | 1.2 | Все роли учитывают think + замер | high | S | ToDo | 1.1 |
 | 2.1 | Общий gate на LLM + `queue_wait_ms` | high | M | ToDo | — |
 | 2.2 | Приоритет live над recovery | high | M | ToDo | 2.1 |
@@ -414,3 +414,4 @@ Bash-launcher: запускает бот в собственной группе 
 ## 13. История изменений спринта
 
 - **2026-06-10** — спринт открыт, ветка `feature/11-performance` создана от `main`.
+- **2026-06-10** — закрыта задача 1.1: флаг `think` в `OllamaClient.chat` (+ per-call override) и настройка `OLLAMA_THINK` (default `false`), проброс в `app/main.py`, нижняя граница `ollama>=0.5`; документация (`architecture.md` §3.4, `stack.md` §9) и тесты обновлены.
