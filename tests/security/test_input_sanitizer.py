@@ -125,7 +125,9 @@ class TestBypassDetection:
 
     Цель — закрыть слепые зоны: разные регистры, разрывы пробелами, NBSP.
     Известные ограничения (юникод-эскейпы как сырая строка, base64) задокументированы
-    в `_docs/security.md` § 5 и проверяются как xfail.
+    в `_docs/security.md` § 5 и зафиксированы обычным assert в
+    `test_known_limitations_not_detected`: тест подтверждает, что эти кейсы **не**
+    детектируются (без xfail).
     """
 
     @pytest.mark.parametrize(
