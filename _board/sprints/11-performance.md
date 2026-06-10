@@ -47,7 +47,7 @@
 
 ### Задача 1.1. Флаг `think` в `OllamaClient.chat` + настройка `OLLAMA_THINK`
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** —
@@ -394,7 +394,7 @@ Bash-launcher: запускает бот в собственной группе 
 
 | #   | Задача | Приоритет | Объём | Статус | Зависит от |
 |-----|--------|:---------:|:-----:|:------:|:----------:|
-| 1.1 | Флаг `think` в `OllamaClient` + `OLLAMA_THINK` | high | S | ToDo | — |
+| 1.1 | Флаг `think` в `OllamaClient` + `OLLAMA_THINK` | high | S | Progress | — |
 | 1.2 | Все роли учитывают think + замер | high | S | ToDo | 1.1 |
 | 2.1 | Общий gate на LLM + `queue_wait_ms` | high | M | ToDo | — |
 | 2.2 | Приоритет live над recovery | high | M | ToDo | 2.1 |
