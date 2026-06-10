@@ -21,9 +21,8 @@ from app.adapters.max.adapter import MaxUpdateDispatcher
 from app.adapters.max.client import MaxClient, MaxError
 from app.config import Settings
 from app.core.logging_config import setup_logging
-from app.main import _Components, _build_components
+from app.main import _Components, _build_components, _shutdown_components
 from app.observability import setup_sentry
-from app.security import get_global_mapper
 from app.services.journal_recovery import recover_pending_journals
 
 logger = logging.getLogger(__name__)
@@ -79,28 +78,7 @@ async def _shutdown(client: MaxClient, components: _Components) -> None:
         await client.close()
     except Exception:  # noqa: BLE001
         logger.exception("ошибка при закрытии MaxClient")
-    try:
-        await components.llm.close()
-    except Exception:  # noqa: BLE001
-        logger.exception("ошибка при закрытии llm-клиента")
-    if components.semantic_memory is not None:
-        try:
-            await components.semantic_memory.close()
-        except Exception:  # noqa: BLE001
-            logger.exception("ошибка при закрытии семантической памяти")
-    if components.dialog_journal is not None:
-        try:
-            await components.dialog_journal.close()
-        except Exception:  # noqa: BLE001
-            logger.exception("ошибка при закрытии dialog_journal")
-    try:
-        await components.users.close()
-    except Exception:  # noqa: BLE001
-        logger.exception("ошибка при закрытии UserRepository")
-    try:
-        get_global_mapper().close()
-    except Exception:  # noqa: BLE001
-        logger.exception("ошибка при закрытии FileIdMapper")
+    await _shutdown_components(components)
 
 
 async def main() -> None:
@@ -147,17 +125,36 @@ async def main() -> None:
 
     try:
         logger.info("MAX adapter started")
+        # Ждём ПЕРВОЕ из {завершение polling, сигнал shutdown}: иначе при
+        # падении polling main() висел бы на shutdown_event.wait() навсегда,
+        # а исключение терялось бы (см. _docs/current-state.md §3).
         polling_task = asyncio.create_task(
             _run_polling(
                 client, dispatcher, poll_timeout=settings.max_poll_timeout
             )
         )
-        await shutdown_event.wait()
-        polling_task.cancel()
-        try:
-            await polling_task
-        except asyncio.CancelledError:
-            pass
+        shutdown_task = asyncio.create_task(shutdown_event.wait())
+        done, _pending = await asyncio.wait(
+            {polling_task, shutdown_task},
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+        if polling_task in done:
+            # polling завершился сам (штатно или с исключением): снимаем
+            # ожидание сигнала и пробрасываем результат — при падении
+            # сработает top-level логгер run() и Sentry.
+            shutdown_task.cancel()
+            try:
+                await shutdown_task
+            except asyncio.CancelledError:
+                pass
+            polling_task.result()
+        else:
+            # Пришёл сигнал shutdown — гасим polling.
+            polling_task.cancel()
+            try:
+                await polling_task
+            except asyncio.CancelledError:
+                pass
     finally:
         if recovery_task is not None and not recovery_task.done():
             recovery_task.cancel()

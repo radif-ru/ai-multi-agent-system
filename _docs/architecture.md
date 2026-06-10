@@ -92,6 +92,8 @@ Telegram-адаптер принимает текст, оборачивает е
 - Регистрирует команды в Telegram UI через `bot.set_my_commands(...)`.
 - Сразу после `_build_components` стартует фоновую задачу `recover_pending_journals(...)` через `asyncio.create_task` — восстановление «висящих» сессий из `dialog_journal` идёт параллельно с polling и не блокирует старт бота (см. `memory.md` §4.4).
 - Запускает polling, в `finally` отменяет фоновую задачу восстановления (если ещё не завершилась) и корректно закрывает клиенты, включая `dialog_journal.close()`.
+- Сборка долгоживущих сервисов вынесена в `_build_components(...) -> _Components` (channel-agnostic). Консольная (`app/console_main.py`) и MAX (`app/max_main.py`) точки входа переиспользуют эту же функцию, добавляя только свой транспорт (`ConsoleAdapter` / `MaxClient`).
+- Закрытие **общих** ресурсов (`llm`, `semantic_memory`, `dialog_journal`, `users`, `FileIdMapper`) вынесено в `_shutdown_components(components)`; каждая точка входа закрывает только свой транспорт (`bot.session` / `MaxClient`; у консоли транспорта нет) и вызывает общий хелпер.
 
 ### 3.2 Конфигурация (`app/config.py`)
 

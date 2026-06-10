@@ -72,7 +72,7 @@
   - `QWEN.md → AGENTS.md` (Qwen Code; `QWEN.md` — его дефолтный контекст-файл, настройка `contextFileName` пока не работает — [qwen-code#727](https://github.com/QwenLM/qwen-code/issues/727)).
   - `.github/copilot-instructions.md → ../AGENTS.md` (GitHub Copilot).
 - **Источник истины скиллов** — `.agents/skills/<name>/SKILL.md`. Зеркало: `.claude/skills/<name> → ../../.agents/skills/<name>` (Claude Agent Skills; frontmatter `name` + `description` совместим). Windsurf (Cascade) и так читает `.agents/skills/` нативно.
-- **Cursor и Windsurf** используют собственный формат правил — у них не symlink, а тонкий файл-указатель на `AGENTS.md`: `.cursor/rules/agents.mdc` (`alwaysApply: true`) и `.windsurf/rules/agents.md` (`trigger: always_on`).
+- **Cursor и Devin/Windsurf** используют собственный формат правил — у них не symlink, а тонкий файл-указатель на `AGENTS.md`: `.cursor/rules/agents.mdc` (`alwaysApply: true`) и `.devin/rules/agents.md` (`trigger: always_on`).
 - **DeepSeek / Kimi и прочие** собственного файла-конвенции не имеют — работают через перечисленные инструменты, поэтому отдельной настройки не требуют.
 
 **Правило:** правим только источники (`AGENTS.md`, `.agents/skills/`); зеркала-symlink'и подхватывают изменения сами. Новый агент добавляется одним symlink'ом его дефолтного контекст-файла на `AGENTS.md` (или указателем, если у него свой формат правил).

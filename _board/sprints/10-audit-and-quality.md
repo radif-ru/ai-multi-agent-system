@@ -1,0 +1,323 @@
+# Спринт 10. Аудит качества и устранение техдолга
+
+- **Источник:** ТЗ пользователя (09.06.2026) — аудит спринтов 05+ на выполненность/оптимальность, возврат отключённых тестов; `_docs/current-state.md` §2.2; `_docs/roadmap.md` (актуализация).
+- **Ветка:** `feature/10-audit-and-quality` (от `main`; см. `_board/process.md` §2 п.2).
+- **Открыт:** 2026-06-09
+- **Закрыт:** 2026-06-10
+
+## 1. Цель спринта
+
+По итогам аудита спринтов 05–09 закрыть накопленные дефекты качества одним связным циклом, не добавляя новых пользовательских фич. Ключевое: устранить корневую причину двух отключённых smoke-тестов точки входа и связанную с ней регрессию завершения polling (введена при graceful-shutdown в спринте 08), убрать дублирование сборки между точками входа, подчистить мелкий техдолг тестов и актуализировать документацию состояния/планов.
+
+Сейчас при падении polling-задачи `app/main.py::main` и `app/max_main.py::main` навечно висят на `shutdown_event.wait()` — исключение теряется, `_shutdown` не вызывается; бот молча перестаёт обрабатывать апдейты. Именно из-за этой переработки два теста в `tests/test_main.py` были помечены `@pytest.mark.skip` вместо починки. Спринт чинит корень и возвращает тесты в оптимизированном виде.
+
+## 2. Скоуп и non-goals
+
+### В скоупе
+
+- Точки входа `app/main.py`, `app/max_main.py`, `app/console_main.py`: корректное завершение polling, унификация сборки компонентов и закрытия ресурсов.
+- Возврат отключённых тестов `tests/test_main.py` и расширение покрытия shutdown-пути для `app/max_main.py`.
+- Мелкий техдолг тестов: устаревший `asyncio.iscoroutinefunction`; рассинхрон docstring/кода в `tests/security/test_input_sanitizer.py`.
+- MAX-адаптер: переход `_display_name` на актуальные поля `first_name`/`last_name` (`_docs/current-state.md` §2.2).
+- Актуализация `_docs/current-state.md` и `_docs/roadmap.md` (устаревшие формулировки, пропуск нумерации §6).
+
+### Вне скоупа (non-goals)
+
+- Любые новые пользовательские фичи из `_docs/roadmap.md` (stream-индикация, стриминг Ollama, capability graph, web-адаптер, webhook, throttling, docker и т.д.).
+- Изменение агентного цикла, контракта tools, схемы памяти, событийной шины.
+- Webhook вместо polling (остаётся в `_docs/roadmap.md` Этап 6).
+- Кросс-канальная унификация пользователя (остаётся в `_docs/roadmap.md` Этап 5).
+
+## 3. Acceptance Criteria спринта
+
+- [x] `app/main.py::main` и `app/max_main.py::main` корректно завершаются при штатном завершении и при падении polling-задачи: исключение пробрасывается, `_shutdown` вызывается, процесс не зависает. Покрыто офлайн-тестами.
+- [x] В `tests/test_main.py` нет `@pytest.mark.skip`; оба ранее отключённых теста проходят офлайн. Безусловных skip в наборе не осталось (допустимы только окружение-зависимые: `sqlite-vec`, `pypdf`).
+- [x] `app/console_main.py` переиспользует `app.main._build_components` и `_Components`; 16-элементный кортеж убран.
+- [x] Закрытие общих ресурсов вынесено в единый хелпер и используется всеми тремя точками входа; каждая точка входа закрывает только свой транспорт.
+- [x] MAX `_display_name` использует `first_name`/`last_name` с fallback на `username`/`User {id}`; покрыто тестом; `_docs/current-state.md` §2.2 обновлён.
+- [x] Устранены `DeprecationWarning` про `asyncio.iscoroutinefunction`; docstring `TestBypassDetection` соответствует фактическому коду.
+- [x] `_docs/current-state.md` актуализирован (вступление §1, формулировки §3/§4, нумерация §6); `_docs/roadmap.md` отревизован на устаревшее/лишнее.
+- [x] `pytest -q` и `flake8 app tests` зелёные.
+- [x] Все задачи спринта — `Done`, сводная таблица актуальна.
+
+## 4. Этап 1. Корректное завершение polling в точках входа
+
+Корневая причина отключённых тестов и регрессии завершения. Чиним логику ожидания polling, затем возвращаем тесты как критерий успеха.
+
+### Задача 1.1. Фикс завершения polling в `app/main.py` + возврат тестов
+
+- **Статус:** Done
+- **Приоритет:** high
+- **Объём:** M
+- **Зависит от:** —
+- **Связанные документы:** `_docs/architecture.md` §3.1; `_docs/current-state.md` §3 (нюанс top-level shutdown); `_docs/testing.md` §3.11.
+- **Затрагиваемые файлы:** `app/main.py`, `tests/test_main.py`.
+
+#### Описание
+
+Сейчас `main()` создаёт `polling_task` и ждёт только `shutdown_event.wait()`. Если polling-задача падает, исключение не извлекается, `_shutdown` не вызывается, процесс висит. Из-за этого два теста в `tests/test_main.py` (`test_main_logs_bot_started_and_closes`, `test_main_shuts_down_when_polling_raises`) помечены `@pytest.mark.skip`.
+
+Шаги:
+
+1. Переписать ожидание в `main()`: дождаться **первого** из `{polling_task, shutdown_event.wait()}` через `asyncio.wait(..., return_when=FIRST_COMPLETED)`.
+2. Если завершился `polling_task` — извлечь его результат (проброс исключения наружу, чтобы сработал top-level логгер `run()` и Sentry; см. `_docs/current-state.md` §3). Если первым сработал `shutdown_event` — отменить `polling_task` и дождаться отмены.
+3. Гарантировать вызов `_shutdown` в `finally` в обоих сценариях.
+4. Снять `@pytest.mark.skip` с обоих тестов; адаптировать их под новую логику (мок `_start_polling` завершается сразу → `main()` доходит до shutdown; мок с `side_effect=RuntimeError` → `main()` пробрасывает и всё равно вызывает `_shutdown`).
+
+#### Definition of Done
+
+- [x] При падении polling `main()` пробрасывает исключение и вызывает `_shutdown` (проверяемо тестом `test_main_shuts_down_when_polling_raises`).
+- [x] При штатном завершении polling `main()` доходит до `_shutdown`, лог `Bot started` присутствует (проверяемо тестом `test_main_logs_bot_started_and_closes`).
+- [x] В `tests/test_main.py` отсутствует `@pytest.mark.skip`; `pytest tests/test_main.py -q` зелёный.
+- [x] **Документация обновлена**: `_docs/current-state.md` §3 — уточнить нюанс завершения polling-задачи.
+- [x] **Тесты добавлены / обновлены**: два ранее отключённых теста снова активны и зелёные.
+- [x] `git status` чист.
+
+### Задача 1.2. Фикс завершения polling в `app/max_main.py` + тест shutdown-пути
+
+- **Статус:** Done
+- **Приоритет:** high
+- **Объём:** S
+- **Зависит от:** Задача 1.1
+- **Связанные документы:** `_docs/architecture.md` §3.1, §8.4; `_docs/current-state.md` §1.4.
+- **Затрагиваемые файлы:** `app/max_main.py`, `tests/test_max_main.py`.
+
+#### Описание
+
+`app/max_main.py::main` имеет ту же проблему ожидания, что и `app/main.py` (находка B). Применить идентичный паттерн `FIRST_COMPLETED`. В `tests/test_max_main.py` сейчас нет теста на shutdown-путь `main()` (покрыт только ранний возврат без токена и сам `_run_polling`).
+
+Шаги:
+
+1. Применить тот же паттерн ожидания `{polling_task, shutdown_event}`, что и в задаче 1.1.
+2. Добавить офлайн-тест: мок `_run_polling` (через `_wire_max`/AsyncMock) — при штатном завершении и при падении `main()` вызывает `_shutdown` и (для падения) пробрасывает исключение.
+
+#### Definition of Done
+
+- [x] `app/max_main.py::main` корректно завершается при штатном/аварийном завершении polling.
+- [x] Добавлен офлайн-тест shutdown-пути для `app/max_main.py::main`.
+- [x] `pytest tests/test_max_main.py -q` зелёный.
+- [x] **Документация обновлена**: `n/a` — нюанс MAX идентичен Telegram и уже отражён в `_docs/current-state.md` §3 (задача 1.1).
+- [x] **Тесты добавлены / обновлены**: см. выше.
+- [x] `git status` чист.
+
+## 5. Этап 2. Унификация сборки и завершения точек входа
+
+Убрать дублирование DI-сборки и логики закрытия ресурсов между тремя точками входа (находка C). `app/max_main.py` уже переиспользует `app.main._build_components`; привести к этому `app/console_main.py`.
+
+### Задача 2.1. `console_main` переиспользует `_build_components` / `_Components`
+
+- **Статус:** Done
+- **Приоритет:** medium
+- **Объём:** M
+- **Зависит от:** —
+- **Связанные документы:** `_docs/architecture.md` §3.1, §8.4; `_docs/console-adapter.md`.
+- **Затрагиваемые файлы:** `app/console_main.py`, при необходимости `tests/` (smoke/импорт).
+
+#### Описание
+
+`app/console_main.py::_build_components` — почти дословная копия `app/main.py::_build_components`, но возвращает хрупкий кортеж из 16 элементов вместо `_Components`. Это источник рассинхрона: правки DI приходится дублировать. `app/max_main.py` уже импортирует `from app.main import _Components, _build_components` — привести `console_main` к тому же подходу.
+
+Шаги:
+
+1. Удалить локальный `_build_components` в `console_main`; импортировать `_build_components`/`_Components` из `app.main`.
+2. В `main()` обращаться к полям `_Components` вместо распаковки кортежа.
+3. Сохранить специфику console (`setup_logging(..., console_output=False)`, сборка `ConsoleAdapter`, `core_handle_user_task`).
+4. Прогнать `pytest tests/adapters/console -q` и smoke-импорт.
+
+#### Definition of Done
+
+- [x] `app/console_main.py` не содержит собственной копии `_build_components`; использует `app.main._build_components` и `_Components`.
+- [x] 16-элементный кортеж убран.
+- [x] `python -c "import app.console_main"` и `pytest -q` зелёные.
+- [x] **Документация обновлена**: `_docs/architecture.md` §3.1 — отмечена общая channel-agnostic сборка `_build_components`/`_Components` для всех точек входа.
+- [x] **Тесты добавлены / обновлены**: существующие console-тесты (`tests/adapters/console`) и smoke-тесты `tests/test_main.py` зелёные; новый тест не потребовался (рефакторинг без смены поведения).
+- [x] `git status` чист.
+
+### Задача 2.2. Общий хелпер закрытия ресурсов для точек входа
+
+- **Статус:** Done
+- **Приоритет:** medium
+- **Объём:** S
+- **Зависит от:** Задача 2.1
+- **Связанные документы:** `_docs/architecture.md` §3.1.
+- **Затрагиваемые файлы:** `app/main.py`, `app/console_main.py`, `app/max_main.py`, `tests/`.
+
+#### Описание
+
+`_shutdown` продублирован в трёх точках входа с расходящимися сигнатурами (telegram закрывает `bot.session` + журнал; console — подмножество; max — `MaxClient`). Вынести закрытие **общих** компонентов (`llm`, `semantic_memory`, `dialog_journal`, `users`, `FileIdMapper`) в общий хелпер в `app/main.py` (без нового модуля/слоя — `max_main`/`console_main` уже импортируют из `app.main`). Каждая точка входа закрывает только свой транспорт (`bot.session` / `MaxClient`), затем вызывает общий хелпер.
+
+#### Definition of Done
+
+- [x] В `app/main.py` есть `_shutdown_components(components: _Components)`; три точки входа используют его.
+- [x] Каждая точка входа закрывает только свой транспорт + общий хелпер; дубли закрытия убраны.
+- [x] `pytest -q` зелёный.
+- [x] **Документация обновлена**: `_docs/architecture.md` §3.1 — добавлена пометка про общий `_shutdown_components` и закрытие транспорта каждой точкой входа.
+- [x] **Тесты добавлены / обновлены**: два теста на `_shutdown_components` (`tests/test_main.py`); smoke-тесты точек входа зелёные.
+- [x] `git status` чист.
+
+## 6. Этап 3. MAX: актуальные поля имени отправителя
+
+Точечная правка осознанного ограничения MVP (находка F, `_docs/current-state.md` §2.2): API MAX помечает `sender.name` как устаревшее.
+
+### Задача 3.1. `_display_name`: перейти на `first_name`/`last_name`
+
+- **Статус:** Done
+- **Приоритет:** low
+- **Объём:** S
+- **Зависит от:** —
+- **Связанные документы:** `_docs/current-state.md` §2.2; `_docs/architecture.md` §8.4.
+- **Затрагиваемые файлы:** `app/adapters/max/adapter.py`, `tests/adapters/max/`.
+
+#### Описание
+
+`MaxUpdateDispatcher._display_name` опирается на устаревающее поле `sender.name`. Перейти на актуальные `first_name`/`last_name` (склейка) с сохранением fallback-цепочки: `first_name [last_name]` → `name` → `username` → `User {id}`. Не менять контракт пользователя `(channel="max", external_id)`.
+
+#### Definition of Done
+
+- [x] `_display_name` использует `first_name`/`last_name` с описанной fallback-цепочкой.
+- [x] Unit-тест покрывает: полное имя из `first_name`/`last_name`, fallback на `name`, на `username`, на `User {id}`.
+- [x] `pytest tests/adapters/max -q` зелёный.
+- [x] **Документация обновлена**: `_docs/current-state.md` §2.2 — пункт про `sender.name` переформулирован как закрытый (используются `first_name`/`last_name`).
+- [x] **Тесты добавлены / обновлены**: параметрический `test_display_name_fallback_chain` в `tests/adapters/max/test_adapter.py`.
+- [x] `git status` чист.
+
+## 7. Этап 4. Гигиена тестов
+
+Мелкий техдолг тестов (находка D), не влияющий на поведение `app/`.
+
+### Задача 4.1. `inspect.iscoroutinefunction` вместо устаревшего `asyncio.*`
+
+- **Статус:** Done
+- **Приоритет:** low
+- **Объём:** XS
+- **Зависит от:** Задача 1.1, Задача 1.2
+- **Связанные документы:** —
+- **Затрагиваемые файлы:** `tests/test_main.py`, `tests/test_max_main.py`.
+
+#### Описание
+
+`asyncio.iscoroutinefunction` помечен deprecated (удаление в Python 3.16) и даёт `DeprecationWarning` в двух тестах. Заменить на `inspect.iscoroutinefunction`. Зависит от задач 1.1/1.2, т.к. они уже правят эти файлы — избегаем конфликтов.
+
+#### Definition of Done
+
+- [x] В `tests/test_main.py` и `tests/test_max_main.py` нет вызовов `asyncio.iscoroutinefunction`.
+- [x] `pytest -q` не выдаёт `DeprecationWarning` про `iscoroutinefunction` (проверено `-W error::DeprecationWarning`).
+- [x] **Документация обновлена**: `n/a` (только тесты).
+- [x] **Тесты добавлены / обновлены**: затронутые тесты зелёные.
+- [x] `git status` чист.
+
+### Задача 4.2. Синхронизировать docstring `TestBypassDetection` с кодом
+
+- **Статус:** Done
+- **Приоритет:** low
+- **Объём:** XS
+- **Зависит от:** —
+- **Связанные документы:** `_docs/security.md` §5.
+- **Затрагиваемые файлы:** `tests/security/test_input_sanitizer.py`.
+
+#### Описание
+
+Docstring `TestBypassDetection` утверждает, что known-limitations «проверяются как xfail», но по факту это обычный `assert`, что они **не** детектируются (`test_known_limitations_not_detected`). Привести docstring в соответствие с кодом (убрать упоминание xfail, оставить ссылку на `_docs/security.md` §5). Поведение кода не меняем — рассинхрон чисто текстовый.
+
+#### Definition of Done
+
+- [x] Docstring `TestBypassDetection` соответствует фактической реализации (обычный assert, без «xfail»).
+- [x] `pytest tests/security/test_input_sanitizer.py -q` зелёный.
+- [x] **Документация обновлена**: `n/a` (только тест); формулировка согласована с docstring `test_known_limitations_not_detected` и `_docs/security.md` §5.
+- [x] **Тесты добавлены / обновлены**: затронутый тест зелёный.
+- [x] `git status` чист.
+
+## 8. Этап 5. Актуализация документации
+
+Привести `_docs/current-state.md` и `_docs/roadmap.md` к фактическому состоянию (находка E). Чисто-документационный этап.
+
+### Задача 5.1. Актуализировать `_docs/current-state.md`
+
+- **Статус:** Done
+- **Приоритет:** medium
+- **Объём:** S
+- **Зависит от:** Задача 1.1, Задача 2.1, Задача 2.2, Задача 3.1
+- **Связанные документы:** `_docs/current-state.md`; `_board/process.md` §8.2.
+- **Затрагиваемые файлы:** `_docs/current-state.md`.
+
+#### Описание
+
+Устаревшие формулировки и дефект нумерации:
+
+1. Вступление §1 «На момент закрытия Спринта 04…» — обновить до спринта 09 (контент §1.4/§2.2 уже про спринт 09).
+2. §3 вступление «Кандидаты, которые попадут сюда после Спринта 01 (опережающие заметки)» — снять устаревшую рамку: это уже зафиксированные нюансы.
+3. §4 «Что точно не сломано»: «Будет заполнено после Спринта 01» — заполнить кратким фактом (зелёный CI, отсутствие сетевых вызовов в тестах, корректные shutdown/смоук точек входа) либо переформулировать.
+4. §6 «История закрытий» — устранить пропуск нумерации (нет `6.4` между `6.3` и `6.5`): перенумеровать `6.5`/`6.6` подряд **или** явно зафиксировать причину пропуска. Перед сменой номеров — `grep -rn "6\\.5\|6\\.6"` по `_docs/`/`_board/`/`app/` и починить живые ссылки (закрытые спринты не трогаем).
+5. Снять stale-рамки «Пусто на момент закрытия Спринта 00», где они уже не соответствуют наполнению.
+
+#### Definition of Done
+
+- [x] Вступление §1 отражает актуальный спринт (09); §3/§4 без устаревших «после Спринта 01» / «Пусто на момент Спринта 00».
+- [x] Нумерация §6 без пропусков (6.1–6.5); ссылка §1.7 `(см. §6.5)` → `(см. §6.4)` синхронизирована; `architecture.md` §6.x — независимая нумерация другого документа (не трогаем).
+- [x] **Документация обновлена**: это сама задача.
+- [x] **Тесты добавлены / обновлены**: `n/a` (только документация).
+- [x] `git status` чист.
+
+### Задача 5.2. Ревизия `_docs/roadmap.md`
+
+- **Статус:** Done
+- **Приоритет:** low
+- **Объём:** XS → S (расширено по решению пользователя: починка живых ссылок на этапы в смежных документах)
+- **Зависит от:** —
+- **Связанные документы:** `_docs/roadmap.md`; `_board/process.md` §8.2.
+- **Затрагиваемые файлы:** `_docs/roadmap.md`, `_docs/mvp.md`, `_docs/requirements.md`, `_docs/tools.md`, `app/skills/README.md`, `app/skills/example-summary/SKILL.md`.
+
+#### Описание
+
+Проверить `_docs/roadmap.md` на устаревшее/лишнее: дублирование истории закрытых этапов, ссылки на закрытые спринты как на «зависимости», сквозную нумерацию этапов. Привести формулировки к роли документа «только будущее» (см. `_board/process.md` §8.2). Правки минимальные — не переписывать без нужды.
+
+> При ревизии обнаружен дрейф нумерации: сам `roadmap.md` (1–14) сквозной, но живые ссылки «Этап N» в смежных документах указывали на старые номера (смещение после реализации MAX в спринте 09). По решению пользователя скоуп расширен: починены ссылки в `mvp.md`, `requirements.md`, `tools.md`, `app/skills/README.md`, `app/skills/example-summary/SKILL.md`.
+
+#### Definition of Done
+
+- [x] В `_docs/roadmap.md` нет дублирования истории закрытых этапов; §5 отмечает MAX как реализованный, §13 не ссылается на закрытый спринт как на pending-зависимость.
+- [x] Нумерация этапов сквозная (1–14); живые ссылки «Этап N» синхронизированы (`grep` по `_docs/`/`app/`): mvp.md, requirements.md, tools.md, app/skills/README.md, app/skills/example-summary.
+- [x] **Документация обновлена**: это сама задача.
+- [x] **Тесты добавлены / обновлены**: `n/a` (документация + md-скиллы); `pytest -q` зелёный.
+- [x] `git status` чист.
+
+## 9. Риски и смягчение
+
+| # | Риск | Смягчение |
+|---|------|-----------|
+| 1 | Правка `main()` ломает graceful shutdown по сигналу (SIGTERM/SIGINT). | Тесты на оба сценария (штатное завершение polling и падение); ручной smoke `python -m app` + Ctrl+C. |
+| 2 | `console_main`, импортируя из `app.main`, тянет aiogram транзитивно. | aiogram — основная зависимость проекта; `app.max_main` уже импортирует из `app.main` без проблем. |
+| 3 | Перенумерация §6 в `current-state.md` оставит «висячие» ссылки. | Обязательный `grep -rn` по `_docs/`/`_board/`/`app/` перед коммитом; закрытые спринты не трогаем (`_board/process.md` §2 п.5). |
+| 4 | Изменение `_display_name` MAX без реального токена не проверить вживую. | Полное покрытие unit-тестами на моках; ручная проверка — задача пользователя при наличии токена. |
+| 5 | Рефакторинг точек входа задевает много файлов (blast radius). | Разбито на отдельные задачи (1.1/1.2/2.1/2.2); после каждой — `pytest -q` + `flake8` зелёные. |
+
+## 10. Сводная таблица задач спринта
+
+| #   | Задача | Приоритет | Объём | Статус | Зависит от |
+|-----|--------|:---------:|:-----:|:------:|:----------:|
+| 1.1 | Фикс завершения polling в `app/main.py` + возврат тестов | high | M | Done | — |
+| 1.2 | Фикс завершения polling в `app/max_main.py` + тест shutdown-пути | high | S | Done | 1.1 |
+| 2.1 | `console_main` переиспользует `_build_components`/`_Components` | medium | M | Done | — |
+| 2.2 | Общий хелпер закрытия ресурсов для точек входа | medium | S | Done | 2.1 |
+| 3.1 | MAX `_display_name`: `first_name`/`last_name` | low | S | Done | — |
+| 4.1 | `inspect.iscoroutinefunction` вместо устаревшего `asyncio.*` | low | XS | Done | 1.1, 1.2 |
+| 4.2 | Синхронизировать docstring `TestBypassDetection` | low | XS | Done | — |
+| 5.1 | Актуализировать `_docs/current-state.md` | medium | S | Done | 1.1, 2.1, 2.2, 3.1 |
+| 5.2 | Ревизия `_docs/roadmap.md` | low | S | Done | — |
+
+> Обновляется при каждом переходе статуса и при добавлении/удалении задач.
+
+## 11. История изменений спринта
+
+- **2026-06-09** — файл спринта подготовлен (черновик) по итогам аудита спринтов 05–09; ветка ещё не создана.
+- **2026-06-09** — закрыта задача 1.1: `main()` ждёт `FIRST_COMPLETED` из `{polling_task, shutdown_event}`, исключение polling пробрасывается, `_shutdown` всегда вызывается; возвращены два smoke-теста `tests/test_main.py` (`fix(main)` 364b62fb5).
+- **2026-06-09** — закрыта задача 1.2: тот же паттерн `FIRST_COMPLETED` в `app/max_main.py::main`; добавлены два офлайн-теста shutdown-пути `tests/test_max_main.py` (`fix(max)` 5297473b6). Этап 1 завершён.
+- **2026-06-09** — закрыта задача 2.1: `app/console_main.py` переиспользует `app.main._build_components`/`_Components`, удалён 16-элементный кортеж и дублирующая сборка (−222 строки); `architecture.md` §3.1 отмечает общую channel-agnostic сборку (`refactor(console)` 987336b26).
+- **2026-06-10** — закрыта задача 2.2: вынесен общий `_shutdown_components(components)` в `app/main.py`; три точки входа закрывают только свой транспорт (`bot.session` / `MaxClient`) + общий хелпер; добавлены два теста на `_shutdown_components` (`tests/test_main.py`); `architecture.md` §3.1 отмечает общий хелпер (`refactor(main)` bba752fb0). Этап 2 завершён.
+- **2026-06-10** — закрыта задача 3.1: `_display_name` в `app/adapters/max/adapter.py` использует `first_name`/`last_name` с fallback `name` → `username` → `User {id}`; параметрический тест `test_display_name_fallback_chain`; `current-state.md` §2.2 обновлён (`fix(max)` 1f7e3f40b). Этап 3 завершён.
+- **2026-06-10** — закрыта задача 4.1: `asyncio.iscoroutinefunction` заменён на `inspect.iscoroutinefunction` в `tests/test_main.py` и `tests/test_max_main.py`; `DeprecationWarning` устранён (`test(main)` d97e03eb2).
+- **2026-06-10** — закрыта задача 4.2: docstring `TestBypassDetection` в `tests/security/test_input_sanitizer.py` приведён в соответствие с кодом (обычный assert вместо «xfail») (`test(security)` d661a21b2). Этап 4 завершён.
+- **2026-06-10** — закрыта задача 5.1: `_docs/current-state.md` — §1 на спринт 09, сняты stale-рамки §2/§3/§6, §4 заполнен фактами, §6 перенумерован без пропуска (6.4/6.5), ссылка §1.7 синхронизирована (`docs(current-state)` 4158ea015).
+- **2026-06-10** — закрыта задача 5.2: `_docs/roadmap.md` — §5 отмечает MAX реализованным, §13 без ссылки на закрытый спринт как зависимость; по решению пользователя скоуп расширен — синхронизированы живые ссылки «Этап N» в mvp.md/requirements.md/tools.md/app/skills (`docs(roadmap)` b4710d242). Этап 5 завершён, все задачи спринта закрыты.
+- **2026-06-10** — все 9 пунктов Acceptance Criteria спринта проставлены; `pytest -q` и `flake8 app tests` зелёные. Спринт готов к закрытию: перевод в `Closed`, merge ветки `feature/10-audit-and-quality` в `main` и удаление ветки — за пользователем (`_board/process.md` §2 п.8).
+- **2026-06-10** — спринт закрыт по явному запросу пользователя: статус `Closed`, поле «Закрыт» проставлено, `_board/plan.md` актуализирован (спринт перенесён в «Закрытые», сводная таблица 0 / 0 / 9). Merge ветки `feature/10-audit-and-quality` в `main` и удаление ветки — за пользователем.

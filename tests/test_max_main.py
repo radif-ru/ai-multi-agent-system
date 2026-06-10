@@ -7,8 +7,9 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 from pathlib import Path
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -23,7 +24,7 @@ DEFAULT_PROMPT = REPO_ROOT / "app" / "prompts" / "agent_system.md"
 def test_main_is_async_callable() -> None:
     """`python -c "from app.max_main import main; print(main)"` не падает."""
     assert callable(main)
-    assert asyncio.iscoroutinefunction(main)
+    assert inspect.iscoroutinefunction(main)
 
 
 def test_adapter_importable() -> None:
@@ -92,3 +93,61 @@ async def test_main_returns_early_without_token(
     await main()
 
     build.assert_not_awaited()
+
+
+def _wire_main_mocks(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    *,
+    polling: AsyncMock,
+) -> AsyncMock:
+    """Замокать сборку/wiring/polling/shutdown, чтобы main() дошёл до
+    shutdown-пути офлайн. Возвращает мок `_shutdown` для проверок."""
+    monkeypatch.setenv(
+        "TELEGRAM_BOT_TOKEN", "123456789:AAFakeTokenForSmokeTesting_0123"
+    )
+    monkeypatch.setenv("MAX_BOT_TOKEN", "max-fake-token")
+    monkeypatch.setenv("SENTRY_DSN", "")  # офлайн: не дёргаем GlitchTip
+    monkeypatch.setenv("AGENT_SYSTEM_PROMPT_PATH", str(DEFAULT_PROMPT))
+    monkeypatch.setenv("MEMORY_DB_PATH", str(tmp_path / "memory.db"))
+    monkeypatch.setenv("LOG_FILE", str(tmp_path / "agent.log"))
+
+    components = MagicMock()
+    components.dialog_journal = None  # без recovery_task
+    monkeypatch.setattr(
+        max_main_module, "_build_components", AsyncMock(return_value=components)
+    )
+    monkeypatch.setattr(
+        max_main_module, "_wire_max", MagicMock(return_value=(AsyncMock(), AsyncMock()))
+    )
+    monkeypatch.setattr(max_main_module, "_run_polling", polling)
+    shutdown = AsyncMock()
+    monkeypatch.setattr(max_main_module, "_shutdown", shutdown)
+    return shutdown
+
+
+async def test_main_shuts_down_on_polling_completion(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Штатное завершение polling → main() доходит до `_shutdown`."""
+    shutdown = _wire_main_mocks(monkeypatch, tmp_path, polling=AsyncMock())
+
+    await main()
+
+    shutdown.assert_awaited_once()
+
+
+async def test_main_shuts_down_when_polling_raises(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Если polling упал — исключение пробрасывается, но `_shutdown` вызван."""
+    shutdown = _wire_main_mocks(
+        monkeypatch,
+        tmp_path,
+        polling=AsyncMock(side_effect=RuntimeError("polling crashed")),
+    )
+
+    with pytest.raises(RuntimeError, match="polling crashed"):
+        await main()
+
+    shutdown.assert_awaited_once()
