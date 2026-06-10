@@ -122,7 +122,7 @@ Telegram-адаптер принимает текст, оборачивает е
 
 Класс `OllamaClient` (async, на `ollama.AsyncClient`).
 
-- `chat(messages: list[dict], *, model: str, temperature: float = 0.0) -> str` — основной путь: список сообщений `[{"role", "content"}, ...]`, на возврат — текстовый ответ модели.
+- `chat(messages: list[dict], *, model: str, temperature: float = 0.0, think: bool | None = None) -> str` — основной путь: список сообщений `[{"role", "content"}, ...]`, на возврат — текстовый ответ модели. `think` управляет reasoning-токенами Ollama: `None` (по умолчанию) берёт значение из конструктора (`OLLAMA_THINK`, default `false`), per-call можно переопределить. При `think=false` модель не тратит токены на `<think>` (который Ollama всё равно отбрасывает из `content`), что кратно ускоряет ответ; rationale агента остаётся в структурном поле `thought`.
 - `embed(text: str, *, model: str) -> list[float]` — эмбеддинг текста через `ollama.AsyncClient.embeddings`.
 - Иерархия исключений: `LLMError` → `LLMTimeout`, `LLMUnavailable`, `LLMBadResponse`.
 - Маппинг: `httpx.TimeoutException` / `asyncio.TimeoutError` → `LLMTimeout`; `httpx.ConnectError` → `LLMUnavailable`; `ollama.ResponseError` 404 → `LLMBadResponse("модель не найдена")`; прочие 4xx/5xx → `LLMBadResponse`; пустой ответ → `LLMBadResponse`.

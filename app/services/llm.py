@@ -35,9 +35,17 @@ class LLMBadResponse(LLMError):
 class OllamaClient:
     """Async-клиент над `ollama.AsyncClient` с явной обработкой ошибок."""
 
-    def __init__(self, *, base_url: str, timeout: float, num_ctx: int = 8192) -> None:
+    def __init__(
+        self,
+        *,
+        base_url: str,
+        timeout: float,
+        num_ctx: int = 8192,
+        think: bool = False,
+    ) -> None:
         self._client = AsyncClient(host=base_url, timeout=timeout)
         self._num_ctx = num_ctx
+        self._think = think
 
     async def chat(
         self,
@@ -45,13 +53,16 @@ class OllamaClient:
         *,
         model: str,
         temperature: float = 0.0,
+        think: bool | None = None,
     ) -> str:
+        think_value = self._think if think is None else think
         len_in = sum(len(m.get("content", "")) for m in messages)
         started = time.monotonic()
         try:
             resp = await self._client.chat(
                 model=model,
                 messages=list(messages),
+                think=think_value,
                 options={"temperature": temperature, "num_ctx": self._num_ctx},
             )
         except (httpx.TimeoutException, asyncio.TimeoutError) as exc:

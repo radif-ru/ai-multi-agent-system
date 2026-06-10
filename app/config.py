@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     )
     ollama_timeout: float = 120.0
     ollama_num_ctx: int = 8192
+    # Reasoning-токены «думающей» модели. Для агентного цикла и суммаризации
+    # think обычно не нужен (rationale выражен полем `thought`), а Ollama
+    # отбрасывает `<think>` из content — выключенный think кратно ускоряет ответ.
+    ollama_think: bool = False
 
     # --- Ollama (Embedding) ---
     embedding_model: str = "nomic-embed-text"

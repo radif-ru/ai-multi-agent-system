@@ -35,6 +35,25 @@ async def test_chat_success(client, mocker):
     assert out == "hello"
 
 
+async def test_chat_forwards_think_default_false(client, mocker):
+    chat_mock = mocker.patch.object(client._client, "chat", return_value=_chat_resp("ok"))
+    await client.chat([{"role": "user", "content": "hi"}], model="m")
+    assert chat_mock.await_args.kwargs["think"] is False
+
+
+async def test_chat_forwards_think_from_constructor(mocker):
+    thinking = OllamaClient(base_url="http://localhost:11434", timeout=10.0, think=True)
+    chat_mock = mocker.patch.object(thinking._client, "chat", return_value=_chat_resp("ok"))
+    await thinking.chat([{"role": "user", "content": "hi"}], model="m")
+    assert chat_mock.await_args.kwargs["think"] is True
+
+
+async def test_chat_think_per_call_override(client, mocker):
+    chat_mock = mocker.patch.object(client._client, "chat", return_value=_chat_resp("ok"))
+    await client.chat([{"role": "user", "content": "hi"}], model="m", think=True)
+    assert chat_mock.await_args.kwargs["think"] is True
+
+
 async def test_embed_success(client, mocker):
     mocker.patch.object(
         client._client, "embeddings", return_value=SimpleNamespace(embedding=[0.1, 0.2, 0.3])

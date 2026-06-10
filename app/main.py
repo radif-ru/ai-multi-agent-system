@@ -117,6 +117,7 @@ async def _build_components(settings: Settings) -> _Components:
         base_url=settings.ollama_base_url,
         timeout=settings.ollama_timeout,
         num_ctx=settings.ollama_num_ctx,
+        think=settings.ollama_think,
     )
     conversations = ConversationStore(
         max_messages=settings.history_max_messages,

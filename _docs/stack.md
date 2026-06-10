@@ -73,6 +73,7 @@
 | `OLLAMA_DEFAULT_MODEL`      | LLM по умолчанию (должна быть в `OLLAMA_AVAILABLE_MODELS`).      | `qwen3.5:4b`              |
 | `OLLAMA_AVAILABLE_MODELS`   | Список разрешённых LLM через запятую.                            | `qwen3.5:4b`              |
 | `OLLAMA_TIMEOUT`            | Таймаут одного запроса к Ollama, секунды.                        | `120`                     |
+| `OLLAMA_THINK`             | Reasoning-токены «думающей» модели (`true`/`false`). По умолчанию выключено: быстрее, rationale агента и так в поле `thought`. | `false`                   |
 | `EMBEDDING_MODEL`           | Модель эмбеддингов (Ollama).                                     | `nomic-embed-text`        |
 | `EMBEDDING_DIMENSIONS`      | Размерность вектора (зависит от модели).                         | `768`                     |
 | `EMBEDDING_CONCURRENCY`     | Параллелизм при вычислении embedding для чанков (оптимизация /new). | `5`                       |
