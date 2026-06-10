@@ -11,7 +11,7 @@
 
 ## 1. Что работает
 
-> На момент закрытия Спринта 04 (События и пользователи) реализованы все задачи спринта: модуль Users с UserRepository, событийная шина EventBus с событиями UserCreated, MessageReceived, ResponseGenerated, ConversationArchived, подписчики для записи в ConversationStore, in-session суммаризации и очистки tmp-изображений. Также сохранены все задачи Этапов 1–5 Спринта 02 и Этапа 4 Спринта 03: агентный цикл, память, файловые входы (Document, Voice, Photo), авто-подгрузка архива, полное архивирование сессии, изоляция файлов по пользователям, сохранение контекста файлов для reply, инструмент weather, консольный адаптер.
+> На момент закрытия Спринта 09 (MAX-адаптер) реализованы подсистемы спринтов 02–09: агентный цикл и память, файловые входы (Document, Voice, Photo, OCR), модуль Users и событийная шина EventBus, журнал диалога и observability (структурные JSON-логи, GlitchTip/Sentry, CI), безопасность (InputSanitizer / ResponseSanitizer / FileIdMapper), multi-agent (Planner / Critic, режимы OFF/NORMAL/DEEP), а также Telegram-, console- и MAX-адаптеры на общем доменном контракте `core.handle_user_task`. Детали — в подсекциях §1.1–§1.8 ниже.
 
 Шаблон записи (для будущих спринтов):
 
@@ -80,7 +80,7 @@
 
 ### 1.7 Журнал диалога и observability (Спринт 06)
 
-- **DialogJournal** — `app/services/dialog_journal.py` — append-only журнал текстовых и файловых сообщений (`MessageReceived`/`ResponseGenerated`) в той же `data/memory.db` (таблица `dialog_journal`, индекс `ix_journal_message` по `message_id`). API: `init/append/pending_conversations/read_conversation/mark_archived`. Подписчики — `app/services/dialog_journal_subscriber.py` (DI в `app/main.py` и `app/console_main.py`); ошибки журнала не валят основной поток. Журнал — единый источник истины для контекста файлов: `ConversationStore.get_file_context` и `FileIdMapper` читают `content`/`file_id`/`file_path` из `dialog_journal` по `(user_id, message_id)`. Старая БД `data/file_contexts.db` упразднена; миграционный модуль удалён в спринте 08 (см. §6.5).
+- **DialogJournal** — `app/services/dialog_journal.py` — append-only журнал текстовых и файловых сообщений (`MessageReceived`/`ResponseGenerated`) в той же `data/memory.db` (таблица `dialog_journal`, индекс `ix_journal_message` по `message_id`). API: `init/append/pending_conversations/read_conversation/mark_archived`. Подписчики — `app/services/dialog_journal_subscriber.py` (DI в `app/main.py` и `app/console_main.py`); ошибки журнала не валят основной поток. Журнал — единый источник истины для контекста файлов: `ConversationStore.get_file_context` и `FileIdMapper` читают `content`/`file_id`/`file_path` из `dialog_journal` по `(user_id, message_id)`. Старая БД `data/file_contexts.db` упразднена; миграционный модуль удалён в спринте 08 (см. §6.4).
 - **Автоматическое восстановление при старте** — `app/services/journal_recovery.py::recover_pending_journals` запускается в `asyncio.create_task` параллельно с polling и архивирует «зависшие» сессии из `dialog_journal`, для которых процесс не успел вызвать `Archiver.archive(...)`. После успешной архивации `cmd_new` помечает строки журнала через `mark_archived(...)`. См. `_docs/memory.md` §4.
 - **Структурное JSON-логирование** — `app/core/logging_config.py::JsonFormatter` + `ContextFilter`. Каждая запись содержит `trace_id` и `user_id` из `contextvars` (`app/utils/tracing.py` — `new_trace_id/bind_trace_id/get_trace_id/reset_trace_id`); изоляция между `asyncio.Task` сохраняется. `LoggingMiddleware` (`app/middlewares/logging_mw.py`) и `ConsoleAdapter.run` биндят `trace_id`/`user_id` на каждый Telegram-event / команду и сбрасывают их в `finally`. На границах внешних вызовов пишутся структурные `external.call`/`external.ok`/`external.fail` с полями `service`/`duration_ms`/`status` (`app/services/llm.py`, `transcribe.py`, `vision.py`, `ocr.py`, `app/tools/http_request.py`, `web_search.py`); секреты маскируются через `app/utils/secrets.py::mask_secrets`. См. `_docs/observability.md` §1–§4.
 - **Error tracking через GlitchTip / Sentry** — `app/observability/__init__.py::setup_sentry` (off-by-default: при пустом `SENTRY_DSN` ничего не инициализируется). `_before_send` подмешивает `trace_id`/`user_id` в `tags`/`extra`/`user`. Self-hosted GlitchTip разворачивается через `docker-compose.observability.yml` (postgres + redis + web/worker/migrate). См. `_docs/observability.md` §5.
@@ -100,7 +100,7 @@
 
 ## 2. Известные проблемы и легаси
 
-> Пусто на момент закрытия Спринта 00. Записи появляются по мере обнаружения нюансов в Спринтах 01+.
+> Здесь — известные баги и легаси текущего кода `app/`; записи добавляются по мере обнаружения нюансов (шаблон — в §2.1).
 
 ### 2.1 Потеря ранней истории при `/new` (исправлено в спринте 02, Этап 4)
 
@@ -134,9 +134,7 @@
 
 ## 3. Архитектурные нюансы (не баги, но знать обязательно)
 
-> Заполняется по мере реализации. На момент Спринта 00 — только проектные принципы, см. `architecture.md` §2.
-
-Кандидаты, которые попадут сюда после Спринта 01 (опережающие заметки, чтобы не забыть зафиксировать):
+> Зафиксированные архитектурные нюансы текущего кода (не баги, но знать обязательно). Проектные принципы — см. `architecture.md` §2.
 
 - **In-memory per-user состояние, без персистентности на уровне сессии**: текущая модель, системный промпт **и** in-memory история диалога живут только в памяти процесса (см. `requirements.md` §FR-21, §CON-1, §ASM-4). Долгосрочная память (sqlite-vec) — это **только саммари**, не сырая история.
 - **Контекст агента собирается на каждый шаг цикла**: `[system] + observations + ...`. См. `agent-loop.md` §4.
@@ -157,9 +155,14 @@
 
 ## 4. Что точно не сломано
 
-> Будет заполнено после Спринта 01 (когда появится код, чтобы было о чём писать).
+> Зафиксировано по факту. Источник проверки — зелёные `pytest -q` + `flake8 app tests` в CI (`.github/workflows/test.yml`) на каждый push/PR.
 
-Чтобы не паниковать без причины, в этой секции фиксируется **то, что протестировано и работает заведомо**: грамотный shutdown клиентов, глобальный error handler, отсутствие сетевых вызовов в тестах, корректная сборка `main()` и т. д.
+В этой секции фиксируется **то, что протестировано и работает заведомо**:
+
+- **Корректное завершение точек входа** — `app/main.py`, `app/max_main.py`, `app/console_main.py` завершаются штатно и при падении polling; `_shutdown_components` + закрытие транспорта вызываются всегда (офлайн smoke-тесты, спринт 10).
+- **Глобальный error handler Telegram** (`app/adapters/telegram/handlers/errors.py`): исключение в хендлере не валит polling.
+- **Отсутствие реальных сетевых вызовов в тестах** — Telegram / Ollama / `ddgs` / `httpx` замоканы (см. `_docs/testing.md`).
+- **Корректная сборка `main()`** — channel-agnostic `_build_components` / `_Components`, общие для Telegram/console/MAX (smoke-тест импорта и сборки).
 
 ## 5. Как добавлять новые записи
 
@@ -174,8 +177,6 @@
 ## 6. История закрытий
 
 (Для будущих записей: когда баг исправлен — переносим запись сюда с указанием SHA коммита и даты.)
-
-> Пусто на момент закрытия Спринта 00.
 
 ### 6.1 Парсер ответа агента не снимает markdown-fence (исправлено в спринте 02, Этап 5)
 
@@ -206,7 +207,7 @@
 DANGEROUS_TOOLS_ALLOWLIST=http_request,read_file
 ```
 
-### 6.5 Удалён legacy `file_contexts` миграционный код (закрыто в спринте 08, задача 3.1)
+### 6.4 Удалён legacy `file_contexts` миграционный код (закрыто в спринте 08, задача 3.1)
 
 **Дата:** 2026-05-21.
 
@@ -214,7 +215,7 @@ DANGEROUS_TOOLS_ALLOWLIST=http_request,read_file
 
 **Решение:** удалены `app/services/file_contexts_migration.py`, `tests/services/test_file_contexts_migration.py` и блок вызова миграции из `app/main.py` / `app/console_main.py`. Документация (`_docs/memory.md` §2.6.1, §4.1; `_docs/security.md` §2) обновлена. У существующих установок резервный файл `data/file_contexts.db.migrated-<ts>` (если был) можно безопасно удалить вручную.
 
-### 6.6 Настройка прокси для Telegram API через переменные окружения (закрыто в спринте 08, задача 8.1)
+### 6.5 Настройка прокси для Telegram API через переменные окружения (закрыто в спринте 08, задача 8.1)
 
 **Дата:** 2026-05-21.
 
