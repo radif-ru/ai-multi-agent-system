@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.adapters.max.adapter import MaxUpdateDispatcher
+from app.adapters.max.adapter import MaxUpdateDispatcher, _display_name
 
 
 @pytest.fixture
@@ -88,3 +88,24 @@ async def test_empty_message_ignored(
 
     text_h.assert_not_awaited()
     cmd_h.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "sender, expected",
+    [
+        # Полное имя из first_name + last_name (приоритетнее устаревшего name).
+        ({"first_name": "Иван", "last_name": "Петров", "name": "ignored"}, "Иван Петров"),
+        # Только first_name.
+        ({"first_name": "Иван"}, "Иван"),
+        # Только last_name.
+        ({"last_name": "Петров"}, "Петров"),
+        # Fallback на устаревшее name, если нет first_name/last_name.
+        ({"name": "Старое Имя"}, "Старое Имя"),
+        # Fallback на username.
+        ({"username": "ivan"}, "ivan"),
+        # Последний fallback — User {id}.
+        ({}, "User 42"),
+    ],
+)
+def test_display_name_fallback_chain(sender: dict, expected: str) -> None:
+    assert _display_name({"sender": sender}, 42) == expected

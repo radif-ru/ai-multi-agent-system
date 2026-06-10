@@ -434,4 +434,12 @@ def _extract_ids(message: dict[str, Any]) -> tuple[int | None, int | None]:
 
 def _display_name(message: dict[str, Any], user_id: int) -> str:
     sender = message.get("sender") or {}
-    return sender.get("name") or sender.get("username") or f"User {user_id}"
+    full_name = " ".join(
+        part for part in (sender.get("first_name"), sender.get("last_name")) if part
+    )
+    return (
+        full_name
+        or sender.get("name")
+        or sender.get("username")
+        or f"User {user_id}"
+    )
