@@ -7,7 +7,7 @@
 
 from __future__ import annotations
 
-import asyncio
+import inspect
 import logging
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
@@ -63,7 +63,7 @@ def env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> pytest.MonkeyPatch:
 def test_main_is_async_callable() -> None:
     """`python -c "from app.main import main; print(main)"` не падает."""
     assert callable(main)
-    assert asyncio.iscoroutinefunction(main)
+    assert inspect.iscoroutinefunction(main)
 
 
 @pytest.mark.asyncio

@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
@@ -23,7 +24,7 @@ DEFAULT_PROMPT = REPO_ROOT / "app" / "prompts" / "agent_system.md"
 def test_main_is_async_callable() -> None:
     """`python -c "from app.max_main import main; print(main)"` не падает."""
     assert callable(main)
-    assert asyncio.iscoroutinefunction(main)
+    assert inspect.iscoroutinefunction(main)
 
 
 def test_adapter_importable() -> None:
