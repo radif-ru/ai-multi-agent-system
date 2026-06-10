@@ -73,7 +73,7 @@
 
 ### Задача 1.2. Все роли (executor/summarizer/planner/critic) учитывают think + замер
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** Задача 1.1
@@ -86,11 +86,11 @@
 
 #### Definition of Done
 
-- [ ] Тест подтверждает, что executor/summarizer/planner/critic идут через общий клиент с актуальным think.
-- [ ] Замер «5 шагов think on vs off» задокументирован.
-- [ ] **Документация обновлена**: `_docs/current-state.md`.
-- [ ] **Тесты**: `pytest tests/agents -q` зелёный.
-- [ ] `git status` чист.
+- [x] Тест подтверждает, что executor/summarizer/planner/critic идут через общий клиент с актуальным think (`tests/agents/test_roles_share_think.py`).
+- [x] Замер «5 шагов think on vs off» задокументирован (`current-state.md` §3: `~35.5s` vs `~3.4s`).
+- [x] **Документация обновлена**: `_docs/current-state.md`.
+- [x] **Тесты**: `pytest tests/agents -q` зелёный.
+- [x] `git status` чист.
 
 ## 5. Этап 2. Сериализация и приоритет доступа к LLM
 
@@ -395,7 +395,7 @@ Bash-launcher: запускает бот в собственной группе 
 | #   | Задача | Приоритет | Объём | Статус | Зависит от |
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Флаг `think` в `OllamaClient` + `OLLAMA_THINK` | high | S | Done | — |
-| 1.2 | Все роли учитывают think + замер | high | S | Progress | 1.1 |
+| 1.2 | Все роли учитывают think + замер | high | S | Done | 1.1 |
 | 2.1 | Общий gate на LLM + `queue_wait_ms` | high | M | ToDo | — |
 | 2.2 | Приоритет live над recovery | high | M | ToDo | 2.1 |
 | 3.1 | Пропуск мусорных сессий recovery | high | S | ToDo | — |
@@ -415,3 +415,4 @@ Bash-launcher: запускает бот в собственной группе 
 
 - **2026-06-10** — спринт открыт, ветка `feature/11-performance` создана от `main`.
 - **2026-06-10** — закрыта задача 1.1: флаг `think` в `OllamaClient.chat` (+ per-call override) и настройка `OLLAMA_THINK` (default `false`), проброс в `app/main.py`, нижняя граница `ollama>=0.5`; документация (`architecture.md` §3.4, `stack.md` §9) и тесты обновлены.
+- **2026-06-10** — закрыта задача 1.2: тест `tests/agents/test_roles_share_think.py` подтверждает наследование `think` всеми ролями через общий `OllamaClient`; замер think on/off зафиксирован в `current-state.md` §3.
