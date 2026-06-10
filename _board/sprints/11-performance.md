@@ -73,7 +73,7 @@
 
 ### Задача 1.2. Все роли (executor/summarizer/planner/critic) учитывают think + замер
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** Задача 1.1
@@ -395,7 +395,7 @@ Bash-launcher: запускает бот в собственной группе 
 | #   | Задача | Приоритет | Объём | Статус | Зависит от |
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Флаг `think` в `OllamaClient` + `OLLAMA_THINK` | high | S | Done | — |
-| 1.2 | Все роли учитывают think + замер | high | S | ToDo | 1.1 |
+| 1.2 | Все роли учитывают think + замер | high | S | Progress | 1.1 |
 | 2.1 | Общий gate на LLM + `queue_wait_ms` | high | M | ToDo | — |
 | 2.2 | Приоритет live над recovery | high | M | ToDo | 2.1 |
 | 3.1 | Пропуск мусорных сессий recovery | high | S | ToDo | — |
