@@ -98,7 +98,7 @@
 
 ### Задача 2.1. Общий gate на LLM-вызовы + `queue_wait_ms`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** —
@@ -112,10 +112,10 @@
 
 #### Definition of Done
 
-- [ ] Конкурентные вызовы ограничены семафором; `queue_wait_ms` в `external.ok/fail`.
-- [ ] **Документация обновлена**: `_docs/architecture.md` §3.4, `_docs/observability.md`.
-- [ ] **Тесты**: семафор сериализует вызовы (мок); `pytest -q` зелёный.
-- [ ] `git status` чист.
+- [x] Конкурентные вызовы ограничены семафором; `queue_wait_ms` в `external.ok/fail`.
+- [x] **Документация обновлена**: `_docs/architecture.md` §3.4, `_docs/observability.md` (+ `stack.md` §9 — новый ключ).
+- [x] **Тесты**: семафор сериализует вызовы и уважает лимит, `queue_wait_ms` логируется (мок); `pytest -q` зелёный.
+- [x] `git status` чист.
 
 ### Задача 2.2. Приоритет live над фоновым recovery
 
@@ -396,7 +396,7 @@ Bash-launcher: запускает бот в собственной группе 
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Флаг `think` в `OllamaClient` + `OLLAMA_THINK` | high | S | Done | — |
 | 1.2 | Все роли учитывают think + замер | high | S | Done | 1.1 |
-| 2.1 | Общий gate на LLM + `queue_wait_ms` | high | M | Progress | — |
+| 2.1 | Общий gate на LLM + `queue_wait_ms` | high | M | Done | — |
 | 2.2 | Приоритет live над recovery | high | M | ToDo | 2.1 |
 | 3.1 | Пропуск мусорных сессий recovery | high | S | ToDo | — |
 | 3.2 | Отложенный старт recovery | medium | S | ToDo | 3.1 |
@@ -416,3 +416,4 @@ Bash-launcher: запускает бот в собственной группе 
 - **2026-06-10** — спринт открыт, ветка `feature/11-performance` создана от `main`.
 - **2026-06-10** — закрыта задача 1.1: флаг `think` в `OllamaClient.chat` (+ per-call override) и настройка `OLLAMA_THINK` (default `false`), проброс в `app/main.py`, нижняя граница `ollama>=0.5`; документация (`architecture.md` §3.4, `stack.md` §9) и тесты обновлены.
 - **2026-06-10** — закрыта задача 1.2: тест `tests/agents/test_roles_share_think.py` подтверждает наследование `think` всеми ролями через общий `OllamaClient`; замер think on/off зафиксирован в `current-state.md` §3.
+- **2026-06-10** — закрыта задача 2.1: общий `asyncio.Semaphore`-gate в `OllamaClient` (`LLM_MAX_CONCURRENCY`, default 2) на `chat`/`embed` + метрика `queue_wait_ms` в `external.ok/fail`; доки (`architecture.md` §3.4, `observability.md`, `stack.md` §9) и тесты обновлены.
