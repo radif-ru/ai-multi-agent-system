@@ -119,7 +119,7 @@
 
 ### Задача 2.2. Приоритет live над фоновым recovery
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** Задача 2.1
@@ -397,7 +397,7 @@ Bash-launcher: запускает бот в собственной группе 
 | 1.1 | Флаг `think` в `OllamaClient` + `OLLAMA_THINK` | high | S | Done | — |
 | 1.2 | Все роли учитывают think + замер | high | S | Done | 1.1 |
 | 2.1 | Общий gate на LLM + `queue_wait_ms` | high | M | Done | — |
-| 2.2 | Приоритет live над recovery | high | M | ToDo | 2.1 |
+| 2.2 | Приоритет live над recovery | high | M | Progress | 2.1 |
 | 3.1 | Пропуск мусорных сессий recovery | high | S | ToDo | — |
 | 3.2 | Отложенный старт recovery | medium | S | ToDo | 3.1 |
 | 3.3 | Зачистка текущего backlog | medium | S | ToDo | 3.1 |
