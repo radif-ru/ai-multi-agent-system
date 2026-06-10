@@ -81,6 +81,12 @@ class Settings(BaseSettings):
     session_bootstrap_enabled: bool = True
     session_bootstrap_top_k: int = 3
 
+    # --- Journal recovery (фоновое восстановление висящих сессий) ---
+    # Сколько сессий recovery обрабатывает одновременно. 1 = последовательно,
+    # чтобы фоновое восстановление не занимало все слоты LLM-gate и оставляло
+    # слот под live-запрос (см. _docs/memory.md §4.4).
+    journal_recovery_concurrency: int = 1
+
     # --- Prompts ---
     agent_system_prompt_path: Path = Path("app/prompts/agent_system.md")
 
@@ -229,6 +235,13 @@ class Settings(BaseSettings):
     def _check_llm_max_concurrency(cls, v: int) -> int:
         if v <= 0:
             raise ValueError("LLM_MAX_CONCURRENCY must be > 0")
+        return v
+
+    @field_validator("journal_recovery_concurrency")
+    @classmethod
+    def _check_journal_recovery_concurrency(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("JOURNAL_RECOVERY_CONCURRENCY must be > 0")
         return v
 
     @model_validator(mode="after")

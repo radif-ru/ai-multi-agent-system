@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
@@ -87,6 +88,57 @@ async def test_failure_in_one_session_does_not_block_others(journal: DialogJourn
     # Сломанная c1 остаётся висеть, c2 — закрыта
     pending = await journal.pending_conversations()
     assert pending == [(1, 10, "c1")]
+
+
+async def _seed_sessions(journal: DialogJournal, n: int) -> None:
+    for i in range(n):
+        await journal.append(
+            user_id=i + 1, chat_id=10 + i, conversation_id=f"c{i}",
+            role="user", kind="text", content=f"текст {i}",
+        )
+
+
+def _make_tracking_archiver():
+    """Archiver-мок, отслеживающий пиковую конкуренцию вызовов archive."""
+    state = {"in_flight": 0, "max_in_flight": 0}
+
+    async def _archive(*args, **kwargs):
+        state["in_flight"] += 1
+        state["max_in_flight"] = max(state["max_in_flight"], state["in_flight"])
+        await asyncio.sleep(0.02)
+        state["in_flight"] -= 1
+        return 1
+
+    archiver = MagicMock()
+    archiver.archive = AsyncMock(side_effect=_archive)
+    return archiver, state
+
+
+@pytest.mark.asyncio
+async def test_concurrency_one_serializes_sessions(journal: DialogJournal) -> None:
+    await _seed_sessions(journal, 3)
+    archiver, state = _make_tracking_archiver()
+
+    summary = await recover_pending_journals(
+        journal=journal, archiver=archiver, concurrency=1
+    )
+
+    assert summary == {"sessions": 3, "archived": 3, "failed": 0}
+    assert state["max_in_flight"] == 1
+    assert await journal.pending_conversations() == []
+
+
+@pytest.mark.asyncio
+async def test_concurrency_respects_configured_limit(journal: DialogJournal) -> None:
+    await _seed_sessions(journal, 4)
+    archiver, state = _make_tracking_archiver()
+
+    summary = await recover_pending_journals(
+        journal=journal, archiver=archiver, concurrency=2
+    )
+
+    assert summary["archived"] == 4
+    assert state["max_in_flight"] == 2
 
 
 @pytest.mark.asyncio
