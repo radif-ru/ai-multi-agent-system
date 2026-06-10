@@ -118,6 +118,7 @@ async def _build_components(settings: Settings) -> _Components:
         timeout=settings.ollama_timeout,
         num_ctx=settings.ollama_num_ctx,
         think=settings.ollama_think,
+        max_concurrency=settings.llm_max_concurrency,
     )
     conversations = ConversationStore(
         max_messages=settings.history_max_messages,

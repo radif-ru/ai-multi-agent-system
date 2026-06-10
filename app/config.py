@@ -50,6 +50,12 @@ class Settings(BaseSettings):
     embedding_dimensions: int = 768
     embedding_concurrency: int = 5
 
+    # --- LLM gate (сериализация доступа к Ollama) ---
+    # Верхняя граница одновременных вызовов к Ollama (chat + embed) на весь
+    # процесс. Защищает от пайл-апов (live + recovery), оставляя слот под
+    # live-запрос. На 24 ГБ две сессии к 4b @ num_ctx=32768 умещаются.
+    llm_max_concurrency: int = 2
+
     # --- Agent loop ---
     agent_max_steps: int = 15
     agent_max_output_chars: int = 12000
@@ -216,6 +222,13 @@ class Settings(BaseSettings):
     def _check_embedding_concurrency(cls, v: int) -> int:
         if v <= 0:
             raise ValueError("EMBEDDING_CONCURRENCY must be > 0")
+        return v
+
+    @field_validator("llm_max_concurrency")
+    @classmethod
+    def _check_llm_max_concurrency(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("LLM_MAX_CONCURRENCY must be > 0")
         return v
 
     @model_validator(mode="after")

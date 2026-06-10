@@ -77,6 +77,7 @@
 | `EMBEDDING_MODEL`           | Модель эмбеддингов (Ollama).                                     | `nomic-embed-text`        |
 | `EMBEDDING_DIMENSIONS`      | Размерность вектора (зависит от модели).                         | `768`                     |
 | `EMBEDDING_CONCURRENCY`     | Параллелизм при вычислении embedding для чанков (оптимизация /new). | `5`                       |
+| `LLM_MAX_CONCURRENCY`      | Лимит одновременных вызовов к Ollama (`chat`+`embed`) на весь процесс (gate против пайл-апов). | `2`                       |
 | `SEARCH_ENGINE_DEFAULT`     | Поисковик по умолчанию.                                         | `duckduckgo`              |
 | `SEARCH_ENGINES_AVAILABLE`  | Список доступных поисковиков через запятую.                      | `duckduckgo`              |
 | `AGENT_MAX_STEPS`           | Лимит шагов агентного цикла.                                     | `10`                      |

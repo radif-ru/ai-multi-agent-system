@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from types import SimpleNamespace
 
 import httpx
@@ -124,6 +125,47 @@ async def test_chat_logs_metrics(client, mocker, caplog):
         "kind=chat" in r.message and "model=qwen3.5:4b" in r.message and "status=ok" in r.message
         for r in caplog.records
     )
+
+
+async def test_chat_logs_queue_wait_ms(client, mocker, caplog):
+    mocker.patch.object(client._client, "chat", return_value=_chat_resp("answer"))
+    with caplog.at_level("INFO", logger="app.services.llm"):
+        await client.chat([{"role": "user", "content": "hi"}], model="m")
+    assert any("queue_wait_ms=" in r.message for r in caplog.records)
+
+
+def _make_tracking_chat():
+    """Async side_effect, отслеживающий пиковую конкуренцию вызовов."""
+    state = {"in_flight": 0, "max_in_flight": 0}
+
+    async def _chat(**kwargs):
+        state["in_flight"] += 1
+        state["max_in_flight"] = max(state["max_in_flight"], state["in_flight"])
+        await asyncio.sleep(0.02)
+        state["in_flight"] -= 1
+        return _chat_resp("ok")
+
+    return _chat, state
+
+
+async def test_chat_semaphore_serializes_calls(mocker):
+    client = OllamaClient(base_url="http://localhost:11434", timeout=10.0, max_concurrency=1)
+    chat_fn, state = _make_tracking_chat()
+    mocker.patch.object(client._client, "chat", side_effect=chat_fn)
+    await asyncio.gather(
+        *[client.chat([{"role": "user", "content": "hi"}], model="m") for _ in range(4)]
+    )
+    assert state["max_in_flight"] == 1
+
+
+async def test_chat_semaphore_respects_configured_limit(mocker):
+    client = OllamaClient(base_url="http://localhost:11434", timeout=10.0, max_concurrency=2)
+    chat_fn, state = _make_tracking_chat()
+    mocker.patch.object(client._client, "chat", side_effect=chat_fn)
+    await asyncio.gather(
+        *[client.chat([{"role": "user", "content": "hi"}], model="m") for _ in range(4)]
+    )
+    assert state["max_in_flight"] == 2
 
 
 def test_estimate_tokens_string():

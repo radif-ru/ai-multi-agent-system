@@ -126,7 +126,8 @@ Telegram-адаптер принимает текст, оборачивает е
 - `embed(text: str, *, model: str) -> list[float]` — эмбеддинг текста через `ollama.AsyncClient.embeddings`.
 - Иерархия исключений: `LLMError` → `LLMTimeout`, `LLMUnavailable`, `LLMBadResponse`.
 - Маппинг: `httpx.TimeoutException` / `asyncio.TimeoutError` → `LLMTimeout`; `httpx.ConnectError` → `LLMUnavailable`; `ollama.ResponseError` 404 → `LLMBadResponse("модель не найдена")`; прочие 4xx/5xx → `LLMBadResponse`; пустой ответ → `LLMBadResponse`.
-- На каждый вызов пишет INFO-строку с метриками (`model`, `len_in`, `len_out`, `dur_ms`, `status`).
+- **Общий gate (`asyncio.Semaphore`)** на весь процесс: `chat` и `embed` сериализуются лимитом `LLM_MAX_CONCURRENCY` (default `2`), чтобы live-запросы и фоновый `journal_recovery` не устраивали пайл-ап на GPU. Время ожидания слота замеряется и пишется в лог как `queue_wait_ms`.
+- На каждый вызов пишет INFO-строку с метриками (`model`, `len_in`, `len_out`, `dur_ms`, `queue_wait_ms`, `status`).
 - `estimate_tokens(value: str | list[dict]) -> int` — приближённая оценка `chars / 4` (для логирования размера контекста).
 
 ### 3.5 Краткосрочная память (`app/services/conversation.py`, `app/services/summarizer.py`)
