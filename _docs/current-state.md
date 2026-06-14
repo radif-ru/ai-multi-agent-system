@@ -21,7 +21,7 @@
 
 ### 1.1 Агентный цикл
 
-- **Executor** — `app/agents/executor.py` реализует цикл `thought → action → observation → final_answer` с лимитом шагов и обработкой ошибок LLM. Автоматическая суммаризация контекста: если размер контекста превышает `AGENT_MAX_CONTEXT_CHARS` (default 8000), история автоматически суммаризируется через `Summarizer` перед отправкой в LLM, что предотвращает пустые ответы при больших контекстах.
+- **Executor** — `app/agents/executor.py` реализует цикл `thought → action → observation → final_answer` с лимитом шагов и обработкой ошибок LLM. Автоматическая суммаризация контекста: если размер контекста превышает `AGENT_MAX_CONTEXT_CHARS` (default 90000, согласовано с `OLLAMA_NUM_CTX=32768` и `MAX_DOCUMENT_CHARS=80000`), история автоматически суммаризируется через `Summarizer` перед отправкой в LLM, что предотвращает пустые ответы при больших контекстах.
 - **Protocol** — `app/agents/protocol.py` парсит JSON-ответы модели (с толерантностью к markdown-fence и к некорректному формату `action: "final_answer"`).
 
 ### 1.2 Память

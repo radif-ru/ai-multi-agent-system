@@ -87,6 +87,18 @@ def test_ollama_keep_alive_temperature_from_env(base_env):
     assert s.ollama_temperature == 0.5
 
 
+# --- Согласование num_ctx и порога суммаризации (спринт 11, задача 4.2) ---
+
+
+def test_context_document_defaults_balanced(base_env):
+    s = _build(base_env)
+    assert s.ollama_num_ctx == 32768
+    assert s.agent_max_context_chars == 90000
+    assert s.max_document_chars == 80000
+    # Документ должен помещаться в контекст без преждевременной суммаризации.
+    assert s.max_document_chars < s.agent_max_context_chars
+
+
 def test_csv_parses_models_list(base_env):
     s = _build(
         base_env,

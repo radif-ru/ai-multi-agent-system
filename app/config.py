@@ -39,7 +39,9 @@ class Settings(BaseSettings):
         default_factory=lambda: ["qwen3.5:4b"]
     )
     ollama_timeout: float = 120.0
-    ollama_num_ctx: int = 8192
+    # Контекстное окно Ollama. 32768 умещается в VRAM (RTX 5090) и согласовано
+    # с agent_max_context_chars/max_document_chars (см. _docs/agent-loop.md §4).
+    ollama_num_ctx: int = 32768
     # Reasoning-токены «думающей» модели. Для агентного цикла и суммаризации
     # think обычно не нужен (rationale выражен полем `thought`), а Ollama
     # отбрасывает `<think>` из content — выключенный think кратно ускоряет ответ.
@@ -65,7 +67,11 @@ class Settings(BaseSettings):
     # --- Agent loop ---
     agent_max_steps: int = 15
     agent_max_output_chars: int = 12000
-    agent_max_context_chars: int = 8000
+    # Порог суммаризации контекста перед отправкой в LLM. 90000 символов
+    # (~22.5k токенов) согласовано с num_ctx=32768: оставляет запас на
+    # system-промпт и ответ; один большой документ (max_document_chars=80000)
+    # умещается без преждевременной суммаризации (см. _docs/agent-loop.md §4).
+    agent_max_context_chars: int = 90000
 
     # --- Multi-agent (Planner + Critic), см. _docs/multi-agent.md ---
     # OFF — только Executor; NORMAL — один проход Critic; DEEP — итеративный Critic.
@@ -113,8 +119,9 @@ class Settings(BaseSettings):
     # --- Temporary files ---
     tmp_base_dir: Path = Path("data/tmp")
     max_tool_output_chars: int = 50000
-    # Настройки для чтения документов
-    max_document_chars: int = 50000
+    # Настройки для чтения документов. Порог < agent_max_context_chars, чтобы
+    # один документ помещался в контекст без преждевременной суммаризации.
+    max_document_chars: int = 80000
     document_max_images: int = 20
     document_ocr_enabled: bool = False
     # Настройки OCR
