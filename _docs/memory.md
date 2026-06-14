@@ -380,11 +380,11 @@ CREATE INDEX IF NOT EXISTS ix_journal_message  ON dialog_journal(user_id, messag
 
 ### 4.4 Фоновое восстановление при старте
 
-Реализация — `app/services/journal_recovery.py::recover_pending_journals(journal, archiver, concurrency=1)`. Корутина запускается из `app/main.py::main` через `asyncio.create_task` сразу после `_build_components` и параллельно с `_start_polling`, чтобы не задерживать старт polling. Алгоритм:
+Реализация — `app/services/journal_recovery.py::recover_pending_journals(journal, archiver, concurrency=1, min_chars=0)`. Корутина запускается из `app/main.py::main` через `asyncio.create_task` сразу после `_build_components` и параллельно с `_start_polling`, чтобы не задерживать старт polling. Алгоритм:
 
 1. `journal.pending_conversations()` → список «висящих» сессий `(user_id, chat_id, conversation_id)`, упорядоченный по времени появления.
 2. Для каждой сессии — `journal.read_conversation(...)` и преобразование строк в формат `[{role, content}, ...]` (file-метаданные уже зашиты в `content`, см. §4.1; пустые `content` отфильтровываются).
-3. Если после фильтрации история пуста — сессия закрывается напрямую `journal.mark_archived(...)` без вызова `Archiver` (нечего суммаризировать).
+3. Если после фильтрации история пуста **или** суммарный объём `content` сессии меньше порога `JOURNAL_RECOVERY_MIN_CHARS` (env, default `50`; `0` отключает проверку) — сессия закрывается напрямую `journal.mark_archived(...)` без вызова `Archiver` (нечего суммаризировать). Так «мусорные» сессии (1 строка, 6–24 символа) не гоняются через LLM на каждом старте и не копятся в backlog.
 4. Иначе — `Archiver.archive(history, conversation_id=..., user_id=..., chat_id=..., user=None, channel="recovery")` (тот же путь, что и `/new`; событие `ConversationArchived` не публикуется, потому что `user is None`).
 5. На успехе — `journal.mark_archived(user_id, conversation_id)`. На ошибке — лог, `summary["failed"] += 1`, переход к следующей сессии. Одна сломанная сессия не валит остальные и не валит бот.
 

@@ -142,6 +142,51 @@ async def test_concurrency_respects_configured_limit(journal: DialogJournal) -> 
 
 
 @pytest.mark.asyncio
+async def test_below_min_chars_session_skipped_without_archiver(
+    journal: DialogJournal,
+) -> None:
+    # «Мусорная» сессия (мало символов) и реальная (выше порога).
+    await journal.append(
+        user_id=1, chat_id=10, conversation_id="c-junk",
+        role="user", kind="text", content="ок",
+    )
+    long_text = "это реальная сессия с достаточным объёмом текста для архивации"
+    assert len(long_text) >= 50
+    await journal.append(
+        user_id=2, chat_id=20, conversation_id="c-real",
+        role="user", kind="text", content=long_text,
+    )
+
+    archiver = _make_archiver()
+    summary = await recover_pending_journals(
+        journal=journal, archiver=archiver, min_chars=50
+    )
+
+    # Обе сессии закрыты (долг погашен), но archiver вызван только для реальной.
+    assert summary == {"sessions": 2, "archived": 2, "failed": 0}
+    archiver.archive.assert_awaited_once()
+    assert archiver.archive.await_args.kwargs["conversation_id"] == "c-real"
+    assert await journal.pending_conversations() == []
+
+
+@pytest.mark.asyncio
+async def test_min_chars_zero_archives_short_session(journal: DialogJournal) -> None:
+    # min_chars=0 (default) — пропуск отключён, короткая сессия идёт в archiver.
+    await journal.append(
+        user_id=1, chat_id=10, conversation_id="c1",
+        role="user", kind="text", content="ок",
+    )
+
+    archiver = _make_archiver()
+    summary = await recover_pending_journals(
+        journal=journal, archiver=archiver, min_chars=0
+    )
+
+    assert summary == {"sessions": 1, "archived": 1, "failed": 0}
+    archiver.archive.assert_awaited_once()
+
+
+@pytest.mark.asyncio
 async def test_empty_history_session_is_closed_without_calling_archiver(
     journal: DialogJournal,
 ) -> None:

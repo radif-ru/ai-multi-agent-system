@@ -93,6 +93,7 @@
 | `SESSION_BOOTSTRAP_ENABLED` | Авто-подгрузка архива в первый ход новой сессии (см. `_docs/memory.md` §3.6). | `true`         |
 | `SESSION_BOOTSTRAP_TOP_K`   | Сколько чанков подмешивать при авто-подгрузке.                   | `3`                       |
 | `JOURNAL_RECOVERY_CONCURRENCY` | Параллелизм фонового восстановления висящих сессий (`1` = последовательно, оставляет слот под live). | `1`                       |
+| `JOURNAL_RECOVERY_MIN_CHARS` | Порог суммарного `content` сессии: «мусор» ниже порога закрывается без LLM-вызова (`0` отключает). | `50`                      |
 | `AGENT_SYSTEM_PROMPT_PATH`  | Путь к markdown-файлу системного промпта агента.                 | `app/prompts/agent_system.md`|
 | `LOG_LEVEL`                 | Уровень логов (`DEBUG\|INFO\|WARNING\|ERROR`).                   | `DEBUG`                   |
 | `LOG_FILE`                  | Путь к файлу логов.                                              | `logs/agent.log`          |

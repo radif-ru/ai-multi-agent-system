@@ -86,6 +86,10 @@ class Settings(BaseSettings):
     # чтобы фоновое восстановление не занимало все слоты LLM-gate и оставляло
     # слот под live-запрос (см. _docs/memory.md §4.4).
     journal_recovery_concurrency: int = 1
+    # Сессии с суммарным content меньше порога — закрываются без LLM-вызова
+    # (нечего архивировать), чтобы «мусор» не гонялся через модель на каждом
+    # старте. 0 = пропуск отключён (см. _docs/memory.md §4.4).
+    journal_recovery_min_chars: int = 50
 
     # --- Prompts ---
     agent_system_prompt_path: Path = Path("app/prompts/agent_system.md")
@@ -242,6 +246,13 @@ class Settings(BaseSettings):
     def _check_journal_recovery_concurrency(cls, v: int) -> int:
         if v <= 0:
             raise ValueError("JOURNAL_RECOVERY_CONCURRENCY must be > 0")
+        return v
+
+    @field_validator("journal_recovery_min_chars")
+    @classmethod
+    def _check_journal_recovery_min_chars(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("JOURNAL_RECOVERY_MIN_CHARS must be >= 0")
         return v
 
     @model_validator(mode="after")

@@ -44,6 +44,7 @@ async def recover_pending_journals(
     journal: "DialogJournal",
     archiver: "Archiver",
     concurrency: int = 1,
+    min_chars: int = 0,
 ) -> dict:
     """Архивировать все «висящие» сессии журнала.
 
@@ -51,6 +52,11 @@ async def recover_pending_journals(
     (default 1 — последовательно), чтобы фоновое восстановление не занимало
     все слоты общего LLM-gate и оставляло слот под live-запрос (см.
     `_docs/memory.md` §4.4).
+
+    `min_chars` — порог суммарного `content` сессии: «мусорные» сессии ниже
+    порога закрываются `mark_archived` без LLM-суммаризации (нечего
+    архивировать), чтобы не гонять их через модель на каждом старте. `0`
+    отключает пропуск.
 
     Возвращает сводку `{"sessions": N, "archived": K, "failed": F}`.
     Никогда не пробрасывает исключения наверх (это фоновая задача).
@@ -83,6 +89,19 @@ async def recover_pending_journals(
                     logger.info(
                         "journal_recovery: пустая сессия user=%s conv=%s — закрыта без архивации",
                         user_id, conversation_id,
+                    )
+                    return
+
+                total_chars = sum(len(m["content"]) for m in history)
+                if total_chars < min_chars:
+                    # «Мусорная» сессия ниже порога — закрываем долг без LLM
+                    # (нечего суммаризировать), чтобы не гонять её на каждом старте.
+                    await journal.mark_archived(user_id, conversation_id)
+                    summary["archived"] += 1
+                    logger.info(
+                        "journal_recovery: сессия ниже порога user=%s conv=%s "
+                        "chars=%d < %d — закрыта без архивации",
+                        user_id, conversation_id, total_chars, min_chars,
                     )
                     return
 

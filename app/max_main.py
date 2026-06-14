@@ -119,6 +119,8 @@ async def main() -> None:
             recover_pending_journals(
                 journal=components.dialog_journal,
                 archiver=components.archiver,
+                concurrency=settings.journal_recovery_concurrency,
+                min_chars=settings.journal_recovery_min_chars,
             ),
             name="journal_recovery",
         )
