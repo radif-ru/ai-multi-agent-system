@@ -55,6 +55,26 @@ async def test_chat_think_per_call_override(client, mocker):
     assert chat_mock.await_args.kwargs["think"] is True
 
 
+async def test_chat_forwards_keep_alive(mocker):
+    c = OllamaClient(base_url="http://localhost:11434", timeout=10.0, keep_alive="30m")
+    chat_mock = mocker.patch.object(c._client, "chat", return_value=_chat_resp("ok"))
+    await c.chat([{"role": "user", "content": "hi"}], model="m")
+    assert chat_mock.await_args.kwargs["keep_alive"] == "30m"
+
+
+async def test_chat_forwards_temperature_from_constructor(mocker):
+    c = OllamaClient(base_url="http://localhost:11434", timeout=10.0, temperature=0.7)
+    chat_mock = mocker.patch.object(c._client, "chat", return_value=_chat_resp("ok"))
+    await c.chat([{"role": "user", "content": "hi"}], model="m")
+    assert chat_mock.await_args.kwargs["options"]["temperature"] == 0.7
+
+
+async def test_chat_temperature_per_call_override(client, mocker):
+    chat_mock = mocker.patch.object(client._client, "chat", return_value=_chat_resp("ok"))
+    await client.chat([{"role": "user", "content": "hi"}], model="m", temperature=0.3)
+    assert chat_mock.await_args.kwargs["options"]["temperature"] == 0.3
+
+
 async def test_embed_success(client, mocker):
     mocker.patch.object(
         client._client, "embeddings", return_value=SimpleNamespace(embedding=[0.1, 0.2, 0.3])

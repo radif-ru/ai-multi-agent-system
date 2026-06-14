@@ -42,11 +42,15 @@ class OllamaClient:
         timeout: float,
         num_ctx: int = 8192,
         think: bool = False,
+        temperature: float = 0.0,
+        keep_alive: str = "5m",
         max_concurrency: int = 1,
     ) -> None:
         self._client = AsyncClient(host=base_url, timeout=timeout)
         self._num_ctx = num_ctx
         self._think = think
+        self._temperature = temperature
+        self._keep_alive = keep_alive
         # Общий gate на весь процесс: ограничивает одновременные обращения к
         # Ollama (chat + embed), чтобы live-запросы и фоновый recovery не
         # устраивали пайл-ап на GPU. См. `_docs/architecture.md` §3.4.
@@ -57,10 +61,11 @@ class OllamaClient:
         messages: Sequence[dict[str, Any]],
         *,
         model: str,
-        temperature: float = 0.0,
+        temperature: float | None = None,
         think: bool | None = None,
     ) -> str:
         think_value = self._think if think is None else think
+        temperature_value = self._temperature if temperature is None else temperature
         len_in = sum(len(m.get("content", "")) for m in messages)
         queue_started = time.monotonic()
         async with self._semaphore:
@@ -71,7 +76,8 @@ class OllamaClient:
                     model=model,
                     messages=list(messages),
                     think=think_value,
-                    options={"temperature": temperature, "num_ctx": self._num_ctx},
+                    keep_alive=self._keep_alive,
+                    options={"temperature": temperature_value, "num_ctx": self._num_ctx},
                 )
             except (httpx.TimeoutException, asyncio.TimeoutError) as exc:
                 self._log_call("chat", model, len_in, 0, started, "timeout", queue_wait_ms)

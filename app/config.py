@@ -44,6 +44,12 @@ class Settings(BaseSettings):
     # think обычно не нужен (rationale выражен полем `thought`), а Ollama
     # отбрасывает `<think>` из content — выключенный think кратно ускоряет ответ.
     ollama_think: bool = False
+    # Как долго Ollama держит модель резидентной между запросами. Убирает
+    # холодные перезагрузки (на 24 ГБ безопасно). "0" = выгружать сразу.
+    ollama_keep_alive: str = "30m"
+    # Температура сэмплирования для chat (вынесена из хардкода). 0.0 —
+    # детерминированный вывод, что предпочтительно для JSON-ответов агента.
+    ollama_temperature: float = 0.0
 
     # --- Ollama (Embedding) ---
     embedding_model: str = "nomic-embed-text"
