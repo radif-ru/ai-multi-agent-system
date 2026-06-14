@@ -32,6 +32,10 @@ logger = logging.getLogger(__name__)
 async def main() -> None:
     settings = Settings()
     setup_logging(settings)
+    # Глушим шумные HTTP-логи (httpcore/httpx на DEBUG заливают консоль и
+    # топят итоговую сводку); прогресс recovery/archiver (INFO) остаётся.
+    for noisy in ("httpcore", "httpx"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     setup_sentry(settings)
 
     components = await _build_components(settings)
@@ -54,12 +58,14 @@ async def main() -> None:
         )
 
         after = await journal.pending_conversations()
-        print(
-            "summary: sessions={sessions} archived={archived} failed={failed}".format(
-                **summary
-            )
-        )
-        print(f"pending после прогона: {len(after)}")
+        print("\n" + "=" * 48)
+        print("ЗАЧИСТКА BACKLOG — ИТОГ")
+        print(f"  pending до:    {len(before)}")
+        print(f"  sessions:      {summary['sessions']}")
+        print(f"  archived:      {summary['archived']}")
+        print(f"  failed:        {summary['failed']}")
+        print(f"  pending после: {len(after)}")
+        print("=" * 48)
         if after:
             print("осталось висеть (вероятно, упавшие при архивации):")
             for user_id, chat_id, conversation_id in after:
