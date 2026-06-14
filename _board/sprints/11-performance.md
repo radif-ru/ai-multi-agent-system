@@ -287,7 +287,7 @@ JOURNAL_RECOVERY_CONCURRENCY=1
 
 ### Задача 4.4. Сериализовать sqlite-доступ в `DialogJournal` (фикс гонки recovery)
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** — (фикс латентного бага, обнаруженного в 4.3; см. `_docs/current-state.md` §2.3)
@@ -300,10 +300,10 @@ JOURNAL_RECOVERY_CONCURRENCY=1
 
 #### Definition of Done
 
-- [ ] Конкурентный доступ к `DialogJournal` не вызывает `SQLITE_MISUSE`; `test_concurrency_respects_configured_limit` перестал флакать (10× прогонов зелёные).
-- [ ] **Документация обновлена**: `_docs/current-state.md` §2.3 (статус → исправлено), `_docs/memory.md` §4.4.
-- [ ] **Тесты**: регрессионный тест на параллельный доступ к `DialogJournal`; `pytest -q` зелёный.
-- [ ] `git status` чист.
+- [x] Конкурентный доступ к `DialogJournal` не вызывает `SQLITE_MISUSE`: `threading.Lock` в `_*_sync`-методах; `test_concurrency_respects_configured_limit` зелёный 10/10 прогонов.
+- [x] **Документация обновлена**: `_docs/current-state.md` §2.3 (статус → исправлено), `_docs/memory.md` §4.4.
+- [x] **Тесты**: регрессионный `test_concurrent_access_does_not_misuse_sqlite`; `pytest -q` зелёный.
+- [x] `git status` чист.
 
 ## 8. Этап 5. VRAM-гард для тяжёлых моделей
 
@@ -424,7 +424,7 @@ Bash-launcher: запускает бот в собственной группе 
 | 4.1 | `OLLAMA_KEEP_ALIVE` / `OLLAMA_TEMPERATURE` | high | S | Done | — |
 | 4.2 | Согласовать `num_ctx` и порог суммаризации | medium | S | Done | — |
 | 4.3 | Редизайн `.env.example` + синх `.env` | high | M | Done | 1.1, 2.1, 4.1 |
-| 4.4 | Сериализовать sqlite-доступ в `DialogJournal` | high | S | Progress | — |
+| 4.4 | Сериализовать sqlite-доступ в `DialogJournal` | high | S | Done | — |
 | 5.1 | VRAM-гард в `/model` / `/models` | low | M | ToDo | — |
 | 6.1 | `scripts/run.sh` с trap | medium | S | ToDo | — |
 | 6.2 | Bounded shutdown + добивание `curl` | medium | M | ToDo | — |
@@ -444,4 +444,5 @@ Bash-launcher: запускает бот в собственной группе 
 - **2026-06-14** — закрыта задача 3.3: добавлен maintenance-скрипт `scripts/recover_backlog.py` (переиспользует `_build_components` + `recover_pending_journals`, глушит httpcore/httpx, печатает итог баннером). Прогон на боевой `data/memory.db`: `pending` 11 → 0 (`sessions=11 archived=11 failed=0`; 6 мусорных закрыты без LLM, 5 реальных заархивированы). Заметка в `memory.md` §4.4. **Этап 3 завершён.**
 - **2026-06-14** — закрыта задача 4.1: `OllamaClient` принимает `temperature` и `keep_alive`, оба пробрасываются в каждый `chat` (`keep_alive`-аргумент + `options.temperature`); вынесены в `.env` как `OLLAMA_TEMPERATURE` (default `0.0`) и `OLLAMA_KEEP_ALIVE` (default `30m`), проброс в `app/main.py`; `chat(temperature=None)` берёт значение из конструктора с per-call override; доки (`architecture.md` §3.4, `stack.md` §9) и тесты (`test_llm_client.py`, `test_config.py`) обновлены.
 - **2026-06-14** — закрыта задача 4.2: дефолты согласованы под большие документы — `OLLAMA_NUM_CTX` `8192→32768`, `AGENT_MAX_CONTEXT_CHARS` `8000→90000`, `MAX_DOCUMENT_CHARS` `50000→80000` (документ умещается в контекст без преждевременной суммаризации); обоснование баланса в `agent-loop.md` §4, синхронизированы устаревшие `default 8000` в `architecture.md`/`current-state.md`/`README.md`; тест `test_context_document_defaults_balanced`. Жёсткий cross-validator не добавлен (реальный `.env` читается тестом `test_summarizer_subscriber.py`).
-- **2026-06-14** — закрыта задача 4.3: `.env.example` переоформлен (секции «LLM gate», «Journal recovery», все ключи `Settings` представлены — completeness-проверка `MISSING: none`, балансные значения под RTX 5090); локальный `.env` синхронизирован безопасным in-place скриптом (токен не тронут, `.env` не коммитим). **Этап 4 завершён.** Попутно обнаружен и зафиксирован (`current-state.md` §2.3, **не правился** в рамках 4.3) латентный баг: гонка одного sqlite-соединения `DialogJournal` при `JOURNAL_RECOVERY_CONCURRENCY>1` → флак `test_concurrency_respects_configured_limit` (SQLITE_MISUSE); продакшен-дефолт `concurrency=1` безопасен.
+- **2026-06-14** — закрыта задача 4.3: `.env.example` переоформлен (секции «LLM gate», «Journal recovery», все ключи `Settings` представлены — completeness-проверка `MISSING: none`, балансные значения под RTX 5090); локальный `.env` синхронизирован безопасным in-place скриптом (токен не тронут, `.env` не коммитим). Попутно обнаружен и зафиксирован (`current-state.md` §2.3) латентный баг: гонка одного sqlite-соединения `DialogJournal` при `JOURNAL_RECOVERY_CONCURRENCY>1` → флак `test_concurrency_respects_configured_limit` (SQLITE_MISUSE); продакшен-дефолт `concurrency=1` безопасен.
+- **2026-06-14** — добавлена и закрыта задача 4.4 (фикс бага из §2.3): доступ к sqlite-соединению `DialogJournal` сериализован `threading.Lock`-ом в `_*_sync`-методах, `JOURNAL_RECOVERY_CONCURRENCY>1` теперь безопасен; ранее флакавший `test_concurrency_respects_configured_limit` зелёный 10/10, добавлен регрессионный `test_concurrent_access_does_not_misuse_sqlite`; доки `current-state.md` §2.3 (→ исправлено) и `memory.md` §4.4. **Этап 4 завершён.**
