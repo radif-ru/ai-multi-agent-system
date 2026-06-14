@@ -7,6 +7,7 @@ ConsoleAdapter — REPL-цикл, который читает ввод поль�
 
 from __future__ import annotations
 
+import asyncio
 import re
 from typing import TYPE_CHECKING, Any
 
@@ -178,7 +179,13 @@ class ConsoleAdapter:
                 print("\nВыход.")
                 break
             except KeyboardInterrupt:
-                # Ctrl+C
+                # Ctrl+C во время input() заставляет asyncio.run() отметить
+                # главную задачу как cancelled. Если не снять отметку, отложенный
+                # CancelledError прилетит на первом await в shutdown (после /exit)
+                # и упадёт трейсбеком. Снимаем запрос отмены и продолжаем REPL.
+                task = asyncio.current_task()
+                if task is not None:
+                    task.uncancel()
                 print("\nПрервано. Введите /exit для выхода или продолжайте.")
                 continue
 

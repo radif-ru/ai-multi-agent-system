@@ -1,5 +1,7 @@
 """Тесты консольного адаптера."""
 
+import asyncio
+
 import pytest
 from app.adapters.console.adapter import ConsoleAdapter
 from app.commands.context import CommandContext
@@ -140,6 +142,34 @@ async def test_console_adapter_handle_command_exit(mock_components):
     # Команда /exit должна прервать цикл, но в тесте мы проверяем только обработку
     # В реальном REPL это приведёт к break
     await adapter._handle_command("/exit")
+
+
+@pytest.mark.asyncio
+async def test_run_clears_cancellation_after_ctrl_c(mock_components, monkeypatch):
+    """Ctrl+C во время input() не должен оставлять задачу в состоянии cancelled.
+
+    Регрессия: раньше Ctrl+C отмечал главную задачу cancelled, и на /exit
+    отложенный CancelledError падал трейсбеком в shutdown.
+    """
+    adapter = ConsoleAdapter(user_id=-1, chat_id=-1, **mock_components)
+    task = asyncio.current_task()
+    calls = {"n": 0}
+
+    def fake_input(prompt=""):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            # Симулируем поведение asyncio.run(): SIGINT отмечает задачу
+            # cancelled и поднимает KeyboardInterrupt.
+            task.cancel()
+            raise KeyboardInterrupt
+        return "/exit"
+
+    monkeypatch.setattr("builtins.input", fake_input)
+
+    await adapter.run()
+
+    assert calls["n"] == 2
+    assert task.cancelling() == 0
 
 
 @pytest.mark.asyncio
