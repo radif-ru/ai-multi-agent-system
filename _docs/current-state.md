@@ -132,6 +132,16 @@
 - **`_display_name` использует актуальные `first_name`/`last_name`** (склейка через пробел) с fallback-цепочкой `first_name [last_name]` → `name` → `username` → `User {id}` (спринт 10, задача 3.1). Устаревшее `sender.name` оставлено только как промежуточный fallback для совместимости.
 - **Кросс-канальная унификация пользователя отсутствует**: MAX-пользователь отдельный по ключу `(channel="max", external_id)`, не связан с Telegram-пользователем. См. `_docs/roadmap.md` Этап 5 (web-адаптер, унифицированный `user_id`).
 
+### 2.3 Гонка sqlite при `JOURNAL_RECOVERY_CONCURRENCY > 1`
+
+**Файлы:** `app/services/dialog_journal.py`, `app/services/journal_recovery.py`. **Серьёзность:** средняя (латентная; продакшен-дефолт `concurrency=1` безопасен).
+
+`DialogJournal` держит **одно** `sqlite3.Connection` (`check_same_thread=False`), а каждый метод оборачивается в `asyncio.to_thread`. При `recover_pending_journals(concurrency >= 2)` несколько корутин `_recover_one` одновременно вызывают `read_conversation`/`mark_archived`, и их `to_thread`-задачи бьют в одно соединение из разных потоков пула → `sqlite3.OperationalError: bad parameter or other API misuse` (SQLITE_MISUSE). Соединение sqlite не предназначено для одновременного использования из нескольких потоков.
+
+**Воспроизведение:** `tests/services/test_journal_recovery.py::test_concurrency_respects_configured_limit` (concurrency=2) — флак (~1 из 5 прогонов падает на `archived == 4`). С `concurrency=1` (семафор сериализует) гонки нет.
+
+**Рекомендация:** сериализовать доступ к соединению (`threading.Lock` в `_*_sync` методах `DialogJournal` или `asyncio.Lock` в async-обёртках) — тогда `concurrency > 1` станет безопасным и тест перестанет флакать. Отдельная задача (затрагивает код закрытых этапов 2/3, не задачу 4.3).
+
 ## 3. Архитектурные нюансы (не баги, но знать обязательно)
 
 > Зафиксированные архитектурные нюансы текущего кода (не баги, но знать обязательно). Проектные принципы — см. `architecture.md` §2.
@@ -147,7 +157,7 @@
 - **Очерёдность роутеров** в `main.py`: `commands.router` → `messages.router` → `errors.router`. Команды должны идти раньше, чтобы текст вида `/start ...` не попал в обработчик произвольного текста.
 - **Обработка длинных ответов**: handler `messages` сам режет ответ через `split_long_message`. Telegram обрежет всё, что > 4096, отдельной ошибкой `BadRequest` — это исключено резкой на стороне бота.
 - **`parse_mode=ParseMode.HTML`** установлен по умолчанию (`DefaultBotProperties` в `main.py`). Все хендлеры должны экранировать пользовательский ввод (`html.escape`) перед вставкой.
-- **Автоматическая суммаризация контекста**: Executor проверяет размер контекста перед отправкой в LLM. Если превышает `AGENT_MAX_CONTEXT_CHARS` (default 8000), история суммаризируется через `Summarizer` для предотвращения пустых ответов при больших контекстах (например, при обработке PDF с OCR текстом).
+- **Автоматическая суммаризация контекста**: Executor проверяет размер контекста перед отправкой в LLM. Если превышает `AGENT_MAX_CONTEXT_CHARS` (default 90000, согласовано с `OLLAMA_NUM_CTX=32768` и `MAX_DOCUMENT_CHARS=80000`), история суммаризируется через `Summarizer` для предотвращения пустых ответов при больших контекстах (например, при обработке PDF с OCR текстом).
 - **Порядок подписчиков EventBus**: подписчики вызываются последовательно в порядке регистрации (FIFO). Для события `ResponseGenerated` важно, чтобы `conversation_subscriber.on_response_generated` регистрировался первым, чтобы к моменту суммаризации ответ уже был записан в ConversationStore. Это гарантируется порядком регистрации в точках входа (main.py, console_main.py).
 - **Top-level логирование необработанных исключений** (`app/main.py::run`, `app/console_main.py::run`, спринт 08 задача 6.1): обёртки оборачивают `asyncio.run(main())` в `try/except`. `KeyboardInterrupt` пробрасывается без лога (штатное завершение polling). Любое другое `BaseException` логируется через `logger.exception("необработанное исключение на верхнем уровне")` и пробрасывается дальше, чтобы Sentry/GlitchTip (через `LoggingIntegration` в `setup_sentry`) подхватил traceback. Дополнительный `sys.excepthook` не ставится сознательно.
 - **Завершение polling-задачи** (`app/main.py::main`, `app/max_main.py::main`, спринт 10 задача 1.1/1.2): polling крутится в отдельной задаче, а `main()` ждёт **первое** из `{polling_task, shutdown_event.wait()}` через `asyncio.wait(..., return_when=FIRST_COMPLETED)`. Сигнал (SIGTERM/SIGINT) → отмена polling и graceful shutdown. Самостоятельное завершение polling (штатное или с исключением) → `polling_task.result()` пробрасывает исключение наружу к top-level логгеру `run()` (см. пункт выше), а `_shutdown` всегда вызывается в `finally`. Раньше `main()` ждал только `shutdown_event.wait()` — при падении polling исключение терялось и процесс висел.
