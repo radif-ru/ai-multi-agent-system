@@ -45,6 +45,7 @@ async def recover_pending_journals(
     archiver: "Archiver",
     concurrency: int = 1,
     min_chars: int = 0,
+    start_delay: float = 0.0,
 ) -> dict:
     """Архивировать все «висящие» сессии журнала.
 
@@ -58,10 +59,16 @@ async def recover_pending_journals(
     архивировать), чтобы не гонять их через модель на каждом старте. `0`
     отключает пропуск.
 
+    `start_delay` — пауза (секунды) перед началом работы, чтобы не штормить
+    Ollama сразу после старта, когда пользователь активен. `0` — без задержки.
+
     Возвращает сводку `{"sessions": N, "archived": K, "failed": F}`.
     Никогда не пробрасывает исключения наверх (это фоновая задача).
     """
     summary = {"sessions": 0, "archived": 0, "failed": 0}
+    if start_delay > 0:
+        logger.info("journal_recovery: отложенный старт через %.1fs", start_delay)
+        await asyncio.sleep(start_delay)
     try:
         pending = await journal.pending_conversations()
     except Exception as exc:  # noqa: BLE001

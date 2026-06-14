@@ -202,3 +202,35 @@ async def test_empty_history_session_is_closed_without_calling_archiver(
     assert summary == {"sessions": 1, "archived": 1, "failed": 0}
     archiver.archive.assert_not_awaited()
     assert await journal.pending_conversations() == []
+
+
+@pytest.mark.asyncio
+async def test_start_delay_awaited_before_processing(
+    journal: DialogJournal, mocker
+) -> None:
+    sleep_mock = mocker.patch(
+        "app.services.journal_recovery.asyncio.sleep", new_callable=AsyncMock
+    )
+    archiver = _make_archiver()
+
+    await recover_pending_journals(
+        journal=journal, archiver=archiver, start_delay=5.0
+    )
+
+    sleep_mock.assert_awaited_once_with(5.0)
+
+
+@pytest.mark.asyncio
+async def test_no_start_delay_does_not_sleep(
+    journal: DialogJournal, mocker
+) -> None:
+    sleep_mock = mocker.patch(
+        "app.services.journal_recovery.asyncio.sleep", new_callable=AsyncMock
+    )
+    archiver = _make_archiver()
+
+    await recover_pending_journals(
+        journal=journal, archiver=archiver, start_delay=0.0
+    )
+
+    sleep_mock.assert_not_awaited()

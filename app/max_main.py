@@ -121,6 +121,7 @@ async def main() -> None:
                 archiver=components.archiver,
                 concurrency=settings.journal_recovery_concurrency,
                 min_chars=settings.journal_recovery_min_chars,
+                start_delay=settings.journal_recovery_start_delay,
             ),
             name="journal_recovery",
         )

@@ -380,7 +380,7 @@ CREATE INDEX IF NOT EXISTS ix_journal_message  ON dialog_journal(user_id, messag
 
 ### 4.4 Фоновое восстановление при старте
 
-Реализация — `app/services/journal_recovery.py::recover_pending_journals(journal, archiver, concurrency=1, min_chars=0)`. Корутина запускается из `app/main.py::main` через `asyncio.create_task` сразу после `_build_components` и параллельно с `_start_polling`, чтобы не задерживать старт polling. Алгоритм:
+Реализация — `app/services/journal_recovery.py::recover_pending_journals(journal, archiver, concurrency=1, min_chars=0, start_delay=0.0)`. Корутина запускается из `app/main.py::main` через `asyncio.create_task` сразу после `_build_components` и параллельно с `_start_polling`, чтобы не задерживать старт polling. Перед началом работы выдерживается пауза `JOURNAL_RECOVERY_START_DELAY` (env, секунды, default `20`; `0` отключает), чтобы не штормить Ollama сразу после старта, когда пользователь активен. Алгоритм:
 
 1. `journal.pending_conversations()` → список «висящих» сессий `(user_id, chat_id, conversation_id)`, упорядоченный по времени появления.
 2. Для каждой сессии — `journal.read_conversation(...)` и преобразование строк в формат `[{role, content}, ...]` (file-метаданные уже зашиты в `content`, см. §4.1; пустые `content` отфильтровываются).

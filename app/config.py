@@ -90,6 +90,9 @@ class Settings(BaseSettings):
     # (нечего архивировать), чтобы «мусор» не гонялся через модель на каждом
     # старте. 0 = пропуск отключён (см. _docs/memory.md §4.4).
     journal_recovery_min_chars: int = 50
+    # Пауза (секунды) перед запуском фонового восстановления, чтобы не штормить
+    # Ollama сразу после старта, когда пользователь активен. 0 = без задержки.
+    journal_recovery_start_delay: float = 20.0
 
     # --- Prompts ---
     agent_system_prompt_path: Path = Path("app/prompts/agent_system.md")
@@ -253,6 +256,13 @@ class Settings(BaseSettings):
     def _check_journal_recovery_min_chars(cls, v: int) -> int:
         if v < 0:
             raise ValueError("JOURNAL_RECOVERY_MIN_CHARS must be >= 0")
+        return v
+
+    @field_validator("journal_recovery_start_delay")
+    @classmethod
+    def _check_journal_recovery_start_delay(cls, v: float) -> float:
+        if v < 0:
+            raise ValueError("JOURNAL_RECOVERY_START_DELAY must be >= 0")
         return v
 
     @model_validator(mode="after")
