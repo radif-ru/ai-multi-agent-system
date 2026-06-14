@@ -132,15 +132,13 @@
 - **`_display_name` использует актуальные `first_name`/`last_name`** (склейка через пробел) с fallback-цепочкой `first_name [last_name]` → `name` → `username` → `User {id}` (спринт 10, задача 3.1). Устаревшее `sender.name` оставлено только как промежуточный fallback для совместимости.
 - **Кросс-канальная унификация пользователя отсутствует**: MAX-пользователь отдельный по ключу `(channel="max", external_id)`, не связан с Telegram-пользователем. См. `_docs/roadmap.md` Этап 5 (web-адаптер, унифицированный `user_id`).
 
-### 2.3 Гонка sqlite при `JOURNAL_RECOVERY_CONCURRENCY > 1`
+### 2.3 Гонка sqlite при `JOURNAL_RECOVERY_CONCURRENCY > 1` (исправлено в спринте 11, задача 4.4)
 
-**Файлы:** `app/services/dialog_journal.py`, `app/services/journal_recovery.py`. **Серьёзность:** средняя (латентная; продакшен-дефолт `concurrency=1` безопасен).
+**Статус:** ✅ Исправлено.
 
-`DialogJournal` держит **одно** `sqlite3.Connection` (`check_same_thread=False`), а каждый метод оборачивается в `asyncio.to_thread`. При `recover_pending_journals(concurrency >= 2)` несколько корутин `_recover_one` одновременно вызывают `read_conversation`/`mark_archived`, и их `to_thread`-задачи бьют в одно соединение из разных потоков пула → `sqlite3.OperationalError: bad parameter or other API misuse` (SQLITE_MISUSE). Соединение sqlite не предназначено для одновременного использования из нескольких потоков.
+`DialogJournal` держит **одно** `sqlite3.Connection` (`check_same_thread=False`), а каждый метод оборачивается в `asyncio.to_thread`. При `recover_pending_journals(concurrency >= 2)` несколько корутин `_recover_one` одновременно вызывали `read_conversation`/`mark_archived`, и их `to_thread`-задачи били в одно соединение из разных потоков пула → `sqlite3.OperationalError: bad parameter or other API misuse` (SQLITE_MISUSE), т.к. соединение sqlite не предназначено для одновременного использования из нескольких потоков. Проявлялось флаком `tests/services/test_journal_recovery.py::test_concurrency_respects_configured_limit` (concurrency=2).
 
-**Воспроизведение:** `tests/services/test_journal_recovery.py::test_concurrency_respects_configured_limit` (concurrency=2) — флак (~1 из 5 прогонов падает на `archived == 4`). С `concurrency=1` (семафор сериализует) гонки нет.
-
-**Рекомендация:** сериализовать доступ к соединению (`threading.Lock` в `_*_sync` методах `DialogJournal` или `asyncio.Lock` в async-обёртках) — тогда `concurrency > 1` станет безопасным и тест перестанет флакать. Отдельная задача (затрагивает код закрытых этапов 2/3, не задачу 4.3).
+**Решение:** доступ к соединению сериализован `threading.Lock`-ом в `_*_sync`-методах `DialogJournal` (`app/services/dialog_journal.py`) — `concurrency > 1` безопасен. Регрессия — `tests/services/test_dialog_journal.py::test_concurrent_access_does_not_misuse_sqlite`. См. `_docs/memory.md` §4.4.
 
 ## 3. Архитектурные нюансы (не баги, но знать обязательно)
 
