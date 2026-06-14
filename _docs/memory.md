@@ -392,6 +392,8 @@ CREATE INDEX IF NOT EXISTS ix_journal_message  ON dialog_journal(user_id, messag
 
 **Smoke-сценарий «kill -9 → старт»** (ожидаемое поведение): отправили текст пользователю → подписчик `on_message_received_journal` записал строку в `dialog_journal` (`archived_at IS NULL`); процесс прервали (`kill -9`, краш, рестарт хоста); следующий старт через `python -m app` → `recover_pending_journals` поднимает сессию через `Archiver` → строка получает `archived_at`, чанк попадает в `memory_chunks` и виден в `MemorySearchTool`. Unit-тесты на алгоритм — `tests/services/test_journal_recovery.py`.
 
+**Maintenance-зачистка backlog.** Для разового неинтерактивного прогона тем же путём (без запуска бота) есть `scripts/recover_backlog.py` (`python -m scripts.recover_backlog` из корня репозитория, нужен поднятый Ollama): переиспользует `_build_components` + `recover_pending_journals`, печатает `pending` до/после и сводку. Идемпотентно — повторный запуск после успешного прогона показывает `pending: 0`.
+
 ## 5. Что НЕ хранится (по дизайну)
 
 - **Сырые сообщения диалога в `memory_chunks`** — туда идут только саммари при `/new` или фоновом восстановлении (CON-1). Полный диалог временно хранится в `dialog_journal` до архивации.
