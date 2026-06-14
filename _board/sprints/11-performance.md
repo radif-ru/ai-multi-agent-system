@@ -285,6 +285,26 @@ JOURNAL_RECOVERY_CONCURRENCY=1
 - [x] **Тесты**: `n/a` (конфиг-файлы); `Settings()` грузится без ошибок, completeness-проверка ключей зелёная.
 - [x] `git status` чист (`.env` не коммитится — в `.gitignore`).
 
+### Задача 4.4. Сериализовать sqlite-доступ в `DialogJournal` (фикс гонки recovery)
+
+- **Статус:** Progress
+- **Приоритет:** high
+- **Объём:** S
+- **Зависит от:** — (фикс латентного бага, обнаруженного в 4.3; см. `_docs/current-state.md` §2.3)
+- **Связанные документы:** `_docs/current-state.md` §2.3; `_docs/memory.md` §4.4.
+- **Затрагиваемые файлы:** `app/services/dialog_journal.py`, `tests/services/test_dialog_journal.py`.
+
+#### Описание
+
+`DialogJournal` держит одно `sqlite3.Connection`, а методы оборачиваются в `asyncio.to_thread`. При `JOURNAL_RECOVERY_CONCURRENCY > 1` несколько корутин одновременно бьют в соединение из разных потоков пула → `SQLITE_MISUSE` (флак `test_concurrency_respects_configured_limit`). Добавить `threading.Lock`, охватывающий тело sync-методов (`append`/`pending`/`read_conversation`/`mark_archived`), чтобы доступ к соединению сериализовался и `concurrency > 1` стал безопасным.
+
+#### Definition of Done
+
+- [ ] Конкурентный доступ к `DialogJournal` не вызывает `SQLITE_MISUSE`; `test_concurrency_respects_configured_limit` перестал флакать (10× прогонов зелёные).
+- [ ] **Документация обновлена**: `_docs/current-state.md` §2.3 (статус → исправлено), `_docs/memory.md` §4.4.
+- [ ] **Тесты**: регрессионный тест на параллельный доступ к `DialogJournal`; `pytest -q` зелёный.
+- [ ] `git status` чист.
+
 ## 8. Этап 5. VRAM-гард для тяжёлых моделей
 
 Переключение на `qwen3.6:35b` (23 ГБ) / `gpt-oss:20b` (13 ГБ) вызывает выгрузку/CPU-оффлоад. Предупреждаем.
@@ -404,6 +424,7 @@ Bash-launcher: запускает бот в собственной группе 
 | 4.1 | `OLLAMA_KEEP_ALIVE` / `OLLAMA_TEMPERATURE` | high | S | Done | — |
 | 4.2 | Согласовать `num_ctx` и порог суммаризации | medium | S | Done | — |
 | 4.3 | Редизайн `.env.example` + синх `.env` | high | M | Done | 1.1, 2.1, 4.1 |
+| 4.4 | Сериализовать sqlite-доступ в `DialogJournal` | high | S | Progress | — |
 | 5.1 | VRAM-гард в `/model` / `/models` | low | M | ToDo | — |
 | 6.1 | `scripts/run.sh` с trap | medium | S | ToDo | — |
 | 6.2 | Bounded shutdown + добивание `curl` | medium | M | ToDo | — |
