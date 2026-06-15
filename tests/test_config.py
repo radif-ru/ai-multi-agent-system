@@ -30,6 +30,7 @@ ENV_KEYS = (
     "AGENT_MAX_STEPS",
     "AGENT_MAX_OUTPUT_CHARS",
     "AGENT_MAX_CONTEXT_CHARS",
+    "AGENT_MAX_REPAIR_ATTEMPTS",
     "MAX_DOCUMENT_CHARS",
     "HISTORY_MAX_MESSAGES",
     "HISTORY_SUMMARY_THRESHOLD",
@@ -97,6 +98,19 @@ def test_context_document_defaults_balanced(base_env):
     assert s.max_document_chars == 80000
     # Документ должен помещаться в контекст без преждевременной суммаризации.
     assert s.max_document_chars < s.agent_max_context_chars
+
+
+# --- Само-починка формата (спринт 11, задача 8.1) ---
+
+
+def test_repair_attempts_default(base_env):
+    s = _build(base_env)
+    assert s.agent_max_repair_attempts == 2
+
+
+def test_repair_attempts_from_env(base_env):
+    s = _build(base_env, AGENT_MAX_REPAIR_ATTEMPTS=0)
+    assert s.agent_max_repair_attempts == 0
 
 
 def test_csv_parses_models_list(base_env):

@@ -168,3 +168,29 @@ def test_parse_invalid_json_inside_fence_raises():
 ```"""
     with pytest.raises(LLMBadResponse, match="invalid JSON"):
         parse_agent_response(text)
+
+
+# --- Запрет утечки thought вместо ответа (спринт 11, задача 8.1) ---
+
+
+def test_action_null_raises_and_does_not_leak_thought():
+    """`action: null` + thought → LLMBadResponse, а не финал из thought."""
+    text = json.dumps({"thought": "рассуждение модели", "action": None})
+    with pytest.raises(LLMBadResponse):
+        parse_agent_response(text)
+
+
+def test_action_final_answer_keyword_raises():
+    """`action == "final_answer"` — нарушение формата: thought не выдаётся за ответ."""
+    text = json.dumps(
+        {"thought": "рассуждение модели", "action": "final_answer", "args": {}}
+    )
+    with pytest.raises(LLMBadResponse):
+        parse_agent_response(text)
+
+
+def test_thought_only_does_not_leak_as_final():
+    """Только thought (даже со словом final_answer) → ошибка, не финал."""
+    text = json.dumps({"thought": "нужно вернуть final_answer пользователю"})
+    with pytest.raises(LLMBadResponse):
+        parse_agent_response(text)

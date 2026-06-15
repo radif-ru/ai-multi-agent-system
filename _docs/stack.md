@@ -84,6 +84,7 @@
 | `SEARCH_ENGINES_AVAILABLE`  | Список доступных поисковиков через запятую.                      | `duckduckgo`              |
 | `AGENT_MAX_STEPS`           | Лимит шагов агентного цикла.                                     | `10`                      |
 | `AGENT_MAX_OUTPUT_CHARS`    | Лимит размера ответа модели за один шаг (защита от мусора).     | `8000`                    |
+| `AGENT_MAX_REPAIR_ATTEMPTS` | Переспросов модели при срыве формата ответа перед `LLMBadResponse` (не даёт `thought` утечь вместо ответа, см. `_docs/agent-loop.md` §2.4). `0` — выключить. | `2`                       |
 | `AGENT_REFLECTION_MODE`     | Режим multi-agent рефлексии (`OFF\|NORMAL\|DEEP`), см. `_docs/multi-agent.md`. | `OFF`     |
 | `AGENT_REFLECTION_MAX_ITERATIONS` | Верхняя граница итераций Critic в режиме `DEEP`.          | `2`                       |
 | `HISTORY_MAX_MESSAGES`      | Жёсткий лимит сообщений in-memory истории на пользователя.       | `20`                      |

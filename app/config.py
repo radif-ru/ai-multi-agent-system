@@ -72,6 +72,11 @@ class Settings(BaseSettings):
     # system-промпт и ответ; один большой документ (max_document_chars=80000)
     # умещается без преждевременной суммаризации (см. _docs/agent-loop.md §4).
     agent_max_context_chars: int = 90000
+    # Сколько раз переспросить модель при срыве формата ответа (битый JSON или
+    # нарушение контракта thought/action/args | final_answer), прежде чем
+    # поднять LLMBadResponse. Не даёт «мыслям» (thought) утечь к пользователю
+    # вместо ответа (см. _docs/agent-loop.md §2.4). 0 — отключить само-починку.
+    agent_max_repair_attempts: int = 2
 
     # --- Multi-agent (Planner + Critic), см. _docs/multi-agent.md ---
     # OFF — только Executor; NORMAL — один проход Critic; DEEP — итеративный Critic.

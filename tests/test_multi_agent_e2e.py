@@ -30,6 +30,7 @@ class _Settings:
     agent_max_steps: int = 5
     agent_max_output_chars: int = 8000
     agent_max_context_chars: int = 8000
+    agent_max_repair_attempts: int = 2
     ollama_default_model: str = "qwen3.5:4b"
     embedding_model: str = "nomic-embed-text"
     session_bootstrap_enabled: bool = False

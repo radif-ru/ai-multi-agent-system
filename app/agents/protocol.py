@@ -111,20 +111,11 @@ def parse_agent_response(text: str) -> AgentDecision:
     if has_final:
         return _parse_final(payload)
 
-    # Если action: null, считаем что это попытка вернуть final_answer
-    if "action" in payload and payload["action"] is None:
-        if "thought" in payload and payload["thought"]:
-            logger.warning("LLM вернул action: null, используем thought как final_answer")
-            return AgentDecision(kind="final", final_answer=payload["thought"])
-        raise LLMBadResponse("action: null without thought")
-
-    # Если есть только thought без action/args, но thought содержит final_answer - попробуем извлечь
-    if "thought" in payload and "action" not in payload and "args" not in payload:
-        thought = payload["thought"]
-        if isinstance(thought, str) and "final_answer" in thought.lower():
-            logger.warning("LLM вернул thought с final_answer без action, пробуем извлечь")
-            return _parse_final(payload)
-
+    # Любой другой вид (включая action: null и «только thought») — это шаг с
+    # действием. Невалидный шаг поднимет LLMBadResponse в `_parse_action`, и
+    # Executor переспросит модель (см. `_docs/agent-loop.md` §2.4). Мы НЕ
+    # подменяем `final_answer` текстом `thought` — иначе рассуждение модели
+    # утекает пользователю вместо ответа.
     return _parse_action(payload)
 
 
@@ -156,13 +147,16 @@ def _parse_action(payload: dict[str, Any]) -> AgentDecision:
             f"'args' must be an object, got {type(args).__name__}"
         )
 
-    # Обработка случая, когда LLM использует final_answer как действие
+    # `final_answer` — это специальное поле финала, а не tool. Если модель
+    # ставит его в `action`, ответа для пользователя нет (есть только
+    # рассуждение в `thought`). Поднимаем LLMBadResponse, чтобы Executor
+    # переспросил модель в корректном формате (см. `_docs/agent-loop.md` §2.4),
+    # а не выдавал `thought` за ответ.
     if action == "final_answer":
-        # Преобразуем в правильный формат final_answer
-        logger.warning(
-            "LLM использует final_answer как действие, преобразуем в правильный формат"
+        raise LLMBadResponse(
+            "'final_answer' is not a tool; use the final-answer format "
+            '{"final_answer": "..."}'
         )
-        return AgentDecision(kind="final", final_answer=thought)
 
     return AgentDecision(kind="action", thought=thought, action=action, args=args)
 
