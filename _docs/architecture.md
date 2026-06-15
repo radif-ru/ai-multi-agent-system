@@ -100,7 +100,7 @@ Telegram-адаптер принимает текст, оборачивает е
 Класс `Settings(BaseSettings)` на `pydantic-settings`. Полный список полей и валидаторов — в `stack.md` §9. Ключевые блоки:
 
 - **Telegram**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_MAX_FILE_MB` (default 20).
-- **Ollama (LLM)**: `OLLAMA_BASE_URL`, `OLLAMA_DEFAULT_MODEL`, `OLLAMA_AVAILABLE_MODELS`, `OLLAMA_TIMEOUT`.
+- **Ollama (LLM)**: `OLLAMA_BASE_URL`, `OLLAMA_DEFAULT_MODEL`, `OLLAMA_AVAILABLE_MODELS`, `OLLAMA_TIMEOUT`, `OLLAMA_THINK` (reasoning-токены, default `false`), `OLLAMA_KEEP_ALIVE` (резидентность модели, default `30m`), `OLLAMA_TEMPERATURE` (сэмплирование, default `0.0`), `OLLAMA_VRAM_BUDGET_GB` (бюджет VRAM для предупреждений, default `24.0`), `LLM_MAX_CONCURRENCY` (gate на параллельные вызовы, default `2`), `AGENT_MAX_REPAIR_ATTEMPTS` (переспросы при срыве формата, default `2`).
 - **Ollama (Embedding)**: `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS`.
 - **Agent loop**: `AGENT_MAX_STEPS`, `AGENT_MAX_OUTPUT_CHARS`.
 - **Memory (краткосрочная)**: `HISTORY_MAX_MESSAGES`, `HISTORY_SUMMARY_THRESHOLD`, `SUMMARIZATION_PROMPT`.
