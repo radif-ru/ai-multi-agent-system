@@ -118,6 +118,26 @@ pip install -r requirements.txt
 
 ## Запуск
 
+**Через `scripts/run.sh` (рекомендуется):**
+
+Скрипт запускает бот в собственной группе процессов с `trap` на graceful shutdown — Ctrl+C или SIGTERM завершает всё дерево процессов (бот + ollama serve).
+
+```bash
+# Telegram-бот (по умолчанию)
+./scripts/run.sh
+
+# MAX-бот
+CHANNEL=max ./scripts/run.sh
+
+# Консольный режим
+CHANNEL=console ./scripts/run.sh
+
+# Без автоматического запуска Ollama (если уже запущен)
+START_OLLAMA=false ./scripts/run.sh
+```
+
+**Прямой запуск:**
+
 **Telegram-бот:**
 
 ```bash
