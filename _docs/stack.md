@@ -148,6 +148,7 @@ pytest-mock>=3.12
 - Модели предварительно загружены: `ollama pull qwen3.5:4b`, `ollama pull nomic-embed-text`.
 - Telegram-бот создан через `@BotFather`, токен сохранён в `.env`.
 - Каталог `data/` создаётся автоматически при первой записи в `sqlite-vec` (или вручную: `mkdir data`).
+- **Целевая система разработки:** RTX 5090 (24 ГБ VRAM) + Core Ultra 9 275HX. Дефолты `.env.example` (`OLLAMA_NUM_CTX`, `LLM_MAX_CONCURRENCY`, `OLLAMA_KEEP_ALIVE`, `OLLAMA_VRAM_BUDGET_GB`) подобраны под неё; на слабых системах их следует уменьшить (см. `README.md` § «Целевая система и тюнинг под неё»).
 
 ## 14. Чего в стеке нет (и не будет в MVP)
 
