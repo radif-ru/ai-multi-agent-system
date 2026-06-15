@@ -51,7 +51,7 @@
 | 08. Hardening и зачистка техдолга | Closed | 0 / 0 / 12 | `sprints/08-hardening-and-cleanup.md` |
 | 09. MAX-адаптер | Closed | 0 / 0 / 11 | `sprints/09-max-adapter.md` |
 | 10. Аудит качества и устранение техдолга | Closed | 0 / 0 / 9 | `sprints/10-audit-and-quality.md` |
-| 11. Производительность и эффективность LLM | Active | 2 / 0 / 14 | `sprints/11-performance.md` |
+| 11. Производительность и эффективность LLM | Active | 6 / 0 / 14 | `sprints/11-performance.md` |
 
 > Таблицу обновлять одновременно с переходами статусов в файлах спринтов (см. `process.md` §7.3 и §7.9).
 
