@@ -311,7 +311,7 @@ JOURNAL_RECOVERY_CONCURRENCY=1
 
 ### Задача 5.1. Предупреждение и размеры моделей в `/model` / `/models`
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** low
 - **Объём:** M
 - **Зависит от:** —
@@ -472,7 +472,7 @@ Bash-launcher: запускает бот в собственной группе 
 | 4.2 | Согласовать `num_ctx` и порог суммаризации | medium | S | Done | — |
 | 4.3 | Редизайн `.env.example` + синх `.env` | high | M | Done | 1.1, 2.1, 4.1 |
 | 4.4 | Сериализовать sqlite-доступ в `DialogJournal` | high | S | Done | — |
-| 5.1 | VRAM-гард в `/model` / `/models` | low | M | ToDo | — |
+| 5.1 | VRAM-гард в `/model` / `/models` | low | M | Progress | — |
 | 6.1 | `scripts/run.sh` с trap | medium | S | ToDo | — |
 | 6.2 | Bounded shutdown + добивание `curl` | medium | M | ToDo | — |
 | 7.1 | Метрики генерации в логах LLM | medium | S | ToDo | 1.1 |
