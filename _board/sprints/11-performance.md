@@ -335,7 +335,7 @@ JOURNAL_RECOVERY_CONCURRENCY=1
 
 ### Задача 6.1. `scripts/run.sh` с trap
 
-- **Статус:** ToDo
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -348,14 +348,14 @@ Bash-launcher: запускает бот в собственной группе 
 
 #### Definition of Done
 
-- [ ] `scripts/run.sh` запускает бот; Ctrl+C завершает всё дерево; нет orphan-процессов (ручная проверка `ps`).
-- [ ] **Документация обновлена**: `README.md` (раздел запуска).
-- [ ] **Тесты**: `n/a` (shell-скрипт).
-- [ ] `git status` чист.
+- [x] `scripts/run.sh` запускает бот; Ctrl+C завершает всё дерево; нет orphan-процессов (ручная проверка `ps`).
+- [x] **Документация обновлена**: `README.md` (раздел запуска).
+- [x] **Тесты**: `n/a` (shell-скрипт).
+- [x] `git status` чист.
 
 ### Задача 6.2. Bounded shutdown + добивание дочернего `curl`
 
-- **Статус:** ToDo
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** M
 - **Зависит от:** —
@@ -369,11 +369,11 @@ Bash-launcher: запускает бот в собственной группе 
 
 #### Definition of Done
 
-- [ ] Остановка завершается за ограниченное время даже при активной транскрипции (smoke).
-- [ ] `curl` не остаётся после отмены запроса погоды.
-- [ ] **Документация обновлена**: `_docs/current-state.md` §3.
-- [ ] **Тесты**: weather убивает подпроцесс при отмене (мок); `pytest -q` зелёный.
-- [ ] `git status` чист.
+- [x] Остановка завершается за ограниченное время даже при активной транскрипции (smoke).
+- [x] `curl` не остаётся после отмены запроса погоды.
+- [x] **Документация обновлена**: `_docs/current-state.md` §3.
+- [x] **Тесты**: weather убивает подпроцесс при отмене (мок); `pytest -q` зелёный.
+- [x] `git status` чист.
 
 ## 10. Этап 7. Наблюдаемость производительности
 
@@ -381,7 +381,7 @@ Bash-launcher: запускает бот в собственной группе 
 
 ### Задача 7.1. Метрики генерации в `external.ok` LLM
 
-- **Статус:** ToDo
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** Задача 1.1
@@ -394,10 +394,10 @@ Bash-launcher: запускает бот в собственной группе 
 
 #### Definition of Done
 
-- [ ] Лог LLM содержит `out_tok`/`tok_per_s`/`think`/`queue_wait_ms`.
-- [ ] **Документация обновлена**: `_docs/observability.md`.
-- [ ] **Тесты**: формат лог-записи покрыт (мок); `pytest -q` зелёный.
-- [ ] `git status` чист.
+- [x] Лог LLM содержит `out_tok`/`tok_per_s`/`think`/`queue_wait_ms`.
+- [x] **Документация обновлена**: `_docs/observability.md`.
+- [x] **Тесты**: формат лог-записи покрыт (мок); `pytest -q` зелёный.
+- [x] `git status` чист.
 
 ## 11. Этап 8. Внеплановые баг-фиксы (найдены в ходе спринта)
 
@@ -696,3 +696,6 @@ VISION_MODEL=moondream2        # лёгкая vision-модель (см. _docs/v
 - **2026-06-15** — закрыта задача 5.1 (Этап 5): `OllamaClient.list_models()` отдаёт `{tag: size_bytes}` через `ollama list` (graceful degradation до `{}` при недоступности); `/models` показывает размер каждой модели, `/model <heavy>` добавляет мягкое предупреждение, если размер `>= 90%` бюджета `OLLAMA_VRAM_BUDGET_GB` (env, default 24.0, `0` — выкл.) — без жёсткого запрета. `llm` прокинут в `CommandContext` через telegram/console/max. Доки `commands.md`, `stack.md` §9, `.env.example`; тесты `tests/commands/test_vram_guard.py`, `tests/services/test_llm_client.py`. **Этап 5 завершён.**
 - **2026-06-15** — добавлена и закрыта внеплановая задача 8.2 (Этап 8, баг из обращения пользователя): агент присылал рассуждение вместо ответа на части файловых запросов. **A:** `parse_agent_response` больше не подменяет `final_answer` текстом `thought` — `action: null` / `action == "final_answer"` / thought-only → `LLMBadResponse` (возврат к контракту `agent-loop.md` §2.3). **C:** `Executor._decide` делает bounded self-repair — при срыве формата переспрашивает модель до `AGENT_MAX_REPAIR_ATTEMPTS` раз (env, default 2, `0` — выкл.), затем нейтральная ошибка без утечки рассуждения. Доки `agent-loop.md` §2.3–2.4, `stack.md` §9, `.env.example`; тесты `test_protocol.py` (no-leak), `test_executor.py` (repair), `test_config.py`. **Этап 8 завершён.**
 - **2026-06-15** — добавлен **Этап 9 «Актуализация документации»** (задачи 9.1–9.4, все ToDo) по запросу пользователя: презентабельная секция README о целевой системе (ASUS ROG Strix SCAR 18 / RTX 5090 24 ГБ / Core Ultra 9 275HX) + тюнинг под слабые системы; разделение терминов «мульти-модельность» (разные модели под задачи) и «мультимодальность» (текст/изображение/голос/документ); актуализация README под спринты 10–11; лаконичный hardware-контекст для code-агентов в `AGENTS.md`/`stack.md`/`current-state.md`. Задачи оформлены подробно (готовый текст для вставки) — исполняются отдельным, более лёгким агентом по файлу спринта. Счётчик `plan.md`: `2/0/14` → `6/0/14`.
+- **2026-06-15** — закрыта задача 6.1 (Этап 6): создан bash-launcher `scripts/run.sh` с `trap` на `SIGINT`/`SIGTERM` для graceful shutdown всей группы процессов (бот + ollama serve); опции `CHANNEL` (telegram/max/console) и `START_OLLAMA` (true/false); README.md обновлён разделом запуска с примерами использования скрипта. **Этап 6 завершён.**
+- **2026-06-15** — закрыта задача 6.2 (Этап 6): `_shutdown_components` обёрнут в `asyncio.wait_for(..., timeout=5.0)` во всех точках входа (`app/main.py`, `app/max_main.py`, `app/console_main.py`) для bounded shutdown; в `app/tools/weather.py` подпроцесс `curl` гарантированно убивается (`process.kill()`) в `finally` при отмене/исключении; добавлен регрессионный тест `test_weather_tool_kills_subprocess_on_cancel`; доки `current-state.md` §3 обновлены.
+- **2026-06-15** — закрыта задача 7.1 (Этап 7): лог LLM (`app/services/llm.py`) теперь содержит метрики производительности в `external.ok`: `think` (reasoning-токены), `out_tok` (количество сгенерированных токенов из `eval_count`), `tok_per_s` (скорость генерации токенов/с из `eval_duration`); `queue_wait_ms` уже был. Метод `_log_call` обновлён для приёма новых параметров; добавлен регрессионный тест `test_chat_logs_performance_metrics`; доки `observability.md` §3 обновлены. **Этап 7 завершён.**
