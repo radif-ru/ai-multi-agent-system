@@ -10,7 +10,7 @@
 
 | ID | Название | Файл | Ветка | Статус | Открыт | Закрыт |
 |:--:|----------|------|-------|:------:|:------:|:------:|
-| 11 | Производительность и эффективность LLM | [`sprints/11-performance.md`](./sprints/11-performance.md) | `feature/11-performance` | Active | 2026-06-10 | — |
+| — | (нет активных спринтов) | — | — | — | — | — |
 
 ### Закрытые
 
@@ -27,6 +27,7 @@
 | 08 | Hardening и зачистка техдолга | [`sprints/08-hardening-and-cleanup.md`](./sprints/08-hardening-and-cleanup.md) | `feature/08-hardening-and-cleanup` | Closed | 2026-05-21 | 2026-05-22 |
 | 09 | MAX-адаптер | [`sprints/09-max-adapter.md`](./sprints/09-max-adapter.md) | `feature/09-max-adapter` | Closed | 2026-06-04 | 2026-06-05 |
 | 10 | Аудит качества и устранение техдолга | [`sprints/10-audit-and-quality.md`](./sprints/10-audit-and-quality.md) | `feature/10-audit-and-quality` | Closed | 2026-06-09 | 2026-06-10 |
+| 11 | Производительность и эффективность LLM | [`sprints/11-performance.md`](./sprints/11-performance.md) | `feature/11-performance` | Closed | 2026-06-10 | 2026-06-15 |
 
 ### Запланированные
 
@@ -51,7 +52,7 @@
 | 08. Hardening и зачистка техдолга | Closed | 0 / 0 / 12 | `sprints/08-hardening-and-cleanup.md` |
 | 09. MAX-адаптер | Closed | 0 / 0 / 11 | `sprints/09-max-adapter.md` |
 | 10. Аудит качества и устранение техдолга | Closed | 0 / 0 / 9 | `sprints/10-audit-and-quality.md` |
-| 11. Производительность и эффективность LLM | Active | 6 / 0 / 14 | `sprints/11-performance.md` |
+| 11. Производительность и эффективность LLM | Closed | 0 / 0 / 20 | `sprints/11-performance.md` |
 
 > Таблицу обновлять одновременно с переходами статусов в файлах спринтов (см. `process.md` §7.3 и §7.9).
 
