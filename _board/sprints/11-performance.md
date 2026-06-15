@@ -666,15 +666,15 @@ VISION_MODEL=moondream2        # лёгкая vision-модель (см. _docs/v
 | 4.3 | Редизайн `.env.example` + синх `.env` | high | M | Done | 1.1, 2.1, 4.1 |
 | 4.4 | Сериализовать sqlite-доступ в `DialogJournal` | high | S | Done | — |
 | 5.1 | VRAM-гард в `/model` / `/models` | low | M | Done | — |
-| 6.1 | `scripts/run.sh` с trap | medium | S | ToDo | — |
-| 6.2 | Bounded shutdown + добивание `curl` | medium | M | ToDo | — |
-| 7.1 | Метрики генерации в логах LLM | medium | S | ToDo | 1.1 |
+| 6.1 | `scripts/run.sh` с trap | medium | S | Done | — |
+| 6.2 | Bounded shutdown + добивание `curl` | medium | M | Done | — |
+| 7.1 | Метрики генерации в логах LLM | medium | S | Done | 1.1 |
 | 8.1 | Снимать отметку cancelled после Ctrl+C (console) | medium | S | Done | — |
 | 8.2 | Не выдавать `thought` за ответ + bounded self-repair | high | S | Done | — |
-| 9.1 | README: секция о целевой системе + тюнинг под слабые | medium | M | ToDo | — |
-| 9.2 | Терминология (модельность/мультимодальность) + спринты 10–11 | medium | M | ToDo | — |
-| 9.3 | Лаконичный hardware-контекст для code-агентов | medium | S | ToDo | 9.1 |
-| 9.4 | Финальная сверка документации и ссылок | low | S | ToDo | 9.1, 9.2, 9.3 |
+| 9.1 | README: секция о целевой системе + тюнинг под слабые | medium | M | Done | — |
+| 9.2 | Терминология (модельность/мультимодальность) + спринты 10–11 | medium | M | Done | — |
+| 9.3 | Лаконичный hardware-контекст для code-агентов | medium | S | Done | 9.1 |
+| 9.4 | Финальная сверка документации и ссылок | low | S | Done | 9.1, 9.2, 9.3 |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
@@ -696,6 +696,10 @@ VISION_MODEL=moondream2        # лёгкая vision-модель (см. _docs/v
 - **2026-06-15** — закрыта задача 5.1 (Этап 5): `OllamaClient.list_models()` отдаёт `{tag: size_bytes}` через `ollama list` (graceful degradation до `{}` при недоступности); `/models` показывает размер каждой модели, `/model <heavy>` добавляет мягкое предупреждение, если размер `>= 90%` бюджета `OLLAMA_VRAM_BUDGET_GB` (env, default 24.0, `0` — выкл.) — без жёсткого запрета. `llm` прокинут в `CommandContext` через telegram/console/max. Доки `commands.md`, `stack.md` §9, `.env.example`; тесты `tests/commands/test_vram_guard.py`, `tests/services/test_llm_client.py`. **Этап 5 завершён.**
 - **2026-06-15** — добавлена и закрыта внеплановая задача 8.2 (Этап 8, баг из обращения пользователя): агент присылал рассуждение вместо ответа на части файловых запросов. **A:** `parse_agent_response` больше не подменяет `final_answer` текстом `thought` — `action: null` / `action == "final_answer"` / thought-only → `LLMBadResponse` (возврат к контракту `agent-loop.md` §2.3). **C:** `Executor._decide` делает bounded self-repair — при срыве формата переспрашивает модель до `AGENT_MAX_REPAIR_ATTEMPTS` раз (env, default 2, `0` — выкл.), затем нейтральная ошибка без утечки рассуждения. Доки `agent-loop.md` §2.3–2.4, `stack.md` §9, `.env.example`; тесты `test_protocol.py` (no-leak), `test_executor.py` (repair), `test_config.py`. **Этап 8 завершён.**
 - **2026-06-15** — добавлен **Этап 9 «Актуализация документации»** (задачи 9.1–9.4, все ToDo) по запросу пользователя: презентабельная секция README о целевой системе (ASUS ROG Strix SCAR 18 / RTX 5090 24 ГБ / Core Ultra 9 275HX) + тюнинг под слабые системы; разделение терминов «мульти-модельность» (разные модели под задачи) и «мультимодальность» (текст/изображение/голос/документ); актуализация README под спринты 10–11; лаконичный hardware-контекст для code-агентов в `AGENTS.md`/`stack.md`/`current-state.md`. Задачи оформлены подробно (готовый текст для вставки) — исполняются отдельным, более лёгким агентом по файлу спринта. Счётчик `plan.md`: `2/0/14` → `6/0/14`.
+- **2026-06-15** — закрыта задача 9.1 (Этап 9): в README.md добавлена секция «Целевая система и тюнинг под неё» между «Требования» и «Установка» с описанием hardware (ASUS ROG Strix SCAR 18, RTX 5090 24 ГБ VRAM, Core Ultra 9 275HX) и блоком «Если ваша система слабее» с примером `.env` для ~8 ГБ VRAM.
+- **2026-06-15** — закрыта задача 9.2 (Этап 9): исправлена опечатка «Мульти-моделность» → «Мульти-модельность» и добавлен новый пункт «Мультимодальность» в README.md и _docs/README.md; актуализирован список спринтов в разделе «Возможности» README.md (добавлены спринты 10 и 11).
+- **2026-06-15** — закрыта задача 9.3 (Этап 9): добавлен лаконичный hardware-контекст в _docs/stack.md §13, _docs/current-state.md §3 и AGENTS.md (Навигация для агента) с упоминанием RTX 5090, 24 ГБ VRAM, Core Ultra 9 275HX и ссылки на README.md.
+- **2026-06-15** — закрыта задача 9.4 (Этап 9): выполнена финальная сверка документации — все ключи спринта 11 (`OLLAMA_THINK`, `OLLAMA_KEEP_ALIVE`, `OLLAMA_TEMPERATURE`, `OLLAMA_VRAM_BUDGET_GB`, `LLM_MAX_CONCURRENCY`, `AGENT_MAX_REPAIR_ATTEMPTS`) описаны в _docs/architecture.md §3.2; кросс-ссылки на секцию README «Целевая система» проверены через grep. **Этап 9 завершён.**
 - **2026-06-15** — закрыта задача 6.1 (Этап 6): создан bash-launcher `scripts/run.sh` с `trap` на `SIGINT`/`SIGTERM` для graceful shutdown всей группы процессов (бот + ollama serve); опции `CHANNEL` (telegram/max/console) и `START_OLLAMA` (true/false); README.md обновлён разделом запуска с примерами использования скрипта. **Этап 6 завершён.**
 - **2026-06-15** — закрыта задача 6.2 (Этап 6): `_shutdown_components` обёрнут в `asyncio.wait_for(..., timeout=5.0)` во всех точках входа (`app/main.py`, `app/max_main.py`, `app/console_main.py`) для bounded shutdown; в `app/tools/weather.py` подпроцесс `curl` гарантированно убивается (`process.kill()`) в `finally` при отмене/исключении; добавлен регрессионный тест `test_weather_tool_kills_subprocess_on_cancel`; доки `current-state.md` §3 обновлены.
 - **2026-06-15** — закрыта задача 7.1 (Этап 7): лог LLM (`app/services/llm.py`) теперь содержит метрики производительности в `external.ok`: `think` (reasoning-токены), `out_tok` (количество сгенерированных токенов из `eval_count`), `tok_per_s` (скорость генерации токенов/с из `eval_duration`); `queue_wait_ms` уже был. Метод `_log_call` обновлён для приёма новых параметров; добавлен регрессионный тест `test_chat_logs_performance_metrics`; доки `observability.md` §3 обновлены. **Этап 7 завершён.**
