@@ -102,7 +102,10 @@ class OllamaClient:
             tok_per_s = None
             if eval_count is not None and eval_duration_ns is not None and eval_duration_ns > 0:
                 tok_per_s = round(eval_count / (eval_duration_ns / 1_000_000_000), 2)
-            self._log_call("chat", model, len_in, len(content), started, "ok", queue_wait_ms, think_value, out_tok, tok_per_s)
+            self._log_call(
+                "chat", model, len_in, len(content), started, "ok",
+                queue_wait_ms, think_value, out_tok, tok_per_s,
+            )
             return content
 
     async def embed(self, text: str, *, model: str) -> list[float]:
