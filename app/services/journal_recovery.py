@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import TYPE_CHECKING
 
@@ -42,13 +43,32 @@ async def recover_pending_journals(
     *,
     journal: "DialogJournal",
     archiver: "Archiver",
+    concurrency: int = 1,
+    min_chars: int = 0,
+    start_delay: float = 0.0,
 ) -> dict:
     """Архивировать все «висящие» сессии журнала.
+
+    `concurrency` ограничивает число одновременно обрабатываемых сессий
+    (default 1 — последовательно), чтобы фоновое восстановление не занимало
+    все слоты общего LLM-gate и оставляло слот под live-запрос (см.
+    `_docs/memory.md` §4.4).
+
+    `min_chars` — порог суммарного `content` сессии: «мусорные» сессии ниже
+    порога закрываются `mark_archived` без LLM-суммаризации (нечего
+    архивировать), чтобы не гонять их через модель на каждом старте. `0`
+    отключает пропуск.
+
+    `start_delay` — пауза (секунды) перед началом работы, чтобы не штормить
+    Ollama сразу после старта, когда пользователь активен. `0` — без задержки.
 
     Возвращает сводку `{"sessions": N, "archived": K, "failed": F}`.
     Никогда не пробрасывает исключения наверх (это фоновая задача).
     """
     summary = {"sessions": 0, "archived": 0, "failed": 0}
+    if start_delay > 0:
+        logger.info("journal_recovery: отложенный старт через %.1fs", start_delay)
+        await asyncio.sleep(start_delay)
     try:
         pending = await journal.pending_conversations()
     except Exception as exc:  # noqa: BLE001
@@ -62,41 +82,62 @@ async def recover_pending_journals(
 
     logger.info("journal_recovery: найдено висящих сессий=%d", len(pending))
 
-    for user_id, chat_id, conversation_id in pending:
-        try:
-            entries = await journal.read_conversation(user_id, conversation_id)
-            history = _entries_to_history(entries)
-            if not history:
-                # Сессия из одних пустых/системных записей — просто закрываем долг.
+    semaphore = asyncio.Semaphore(max(1, concurrency))
+
+    async def _recover_one(user_id: int, chat_id: int, conversation_id: str) -> None:
+        async with semaphore:
+            try:
+                entries = await journal.read_conversation(user_id, conversation_id)
+                history = _entries_to_history(entries)
+                if not history:
+                    # Сессия из одних пустых/системных записей — просто закрываем долг.
+                    await journal.mark_archived(user_id, conversation_id)
+                    summary["archived"] += 1
+                    logger.info(
+                        "journal_recovery: пустая сессия user=%s conv=%s — закрыта без архивации",
+                        user_id, conversation_id,
+                    )
+                    return
+
+                total_chars = sum(len(m["content"]) for m in history)
+                if total_chars < min_chars:
+                    # «Мусорная» сессия ниже порога — закрываем долг без LLM
+                    # (нечего суммаризировать), чтобы не гонять её на каждом старте.
+                    await journal.mark_archived(user_id, conversation_id)
+                    summary["archived"] += 1
+                    logger.info(
+                        "journal_recovery: сессия ниже порога user=%s conv=%s "
+                        "chars=%d < %d — закрыта без архивации",
+                        user_id, conversation_id, total_chars, min_chars,
+                    )
+                    return
+
+                chunks = await archiver.archive(
+                    history,
+                    conversation_id=conversation_id,
+                    user_id=user_id,
+                    chat_id=chat_id,
+                    progress_callback=None,
+                    user=None,
+                    channel="recovery",
+                )
                 await journal.mark_archived(user_id, conversation_id)
                 summary["archived"] += 1
                 logger.info(
-                    "journal_recovery: пустая сессия user=%s conv=%s — закрыта без архивации",
-                    user_id, conversation_id,
+                    "journal_recovery: восстановлено user=%s conv=%s chunks=%d",
+                    user_id, conversation_id, chunks,
                 )
-                continue
+            except Exception as exc:  # noqa: BLE001
+                summary["failed"] += 1
+                logger.error(
+                    "journal_recovery: ошибка восстановления user=%s conv=%s: %s",
+                    user_id, conversation_id, exc,
+                )
 
-            chunks = await archiver.archive(
-                history,
-                conversation_id=conversation_id,
-                user_id=user_id,
-                chat_id=chat_id,
-                progress_callback=None,
-                user=None,
-                channel="recovery",
-            )
-            await journal.mark_archived(user_id, conversation_id)
-            summary["archived"] += 1
-            logger.info(
-                "journal_recovery: восстановлено user=%s conv=%s chunks=%d",
-                user_id, conversation_id, chunks,
-            )
-        except Exception as exc:  # noqa: BLE001
-            summary["failed"] += 1
-            logger.error(
-                "journal_recovery: ошибка восстановления user=%s conv=%s: %s",
-                user_id, conversation_id, exc,
-            )
+    await asyncio.gather(
+        *(_recover_one(user_id, chat_id, conversation_id)
+          for user_id, chat_id, conversation_id in pending)
+    )
 
     logger.info(
         "journal_recovery: завершено sessions=%d archived=%d failed=%d",

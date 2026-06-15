@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 
 from app.services.dialog_journal import DialogJournal
@@ -104,6 +106,30 @@ async def test_append_persists_message_id(journal):
     )
     rows = await journal.read_conversation(1, "c1")
     assert [r["message_id"] for r in rows] == [42, None]
+
+
+async def test_concurrent_access_does_not_misuse_sqlite(journal):
+    """Параллельный доступ к одному sqlite-соединению не даёт SQLITE_MISUSE.
+
+    Регрессия на гонку recovery при JOURNAL_RECOVERY_CONCURRENCY > 1
+    (см. current-state.md §2.3): несколько корутин одновременно идут через
+    asyncio.to_thread в одно соединение. Без сериализации (threading.Lock)
+    это давало `sqlite3.OperationalError: bad parameter or other API misuse`.
+    """
+    for i in range(12):
+        await journal.append(
+            user_id=i, chat_id=100 + i, conversation_id=f"c{i}",
+            role="user", kind="text", content=f"сообщение {i}",
+        )
+
+    async def _cycle(i: int) -> None:
+        rows = await journal.read_conversation(i, f"c{i}")
+        assert len(rows) == 1
+        affected = await journal.mark_archived(i, f"c{i}")
+        assert affected == 1
+
+    await asyncio.gather(*(_cycle(i) for i in range(12)))
+    assert await journal.pending_conversations() == []
 
 
 async def test_append_rejects_invalid_role_or_kind(journal):

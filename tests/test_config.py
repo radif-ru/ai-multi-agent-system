@@ -21,10 +21,17 @@ ENV_KEYS = (
     "OLLAMA_DEFAULT_MODEL",
     "OLLAMA_AVAILABLE_MODELS",
     "OLLAMA_TIMEOUT",
+    "OLLAMA_NUM_CTX",
+    "OLLAMA_THINK",
+    "OLLAMA_KEEP_ALIVE",
+    "OLLAMA_TEMPERATURE",
     "EMBEDDING_MODEL",
     "EMBEDDING_DIMENSIONS",
     "AGENT_MAX_STEPS",
     "AGENT_MAX_OUTPUT_CHARS",
+    "AGENT_MAX_CONTEXT_CHARS",
+    "AGENT_MAX_REPAIR_ATTEMPTS",
+    "MAX_DOCUMENT_CHARS",
     "HISTORY_MAX_MESSAGES",
     "HISTORY_SUMMARY_THRESHOLD",
     "MEMORY_DB_PATH",
@@ -64,6 +71,46 @@ def test_loads_defaults(base_env):
     assert s.history_summary_threshold == 10
     assert s.agent_max_steps == 15
     assert s.agent_system_prompt_path == DEFAULT_PROMPT
+
+
+# --- Ollama-тюнинг (спринт 11, задача 4.1) ---
+
+
+def test_ollama_keep_alive_temperature_defaults(base_env):
+    s = _build(base_env)
+    assert s.ollama_keep_alive == "30m"
+    assert s.ollama_temperature == 0.0
+
+
+def test_ollama_keep_alive_temperature_from_env(base_env):
+    s = _build(base_env, OLLAMA_KEEP_ALIVE="0", OLLAMA_TEMPERATURE=0.5)
+    assert s.ollama_keep_alive == "0"
+    assert s.ollama_temperature == 0.5
+
+
+# --- Согласование num_ctx и порога суммаризации (спринт 11, задача 4.2) ---
+
+
+def test_context_document_defaults_balanced(base_env):
+    s = _build(base_env)
+    assert s.ollama_num_ctx == 32768
+    assert s.agent_max_context_chars == 90000
+    assert s.max_document_chars == 80000
+    # Документ должен помещаться в контекст без преждевременной суммаризации.
+    assert s.max_document_chars < s.agent_max_context_chars
+
+
+# --- Само-починка формата (спринт 11, задача 8.1) ---
+
+
+def test_repair_attempts_default(base_env):
+    s = _build(base_env)
+    assert s.agent_max_repair_attempts == 2
+
+
+def test_repair_attempts_from_env(base_env):
+    s = _build(base_env, AGENT_MAX_REPAIR_ATTEMPTS=0)
+    assert s.agent_max_repair_attempts == 0
 
 
 def test_csv_parses_models_list(base_env):

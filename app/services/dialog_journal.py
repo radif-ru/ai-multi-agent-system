@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import sqlite3
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -40,6 +41,12 @@ class DialogJournal:
     def __init__(self, *, db_path: Path) -> None:
         self._db_path = db_path
         self._conn: sqlite3.Connection | None = None
+        # Одно sqlite-соединение разделяется между корутинами через
+        # asyncio.to_thread (разные потоки пула). sqlite-соединение не
+        # безопасно для одновременного использования из нескольких потоков,
+        # поэтому сериализуем доступ к нему. Защищает recovery при
+        # JOURNAL_RECOVERY_CONCURRENCY > 1 (см. _docs/memory.md §4.4).
+        self._lock = threading.Lock()
 
     # -- lifecycle --------------------------------------------------------
 
@@ -128,25 +135,26 @@ class DialogJournal:
         message_id: int | None,
     ) -> int:
         conn = self._require_conn()
-        try:
-            cur = conn.execute(
-                """
-                INSERT INTO dialog_journal
-                    (user_id, chat_id, conversation_id, role, kind,
-                     content, file_id, file_path, created_at, message_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-                """,
-                (
-                    int(user_id), int(chat_id), str(conversation_id),
-                    role, kind, content, file_id, file_path, _now_iso(),
-                    int(message_id) if message_id is not None else None,
-                ),
-            )
-            conn.commit()
-            return int(cur.lastrowid or 0)
-        except Exception:
-            conn.rollback()
-            raise
+        with self._lock:
+            try:
+                cur = conn.execute(
+                    """
+                    INSERT INTO dialog_journal
+                        (user_id, chat_id, conversation_id, role, kind,
+                         content, file_id, file_path, created_at, message_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    """,
+                    (
+                        int(user_id), int(chat_id), str(conversation_id),
+                        role, kind, content, file_id, file_path, _now_iso(),
+                        int(message_id) if message_id is not None else None,
+                    ),
+                )
+                conn.commit()
+                return int(cur.lastrowid or 0)
+            except Exception:
+                conn.rollback()
+                raise
 
     async def pending_conversations(self) -> list[tuple[int, int, str]]:
         """Сессии, в которых есть хотя бы одна строка с `archived_at IS NULL`.
@@ -158,15 +166,16 @@ class DialogJournal:
 
     def _pending_sync(self) -> list[tuple[int, int, str]]:
         conn = self._require_conn()
-        rows = conn.execute(
-            """
-            SELECT user_id, chat_id, conversation_id, MIN(created_at) AS first_at
-            FROM dialog_journal
-            WHERE archived_at IS NULL
-            GROUP BY user_id, chat_id, conversation_id
-            ORDER BY first_at ASC;
-            """
-        ).fetchall()
+        with self._lock:
+            rows = conn.execute(
+                """
+                SELECT user_id, chat_id, conversation_id, MIN(created_at) AS first_at
+                FROM dialog_journal
+                WHERE archived_at IS NULL
+                GROUP BY user_id, chat_id, conversation_id
+                ORDER BY first_at ASC;
+                """
+            ).fetchall()
         return [(int(r[0]), int(r[1]), str(r[2])) for r in rows]
 
     async def read_conversation(
@@ -181,16 +190,17 @@ class DialogJournal:
         self, user_id: int, conversation_id: str
     ) -> list[dict[str, Any]]:
         conn = self._require_conn()
-        rows = conn.execute(
-            """
-            SELECT id, role, kind, content, file_id, file_path, created_at,
-                   archived_at, message_id
-            FROM dialog_journal
-            WHERE user_id = ? AND conversation_id = ?
-            ORDER BY id ASC;
-            """,
-            (int(user_id), str(conversation_id)),
-        ).fetchall()
+        with self._lock:
+            rows = conn.execute(
+                """
+                SELECT id, role, kind, content, file_id, file_path, created_at,
+                       archived_at, message_id
+                FROM dialog_journal
+                WHERE user_id = ? AND conversation_id = ?
+                ORDER BY id ASC;
+                """,
+                (int(user_id), str(conversation_id)),
+            ).fetchall()
         return [
             {
                 "id": r[0],
@@ -214,20 +224,21 @@ class DialogJournal:
 
     def _mark_archived_sync(self, user_id: int, conversation_id: str) -> int:
         conn = self._require_conn()
-        try:
-            cur = conn.execute(
-                """
-                UPDATE dialog_journal
-                SET archived_at = ?
-                WHERE user_id = ? AND conversation_id = ? AND archived_at IS NULL;
-                """,
-                (_now_iso(), int(user_id), str(conversation_id)),
-            )
-            conn.commit()
-            return cur.rowcount
-        except Exception:
-            conn.rollback()
-            raise
+        with self._lock:
+            try:
+                cur = conn.execute(
+                    """
+                    UPDATE dialog_journal
+                    SET archived_at = ?
+                    WHERE user_id = ? AND conversation_id = ? AND archived_at IS NULL;
+                    """,
+                    (_now_iso(), int(user_id), str(conversation_id)),
+                )
+                conn.commit()
+                return cur.rowcount
+            except Exception:
+                conn.rollback()
+                raise
 
     # -- internals --------------------------------------------------------
 

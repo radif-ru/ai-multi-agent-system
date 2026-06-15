@@ -73,13 +73,19 @@
 | `OLLAMA_DEFAULT_MODEL`      | LLM по умолчанию (должна быть в `OLLAMA_AVAILABLE_MODELS`).      | `qwen3.5:4b`              |
 | `OLLAMA_AVAILABLE_MODELS`   | Список разрешённых LLM через запятую.                            | `qwen3.5:4b`              |
 | `OLLAMA_TIMEOUT`            | Таймаут одного запроса к Ollama, секунды.                        | `120`                     |
+| `OLLAMA_THINK`             | Reasoning-токены «думающей» модели (`true`/`false`). По умолчанию выключено: быстрее, rationale агента и так в поле `thought`. | `false`                   |
+| `OLLAMA_KEEP_ALIVE`        | Как долго Ollama держит модель резидентной между запросами (`30m`, `1h`, `0` = выгружать сразу). Убирает холодные перезагрузки. | `30m`                     |
+| `OLLAMA_TEMPERATURE`       | Температура сэмплирования для `chat` (вынесена из хардкода). `0.0` — детерминированный вывод. | `0.0`                     |
+| `OLLAMA_VRAM_BUDGET_GB`    | Бюджет VRAM (ГБ) для мягкого предупреждения в `/model` о тяжёлой модели (`>= 90%` бюджета). `0` — выключить. | `24.0`                    |
 | `EMBEDDING_MODEL`           | Модель эмбеддингов (Ollama).                                     | `nomic-embed-text`        |
 | `EMBEDDING_DIMENSIONS`      | Размерность вектора (зависит от модели).                         | `768`                     |
 | `EMBEDDING_CONCURRENCY`     | Параллелизм при вычислении embedding для чанков (оптимизация /new). | `5`                       |
+| `LLM_MAX_CONCURRENCY`      | Лимит одновременных вызовов к Ollama (`chat`+`embed`) на весь процесс (gate против пайл-апов). | `2`                       |
 | `SEARCH_ENGINE_DEFAULT`     | Поисковик по умолчанию.                                         | `duckduckgo`              |
 | `SEARCH_ENGINES_AVAILABLE`  | Список доступных поисковиков через запятую.                      | `duckduckgo`              |
 | `AGENT_MAX_STEPS`           | Лимит шагов агентного цикла.                                     | `10`                      |
 | `AGENT_MAX_OUTPUT_CHARS`    | Лимит размера ответа модели за один шаг (защита от мусора).     | `8000`                    |
+| `AGENT_MAX_REPAIR_ATTEMPTS` | Переспросов модели при срыве формата ответа перед `LLMBadResponse` (не даёт `thought` утечь вместо ответа, см. `_docs/agent-loop.md` §2.4). `0` — выключить. | `2`                       |
 | `AGENT_REFLECTION_MODE`     | Режим multi-agent рефлексии (`OFF\|NORMAL\|DEEP`), см. `_docs/multi-agent.md`. | `OFF`     |
 | `AGENT_REFLECTION_MAX_ITERATIONS` | Верхняя граница итераций Critic в режиме `DEEP`.          | `2`                       |
 | `HISTORY_MAX_MESSAGES`      | Жёсткий лимит сообщений in-memory истории на пользователя.       | `20`                      |
@@ -90,6 +96,9 @@
 | `MEMORY_SEARCH_TOP_K`       | Сколько чанков возвращать tool'ом `memory_search`.               | `5`                       |
 | `SESSION_BOOTSTRAP_ENABLED` | Авто-подгрузка архива в первый ход новой сессии (см. `_docs/memory.md` §3.6). | `true`         |
 | `SESSION_BOOTSTRAP_TOP_K`   | Сколько чанков подмешивать при авто-подгрузке.                   | `3`                       |
+| `JOURNAL_RECOVERY_CONCURRENCY` | Параллелизм фонового восстановления висящих сессий (`1` = последовательно, оставляет слот под live). | `1`                       |
+| `JOURNAL_RECOVERY_MIN_CHARS` | Порог суммарного `content` сессии: «мусор» ниже порога закрывается без LLM-вызова (`0` отключает). | `50`                      |
+| `JOURNAL_RECOVERY_START_DELAY` | Пауза перед запуском фонового восстановления, секунды (`0` = без задержки). | `20`                      |
 | `AGENT_SYSTEM_PROMPT_PATH`  | Путь к markdown-файлу системного промпта агента.                 | `app/prompts/agent_system.md`|
 | `LOG_LEVEL`                 | Уровень логов (`DEBUG\|INFO\|WARNING\|ERROR`).                   | `DEBUG`                   |
 | `LOG_FILE`                  | Путь к файлу логов.                                              | `logs/agent.log`          |
@@ -139,6 +148,7 @@ pytest-mock>=3.12
 - Модели предварительно загружены: `ollama pull qwen3.5:4b`, `ollama pull nomic-embed-text`.
 - Telegram-бот создан через `@BotFather`, токен сохранён в `.env`.
 - Каталог `data/` создаётся автоматически при первой записи в `sqlite-vec` (или вручную: `mkdir data`).
+- **Целевая система разработки:** RTX 5090 (24 ГБ VRAM) + Core Ultra 9 275HX + Kingston FURY Renegade G5 4 ТБ (PCIe 5.0 x4). Дефолты `.env.example` (`OLLAMA_NUM_CTX`, `LLM_MAX_CONCURRENCY`, `OLLAMA_KEEP_ALIVE`, `OLLAMA_VRAM_BUDGET_GB`) подобраны под неё; на слабых системах их следует уменьшить (см. `README.md` § «Целевая система и тюнинг под неё»).
 
 ## 14. Чего в стеке нет (и не будет в MVP)
 

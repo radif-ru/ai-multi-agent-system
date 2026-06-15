@@ -7,7 +7,8 @@
 Ключевые свойства:
 
 - **Мульти-канальность.** Один и тот же доменный контракт `core.handle_user_task(text, user_id, chat_id)` обслуживает три канала: **Telegram** ([aiogram 3](https://docs.aiogram.dev/), long polling), **консоль** (REPL) и **MAX** ([dev.max.ru/docs-api](https://dev.max.ru/docs-api), long polling). Адаптеры тонкие — добавление нового канала не трогает `core` / `agents` / `tools` / `memory`.
-- **Мульти-моделность.** Под разные задачи — разные локальные модели, а не одна: LLM для агентного цикла/рассуждений (`OLLAMA_DEFAULT_MODEL`, default `qwen3.5:4b`, переключается per-user через `/model`), embedding-модель для семантической памяти (`EMBEDDING_MODEL`, default `nomic-embed-text`), vision-модель для описания изображений (`VISION_MODEL`, default `gemma3:4b`, см. [`_docs/vision-models.md`](./_docs/vision-models.md)) и `faster-whisper` для распознавания речи.
+- **Мульти-модельность.** Под разные задачи — разные локальные модели, а не одна: LLM для агентного цикла/рассуждений (`OLLAMA_DEFAULT_MODEL`, default `qwen3.5:4b`, переключается per-user через `/model`), embedding-модель для семантической памяти (`EMBEDDING_MODEL`, default `nomic-embed-text`), vision-модель для описания изображений (`VISION_MODEL`, default `gemma3:4b`, см. [`_docs/vision-models.md`](./_docs/vision-models.md)) и `faster-whisper` для распознавания речи.
+- **Мультимодальность.** Принимает не только текст, но и файлы разных модальностей: документы (PDF/TXT/MD, с OCR через Tesseract), голосовые сообщения (распознавание `faster-whisper`) и изображения (vision-модель + OCR). Всё обрабатывается единым агентным циклом.
 - **Мульти-агентность.** Роли Planner / Executor / Critic с режимами рефлексии `OFF | NORMAL | DEEP` (`AGENT_REFLECTION_MODE`, default `OFF` — поведение MVP), graceful degradation при сбоях, переключение per-user командой `/mode`. Подробнее — [`_docs/multi-agent.md`](./_docs/multi-agent.md).
 - **Гибрид LLM + инструменты.** Детерминированные и фактические операции агент делегирует специализированным tools, а не «придумывает»: точная арифметика (`calculator`), OCR текста с изображений (Tesseract — `ocr_image` / `read_document`), погода (`weather` → wttr.in), веб-поиск и HTTP (`web_search` / `http_request`), семантический поиск по памяти (`memory_search`). LLM отвечает за рассуждения и выбор инструмента; для изображений OCR (точная транскрипция текста) и vision-модель (описание сцены) дополняют друг друга.
 
@@ -15,7 +16,7 @@
 
 ## Возможности
 
-Реализовано в спринтах 01 (MVP Agent), 02 (Память и файловые входы), 03 (Баги и консольный режим), 04 (Событийная модель и модуль Users), 05 (Безопасность и OCR-рефакторинг), 06 (Надёжность диалога и observability), 07 (Multi-agent: Planner + Critic), 08 (Hardening и зачистка) и 09 (MAX-адаптер). Индекс спринтов — [`_board/plan.md`](./_board/plan.md). Фактическое состояние кода — [`_docs/current-state.md`](./_docs/current-state.md).
+Реализовано в спринтах 01 (MVP Agent), 02 (Память и файловые входы), 03 (Баги и консольный режим), 04 (Событийная модель и модуль Users), 05 (Безопасность и OCR-рефакторинг), 06 (Надёжность диалога и observability), 07 (Multi-agent: Planner + Critic), 08 (Hardening и зачистка), 09 (MAX-адаптер), 10 (Аудит качества и устранение техдолга) и 11 (Производительность и эффективность LLM). Индекс спринтов — [`_board/plan.md`](./_board/plan.md). Фактическое состояние кода — [`_docs/current-state.md`](./_docs/current-state.md).
 
 - **Агентный цикл** `thought → action → observation` со строгим JSON-форматом, лимитом `AGENT_MAX_STEPS` и лимитом размера output’а — [`app/agents/executor.py`](./app/agents/executor.py), [`app/agents/protocol.py`](./app/agents/protocol.py).
 - **Multi-agent** (Planner + Executor + Critic) с режимами `OFF | NORMAL | DEEP` (`AGENT_REFLECTION_MODE`, `AGENT_REFLECTION_MAX_ITERATIONS`), graceful degradation при ошибках Planner/Critic, команда `/mode` для per-user override — [`app/agents/planner.py`](./app/agents/planner.py), [`app/agents/critic.py`](./app/agents/critic.py), [`app/core/orchestrator.py`](./app/core/orchestrator.py); подробнее в [`_docs/multi-agent.md`](./_docs/multi-agent.md).
@@ -52,6 +53,37 @@
 - **tesseract-ocr** (опционально, для OCR в PDF): `sudo apt-get install tesseract-ocr tesseract-ocr-rus`
 - ОС: Linux / WSL2 / macOS. Windows нативно — не приоритет.
 
+## Целевая система и тюнинг под неё
+
+Дефолты в `.env.example` (размер контекста, параллелизм, выбор моделей, `keep_alive`, бюджет VRAM) **подобраны под мощную локальную систему**, на которой ведётся разработка:
+
+- **Ноутбук:** ASUS ROG Strix SCAR 18 — флагманская игровая платформа (быстрая DDR5-память, NVMe SSD, производительное охлаждение).
+- **GPU:** NVIDIA GeForce RTX 5090 Laptop — **24 ГБ GDDR7 VRAM**. Это ключевой ресурс: вся LLM-нагрузка (chat, эмбеддинги, vision) идёт через GPU, а 24 ГБ позволяют держать модель резидентной (`OLLAMA_KEEP_ALIVE=30m`), большой контекст (`OLLAMA_NUM_CTX=32768`) и две параллельные сессии (`LLM_MAX_CONCURRENCY=2`).
+- **CPU:** Intel Core Ultra 9 275HX (Arrow Lake-HX) — 24 ядра / 24 потока + интегрированный NPU (Intel AI Boost). Быстрый prefill контекста, параллельная транскрипция речи (`faster-whisper`) и OCR (Tesseract). *Примечание:* текущий стек гоняет LLM на GPU через Ollama; NPU — задел на будущие сценарии локального ускорения.
+- **SSD:** Kingston FURY Renegade G5 4 ТБ (SFYR2S/4T0) — флагманский NVMe-накопитель формата M.2 с интерфейсом PCIe 5.0 x4 и архитектурой 3D TLC NAND. Рекордная производительность для ресурсоёмких приложений, игр и работы с большими объёмами данных.
+
+Поэтому дефолты «щедрые»: большой `OLLAMA_NUM_CTX`, высокий порог суммаризации (`AGENT_MAX_CONTEXT_CHARS=90000`), крупные документы целиком в контексте (`MAX_DOCUMENT_CHARS=80000`), резидентная модель и бюджет VRAM 24 ГБ для предупреждений (`OLLAMA_VRAM_BUDGET_GB=24.0`).
+
+### Если ваша система слабее
+
+Уменьшите ключевые значения в `.env` и выберите модели полегче. Пример для системы с ~8 ГБ VRAM:
+
+```dotenv
+# Меньше контекст и параллелизм — экономия VRAM
+OLLAMA_NUM_CTX=8192
+LLM_MAX_CONCURRENCY=1
+OLLAMA_KEEP_ALIVE=0           # выгружать модель сразу после ответа
+OLLAMA_VRAM_BUDGET_GB=8       # порог предупреждения о тяжёлой модели в /model
+AGENT_MAX_CONTEXT_CHARS=24000
+MAX_DOCUMENT_CHARS=16000
+
+# Модели полегче
+OLLAMA_DEFAULT_MODEL=qwen3.5:0.8b
+VISION_MODEL=moondream2        # лёгкая vision-модель (см. _docs/vision-models.md)
+```
+
+Ориентир: размер модели не должен превышать свободный VRAM. Команда `/models` показывает размеры моделей, а `/model <имя>` предупреждает о тяжёлых. На CPU-only Ollama работает, но медленно — берите самые маленькие модели и `OLLAMA_NUM_CTX` ≤ 4096.
+
 ## Установка
 
 ```bash
@@ -83,9 +115,29 @@ pip install -r requirements.txt
    ollama list   # убедиться, что все модели доступны
    ```
 
-3. Полный список переменных окружения — в `_docs/stack.md` §9 и в самом `.env.example` (поля прокомментированы). Важно: для обработки больших файлов рекомендуется настроить `AGENT_MAX_CONTEXT_CHARS` (default 8000) для автоматической суммаризации контекста, чтобы LLM всегда могла ответить.
+3. Полный список переменных окружения — в `_docs/stack.md` §9 и в самом `.env.example` (поля прокомментированы). Важно: для обработки больших файлов порог суммаризации контекста `AGENT_MAX_CONTEXT_CHARS` (default 90000) согласован с `OLLAMA_NUM_CTX=32768` и `MAX_DOCUMENT_CHARS=80000`, чтобы большой документ попадал в контекст без преждевременной суммаризации (см. `_docs/agent-loop.md` §4).
 
 ## Запуск
+
+**Через `scripts/run.sh` (рекомендуется):**
+
+Скрипт запускает бот в собственной группе процессов с `trap` на graceful shutdown — Ctrl+C или SIGTERM завершает всё дерево процессов (бот + ollama serve).
+
+```bash
+# Telegram-бот (по умолчанию)
+./scripts/run.sh
+
+# MAX-бот
+CHANNEL=max ./scripts/run.sh
+
+# Консольный режим
+CHANNEL=console ./scripts/run.sh
+
+# Без автоматического запуска Ollama (если уже запущен)
+START_OLLAMA=false ./scripts/run.sh
+```
+
+**Прямой запуск:**
 
 **Telegram-бот:**
 

@@ -76,11 +76,11 @@ finally:
 - `external.ok service=<name> dur_ms=<n> ...` — успешное завершение (info).
 - `external.fail service=<name> dur_ms=<n> error=<str> ...` — ошибка (error).
 
-Поля в `extra`: `service`, `duration_ms`, `status`, плюс сервис-специфичные (`model`, `host`, `engine`, `http_status`, `len_in/len_out`, `n_results` …). Сырые payload'ы и сами ответы LLM/поиска в логи не попадают.
+Поля в `extra`: `service`, `duration_ms`, `status`, плюс сервис-специфичные (`model`, `host`, `engine`, `http_status`, `len_in/len_out`, `n_results`, `queue_wait_ms` …). Сырые payload'ы и сами ответы LLM/поиска в логи не попадают.
 
 Точки установки (`grep -n external.call app`):
 
-- `app/services/llm.py` — `service=ollama`, `kind=chat|embed`.
+- `app/services/llm.py` — `service=ollama`, `kind=chat|embed`. Дополнительно пишет `queue_wait_ms` — время ожидания слота общего gate (`LLM_MAX_CONCURRENCY`); полезно для диагностики конкуренции live vs `journal_recovery`. Для `chat` также пишет `think` (reasoning-токены), `out_tok` (количество сгенерированных токенов из `eval_count`), `tok_per_s` (скорость генерации токенов/с из `eval_duration`).
 - `app/services/transcribe.py` — `service=transcribe`.
 - `app/services/vision.py` — `service=vision`.
 - `app/services/ocr.py` — `service=ocr`.

@@ -380,17 +380,21 @@ CREATE INDEX IF NOT EXISTS ix_journal_message  ON dialog_journal(user_id, messag
 
 ### 4.4 Фоновое восстановление при старте
 
-Реализация — `app/services/journal_recovery.py::recover_pending_journals(journal, archiver)`. Корутина запускается из `app/main.py::main` через `asyncio.create_task` сразу после `_build_components` и параллельно с `_start_polling`, чтобы не задерживать старт polling. Алгоритм:
+Реализация — `app/services/journal_recovery.py::recover_pending_journals(journal, archiver, concurrency=1, min_chars=0, start_delay=0.0)`. Корутина запускается из `app/main.py::main` через `asyncio.create_task` сразу после `_build_components` и параллельно с `_start_polling`, чтобы не задерживать старт polling. Перед началом работы выдерживается пауза `JOURNAL_RECOVERY_START_DELAY` (env, секунды, default `20`; `0` отключает), чтобы не штормить Ollama сразу после старта, когда пользователь активен. Алгоритм:
 
 1. `journal.pending_conversations()` → список «висящих» сессий `(user_id, chat_id, conversation_id)`, упорядоченный по времени появления.
 2. Для каждой сессии — `journal.read_conversation(...)` и преобразование строк в формат `[{role, content}, ...]` (file-метаданные уже зашиты в `content`, см. §4.1; пустые `content` отфильтровываются).
-3. Если после фильтрации история пуста — сессия закрывается напрямую `journal.mark_archived(...)` без вызова `Archiver` (нечего суммаризировать).
+3. Если после фильтрации история пуста **или** суммарный объём `content` сессии меньше порога `JOURNAL_RECOVERY_MIN_CHARS` (env, default `50`; `0` отключает проверку) — сессия закрывается напрямую `journal.mark_archived(...)` без вызова `Archiver` (нечего суммаризировать). Так «мусорные» сессии (1 строка, 6–24 символа) не гоняются через LLM на каждом старте и не копятся в backlog.
 4. Иначе — `Archiver.archive(history, conversation_id=..., user_id=..., chat_id=..., user=None, channel="recovery")` (тот же путь, что и `/new`; событие `ConversationArchived` не публикуется, потому что `user is None`).
 5. На успехе — `journal.mark_archived(user_id, conversation_id)`. На ошибке — лог, `summary["failed"] += 1`, переход к следующей сессии. Одна сломанная сессия не валит остальные и не валит бот.
 
-Сессии обрабатываются последовательно (LLM-нагрузка), без `asyncio.gather` и семафоров. При завершении процесса до окончания восстановления — `recovery_task.cancel()` в `finally` блока `main()`; следующий старт подберёт оставшиеся сессии тем же путём.
+Сессии обрабатываются с ограничением параллелизма `JOURNAL_RECOVERY_CONCURRENCY` (env, default `1` — последовательно): внутренний `asyncio.Semaphore` оборачивает обработку каждой сессии. Это нужно, чтобы фоновое восстановление не занимало все слоты общего LLM-gate (`LLM_MAX_CONCURRENCY`, см. `architecture.md` §3.4) и оставляло слот под live-запрос — иначе пайл-ап live + recovery приводил к зависаниям до ~200с. При завершении процесса до окончания восстановления — `recovery_task.cancel()` в `finally` блока `main()`; следующий старт подберёт оставшиеся сессии тем же путём.
+
+При `JOURNAL_RECOVERY_CONCURRENCY > 1` несколько сессий читаются/архивируются параллельно, и их `read_conversation`/`mark_archived` идут через `asyncio.to_thread` в одно и то же sqlite-соединение `DialogJournal` (из разных потоков пула). Поэтому `DialogJournal` сериализует доступ к соединению `threading.Lock`-ом (в каждом `_*_sync`-методе) — без этого возникал `SQLITE_MISUSE` (`bad parameter or other API misuse`). Регрессия — `tests/services/test_dialog_journal.py::test_concurrent_access_does_not_misuse_sqlite`.
 
 **Smoke-сценарий «kill -9 → старт»** (ожидаемое поведение): отправили текст пользователю → подписчик `on_message_received_journal` записал строку в `dialog_journal` (`archived_at IS NULL`); процесс прервали (`kill -9`, краш, рестарт хоста); следующий старт через `python -m app` → `recover_pending_journals` поднимает сессию через `Archiver` → строка получает `archived_at`, чанк попадает в `memory_chunks` и виден в `MemorySearchTool`. Unit-тесты на алгоритм — `tests/services/test_journal_recovery.py`.
+
+**Maintenance-зачистка backlog.** Для разового неинтерактивного прогона тем же путём (без запуска бота) есть `scripts/recover_backlog.py` (`python -m scripts.recover_backlog` из корня репозитория, нужен поднятый Ollama): переиспользует `_build_components` + `recover_pending_journals`, печатает `pending` до/после и сводку. Идемпотентно — повторный запуск после успешного прогона показывает `pending: 0`.
 
 ## 5. Что НЕ хранится (по дизайну)
 

@@ -33,6 +33,7 @@ def _components() -> SimpleNamespace:
         archiver=AsyncMock(),
         users=AsyncMock(get_or_create=AsyncMock(return_value=(user, True))),
         dialog_journal=None,
+        llm=None,
     )
 
 

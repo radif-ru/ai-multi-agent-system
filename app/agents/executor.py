@@ -17,6 +17,19 @@ from app.tools.errors import ArgsValidationError, ToolError, ToolNotFound
 
 logger = logging.getLogger(__name__)
 
+# Корректирующая подсказка, которую Executor дописывает в диалог, когда модель
+# срывается с формата ответа (см. `_docs/agent-loop.md` §2.4). Нужна, чтобы
+# рассуждение (`thought`) не утекало пользователю вместо ответа.
+_REPAIR_INSTRUCTION = (
+    "Твой предыдущий ответ не в нужном формате. Верни РОВНО один JSON-объект "
+    "без текста вне него: либо шаг с действием "
+    '{"thought": "...", "action": "<имя инструмента>", "args": {...}}, '
+    'либо финальный ответ {"final_answer": "текст для пользователя"}. '
+    "Если готов ответить пользователю — используй именно "
+    '{"final_answer": "..."}; не клади ответ в "thought" и не указывай '
+    '"final_answer" в поле "action".'
+)
+
 
 @dataclass
 class _ToolContext:
@@ -121,22 +134,11 @@ class Executor:
                     logger.warning("Не удалось суммаризировать историю: %s", exc)
 
         max_steps = self._settings.agent_max_steps
-        max_chars = self._settings.agent_max_output_chars
 
         for step in range(1, max_steps + 1):
-            response_text = await self._llm.chat(messages, model=chat_model)
-            logger.info("Шаг %d: получен ответ от LLM, длина=%d", step, len(response_text))
-            if len(response_text) > max_chars:
-                self._log_parse_error(step, user_id, conversation_id, response_text)
-                raise LLMBadResponse(
-                    f"response too large: {len(response_text)} > {max_chars}"
-                )
-
-            try:
-                parsed = parse_agent_response(response_text)
-            except LLMBadResponse:
-                self._log_parse_error(step, user_id, conversation_id, response_text)
-                raise
+            parsed, response_text = await self._decide(
+                messages, chat_model, step, user_id, conversation_id
+            )
 
             if parsed.kind == "final":
                 self._log_step(step, parsed, user_id, conversation_id)
@@ -163,6 +165,49 @@ class Executor:
 
         self._log_max_steps(max_steps, user_id, conversation_id)
         return self._max_steps_reply(max_steps)
+
+    async def _decide(
+        self,
+        messages: list[dict[str, str]],
+        chat_model: str,
+        step: int,
+        user_id: int,
+        conversation_id: str,
+    ) -> tuple[AgentDecision, str]:
+        """Получить решение модели на шаге с ограниченной само-починкой формата.
+
+        При невалидном ответе (битый JSON или нарушение контракта
+        `thought`/`action`/`args` | `final_answer`) модели даётся до
+        `AGENT_MAX_REPAIR_ATTEMPTS` корректирующих попыток. Это не даёт
+        «мыслям» (`thought`) утечь к пользователю вместо ответа, когда модель
+        срывается с формата (см. `_docs/agent-loop.md` §2.4). Если попытки
+        исчерпаны — поднимается `LLMBadResponse` (адаптер показывает нейтральное
+        сообщение, а не внутреннее рассуждение).
+        """
+        max_chars = self._settings.agent_max_output_chars
+        max_repair = max(0, self._settings.agent_max_repair_attempts)
+        for attempt in range(max_repair + 1):
+            response_text = await self._llm.chat(messages, model=chat_model)
+            logger.info(
+                "Шаг %d: получен ответ от LLM, длина=%d", step, len(response_text)
+            )
+            if len(response_text) > max_chars:
+                self._log_parse_error(step, user_id, conversation_id, response_text)
+                raise LLMBadResponse(
+                    f"response too large: {len(response_text)} > {max_chars}"
+                )
+            try:
+                return parse_agent_response(response_text), response_text
+            except LLMBadResponse:
+                self._log_parse_error(step, user_id, conversation_id, response_text)
+                if attempt >= max_repair:
+                    raise
+                self._log_repair(
+                    step, attempt + 1, max_repair, user_id, conversation_id
+                )
+                messages.append({"role": "assistant", "content": response_text})
+                messages.append({"role": "user", "content": _REPAIR_INSTRUCTION})
+        raise LLMBadResponse("repair loop exhausted")  # pragma: no cover
 
     def _build_system_prompt(self) -> str:
         tools_desc = _format_tools(self._tools.list_descriptions())
@@ -216,6 +261,23 @@ class Executor:
             user_id,
             conversation_id,
             truncated,
+        )
+
+    @staticmethod
+    def _log_repair(
+        step: int,
+        attempt: int,
+        max_repair: int,
+        user_id: int,
+        conversation_id: str,
+    ) -> None:
+        logger.warning(
+            "step=%d kind=repair attempt=%d/%d user=%s conv=%s",
+            step,
+            attempt,
+            max_repair,
+            user_id,
+            conversation_id,
         )
 
     @staticmethod

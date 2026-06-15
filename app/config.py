@@ -39,17 +39,49 @@ class Settings(BaseSettings):
         default_factory=lambda: ["qwen3.5:4b"]
     )
     ollama_timeout: float = 120.0
-    ollama_num_ctx: int = 8192
+    # Контекстное окно Ollama. 32768 умещается в VRAM (RTX 5090) и согласовано
+    # с agent_max_context_chars/max_document_chars (см. _docs/agent-loop.md §4).
+    ollama_num_ctx: int = 32768
+    # Reasoning-токены «думающей» модели. Для агентного цикла и суммаризации
+    # think обычно не нужен (rationale выражен полем `thought`), а Ollama
+    # отбрасывает `<think>` из content — выключенный think кратно ускоряет ответ.
+    ollama_think: bool = False
+    # Как долго Ollama держит модель резидентной между запросами. Убирает
+    # холодные перезагрузки (на 24 ГБ безопасно). "0" = выгружать сразу.
+    ollama_keep_alive: str = "30m"
+    # Температура сэмплирования для chat (вынесена из хардкода). 0.0 —
+    # детерминированный вывод, что предпочтительно для JSON-ответов агента.
+    ollama_temperature: float = 0.0
+    # Бюджет VRAM (ГБ) для мягкого предупреждения при выборе тяжёлой модели
+    # через /model: модель, чей размер близок (>= 90%) к бюджету или превышает
+    # его, может вызвать выгрузку/CPU-оффлоад и деградацию скорости. Без запрета.
+    # default 24.0 — под RTX 5090. 0 = предупреждение отключено.
+    ollama_vram_budget_gb: float = 24.0
 
     # --- Ollama (Embedding) ---
     embedding_model: str = "nomic-embed-text"
     embedding_dimensions: int = 768
     embedding_concurrency: int = 5
 
+    # --- LLM gate (сериализация доступа к Ollama) ---
+    # Верхняя граница одновременных вызовов к Ollama (chat + embed) на весь
+    # процесс. Защищает от пайл-апов (live + recovery), оставляя слот под
+    # live-запрос. На 24 ГБ две сессии к 4b @ num_ctx=32768 умещаются.
+    llm_max_concurrency: int = 2
+
     # --- Agent loop ---
     agent_max_steps: int = 15
     agent_max_output_chars: int = 12000
-    agent_max_context_chars: int = 8000
+    # Порог суммаризации контекста перед отправкой в LLM. 90000 символов
+    # (~22.5k токенов) согласовано с num_ctx=32768: оставляет запас на
+    # system-промпт и ответ; один большой документ (max_document_chars=80000)
+    # умещается без преждевременной суммаризации (см. _docs/agent-loop.md §4).
+    agent_max_context_chars: int = 90000
+    # Сколько раз переспросить модель при срыве формата ответа (битый JSON или
+    # нарушение контракта thought/action/args | final_answer), прежде чем
+    # поднять LLMBadResponse. Не даёт «мыслям» (thought) утечь к пользователю
+    # вместо ответа (см. _docs/agent-loop.md §2.4). 0 — отключить само-починку.
+    agent_max_repair_attempts: int = 2
 
     # --- Multi-agent (Planner + Critic), см. _docs/multi-agent.md ---
     # OFF — только Executor; NORMAL — один проход Critic; DEEP — итеративный Critic.
@@ -71,6 +103,19 @@ class Settings(BaseSettings):
     session_bootstrap_enabled: bool = True
     session_bootstrap_top_k: int = 3
 
+    # --- Journal recovery (фоновое восстановление висящих сессий) ---
+    # Сколько сессий recovery обрабатывает одновременно. 1 = последовательно,
+    # чтобы фоновое восстановление не занимало все слоты LLM-gate и оставляло
+    # слот под live-запрос (см. _docs/memory.md §4.4).
+    journal_recovery_concurrency: int = 1
+    # Сессии с суммарным content меньше порога — закрываются без LLM-вызова
+    # (нечего архивировать), чтобы «мусор» не гонялся через модель на каждом
+    # старте. 0 = пропуск отключён (см. _docs/memory.md §4.4).
+    journal_recovery_min_chars: int = 50
+    # Пауза (секунды) перед запуском фонового восстановления, чтобы не штормить
+    # Ollama сразу после старта, когда пользователь активен. 0 = без задержки.
+    journal_recovery_start_delay: float = 20.0
+
     # --- Prompts ---
     agent_system_prompt_path: Path = Path("app/prompts/agent_system.md")
 
@@ -84,8 +129,9 @@ class Settings(BaseSettings):
     # --- Temporary files ---
     tmp_base_dir: Path = Path("data/tmp")
     max_tool_output_chars: int = 50000
-    # Настройки для чтения документов
-    max_document_chars: int = 50000
+    # Настройки для чтения документов. Порог < agent_max_context_chars, чтобы
+    # один документ помещался в контекст без преждевременной суммаризации.
+    max_document_chars: int = 80000
     document_max_images: int = 20
     document_ocr_enabled: bool = False
     # Настройки OCR
@@ -212,6 +258,34 @@ class Settings(BaseSettings):
     def _check_embedding_concurrency(cls, v: int) -> int:
         if v <= 0:
             raise ValueError("EMBEDDING_CONCURRENCY must be > 0")
+        return v
+
+    @field_validator("llm_max_concurrency")
+    @classmethod
+    def _check_llm_max_concurrency(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("LLM_MAX_CONCURRENCY must be > 0")
+        return v
+
+    @field_validator("journal_recovery_concurrency")
+    @classmethod
+    def _check_journal_recovery_concurrency(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("JOURNAL_RECOVERY_CONCURRENCY must be > 0")
+        return v
+
+    @field_validator("journal_recovery_min_chars")
+    @classmethod
+    def _check_journal_recovery_min_chars(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("JOURNAL_RECOVERY_MIN_CHARS must be >= 0")
+        return v
+
+    @field_validator("journal_recovery_start_delay")
+    @classmethod
+    def _check_journal_recovery_start_delay(cls, v: float) -> float:
+        if v < 0:
+            raise ValueError("JOURNAL_RECOVERY_START_DELAY must be >= 0")
         return v
 
     @model_validator(mode="after")

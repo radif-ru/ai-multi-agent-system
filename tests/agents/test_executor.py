@@ -21,6 +21,7 @@ class FakeSettings:
     agent_max_steps: int = 5
     agent_max_output_chars: int = 8000
     agent_max_context_chars: int = 8000
+    agent_max_repair_attempts: int = 2
     ollama_default_model: str = "qwen3.5:4b"
 
 
@@ -158,14 +159,17 @@ async def test_tool_error_becomes_observation_and_loop_continues():
 
 
 async def test_bad_json_raises_llm_bad_response(caplog):
+    # Репар-попытки выключены: один ответ → сразу LLMBadResponse.
     llm = FakeLLM(["не json вообще"])
-    executor = make_executor(llm=llm)
+    settings = FakeSettings(agent_max_repair_attempts=0)
+    executor = make_executor(llm=llm, settings=settings)
 
     with caplog.at_level(logging.WARNING, logger="app.agents.executor"):
         with pytest.raises(LLMBadResponse):
             await run_default(executor)
 
     assert any("kind=parse_error" in r.message for r in caplog.records)
+    assert len(llm.calls) == 1  # без переспроса
 
 
 async def test_max_steps_exceeded_returns_specific_message():
@@ -316,6 +320,43 @@ async def test_tool_context_passed_with_user_and_conversation():
     assert ctx.user_id == 99
     assert ctx.chat_id == 100
     assert ctx.conversation_id == "abc"
+
+
+async def test_repair_retries_on_bad_format_then_succeeds():
+    """Срыв формата → корректирующий переспрос → валидный финал, без утечки thought."""
+    leaked = "Текст документа извлечён. Нужно структурировать. Ответ кратким."
+    llm = FakeLLM([
+        json.dumps({"thought": leaked, "action": None}),
+        json.dumps({"final_answer": "Это резюме: ..."}),
+    ])
+    executor = make_executor(llm=llm)
+
+    result = await run_default(executor)
+
+    assert result == "Это резюме: ..."
+    assert leaked not in result
+    # Два обращения к LLM: первый невалидный + переспрос.
+    assert len(llm.calls) == 2
+    # На втором вызове последнее сообщение — корректирующая инструкция.
+    last_msg = llm.calls[1][-1]
+    assert last_msg["role"] == "user"
+    assert "final_answer" in last_msg["content"]
+
+
+async def test_repair_exhausted_raises_without_leaking_thought(caplog):
+    """Если модель упорно срывает формат — LLMBadResponse, а не утечка thought."""
+    leaked = "Пользователь спрашивает о содержании 6-й страницы документа."
+    bad = json.dumps({"thought": leaked, "action": "final_answer", "args": {}})
+    settings = FakeSettings(agent_max_repair_attempts=1)
+    llm = FakeLLM([bad, bad])  # 1 исходный + 1 починка
+    executor = make_executor(llm=llm, settings=settings)
+
+    with caplog.at_level(logging.WARNING, logger="app.agents.executor"):
+        with pytest.raises(LLMBadResponse):
+            await run_default(executor)
+
+    assert len(llm.calls) == 2  # переспросили один раз
+    assert any("kind=repair" in r.message for r in caplog.records)
 
 
 async def test_final_answer_sanitized():

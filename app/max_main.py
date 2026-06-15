@@ -78,7 +78,13 @@ async def _shutdown(client: MaxClient, components: _Components) -> None:
         await client.close()
     except Exception:  # noqa: BLE001
         logger.exception("ошибка при закрытии MaxClient")
-    await _shutdown_components(components)
+    # Bounded shutdown: ограничиваем время завершения компонентов
+    try:
+        await asyncio.wait_for(_shutdown_components(components), timeout=5.0)
+    except asyncio.TimeoutError:
+        logger.warning("shutdown_components не завершился за таймаут, продолжаем")
+    except Exception:  # noqa: BLE001
+        logger.exception("ошибка при shutdown_components")
 
 
 async def main() -> None:
@@ -119,6 +125,9 @@ async def main() -> None:
             recover_pending_journals(
                 journal=components.dialog_journal,
                 archiver=components.archiver,
+                concurrency=settings.journal_recovery_concurrency,
+                min_chars=settings.journal_recovery_min_chars,
+                start_delay=settings.journal_recovery_start_delay,
             ),
             name="journal_recovery",
         )

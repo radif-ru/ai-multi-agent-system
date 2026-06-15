@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
@@ -89,6 +90,102 @@ async def test_failure_in_one_session_does_not_block_others(journal: DialogJourn
     assert pending == [(1, 10, "c1")]
 
 
+async def _seed_sessions(journal: DialogJournal, n: int) -> None:
+    for i in range(n):
+        await journal.append(
+            user_id=i + 1, chat_id=10 + i, conversation_id=f"c{i}",
+            role="user", kind="text", content=f"текст {i}",
+        )
+
+
+def _make_tracking_archiver():
+    """Archiver-мок, отслеживающий пиковую конкуренцию вызовов archive."""
+    state = {"in_flight": 0, "max_in_flight": 0}
+
+    async def _archive(*args, **kwargs):
+        state["in_flight"] += 1
+        state["max_in_flight"] = max(state["max_in_flight"], state["in_flight"])
+        await asyncio.sleep(0.02)
+        state["in_flight"] -= 1
+        return 1
+
+    archiver = MagicMock()
+    archiver.archive = AsyncMock(side_effect=_archive)
+    return archiver, state
+
+
+@pytest.mark.asyncio
+async def test_concurrency_one_serializes_sessions(journal: DialogJournal) -> None:
+    await _seed_sessions(journal, 3)
+    archiver, state = _make_tracking_archiver()
+
+    summary = await recover_pending_journals(
+        journal=journal, archiver=archiver, concurrency=1
+    )
+
+    assert summary == {"sessions": 3, "archived": 3, "failed": 0}
+    assert state["max_in_flight"] == 1
+    assert await journal.pending_conversations() == []
+
+
+@pytest.mark.asyncio
+async def test_concurrency_respects_configured_limit(journal: DialogJournal) -> None:
+    await _seed_sessions(journal, 4)
+    archiver, state = _make_tracking_archiver()
+
+    summary = await recover_pending_journals(
+        journal=journal, archiver=archiver, concurrency=2
+    )
+
+    assert summary["archived"] == 4
+    assert state["max_in_flight"] == 2
+
+
+@pytest.mark.asyncio
+async def test_below_min_chars_session_skipped_without_archiver(
+    journal: DialogJournal,
+) -> None:
+    # «Мусорная» сессия (мало символов) и реальная (выше порога).
+    await journal.append(
+        user_id=1, chat_id=10, conversation_id="c-junk",
+        role="user", kind="text", content="ок",
+    )
+    long_text = "это реальная сессия с достаточным объёмом текста для архивации"
+    assert len(long_text) >= 50
+    await journal.append(
+        user_id=2, chat_id=20, conversation_id="c-real",
+        role="user", kind="text", content=long_text,
+    )
+
+    archiver = _make_archiver()
+    summary = await recover_pending_journals(
+        journal=journal, archiver=archiver, min_chars=50
+    )
+
+    # Обе сессии закрыты (долг погашен), но archiver вызван только для реальной.
+    assert summary == {"sessions": 2, "archived": 2, "failed": 0}
+    archiver.archive.assert_awaited_once()
+    assert archiver.archive.await_args.kwargs["conversation_id"] == "c-real"
+    assert await journal.pending_conversations() == []
+
+
+@pytest.mark.asyncio
+async def test_min_chars_zero_archives_short_session(journal: DialogJournal) -> None:
+    # min_chars=0 (default) — пропуск отключён, короткая сессия идёт в archiver.
+    await journal.append(
+        user_id=1, chat_id=10, conversation_id="c1",
+        role="user", kind="text", content="ок",
+    )
+
+    archiver = _make_archiver()
+    summary = await recover_pending_journals(
+        journal=journal, archiver=archiver, min_chars=0
+    )
+
+    assert summary == {"sessions": 1, "archived": 1, "failed": 0}
+    archiver.archive.assert_awaited_once()
+
+
 @pytest.mark.asyncio
 async def test_empty_history_session_is_closed_without_calling_archiver(
     journal: DialogJournal,
@@ -105,3 +202,35 @@ async def test_empty_history_session_is_closed_without_calling_archiver(
     assert summary == {"sessions": 1, "archived": 1, "failed": 0}
     archiver.archive.assert_not_awaited()
     assert await journal.pending_conversations() == []
+
+
+@pytest.mark.asyncio
+async def test_start_delay_awaited_before_processing(
+    journal: DialogJournal, mocker
+) -> None:
+    sleep_mock = mocker.patch(
+        "app.services.journal_recovery.asyncio.sleep", new_callable=AsyncMock
+    )
+    archiver = _make_archiver()
+
+    await recover_pending_journals(
+        journal=journal, archiver=archiver, start_delay=5.0
+    )
+
+    sleep_mock.assert_awaited_once_with(5.0)
+
+
+@pytest.mark.asyncio
+async def test_no_start_delay_does_not_sleep(
+    journal: DialogJournal, mocker
+) -> None:
+    sleep_mock = mocker.patch(
+        "app.services.journal_recovery.asyncio.sleep", new_callable=AsyncMock
+    )
+    archiver = _make_archiver()
+
+    await recover_pending_journals(
+        journal=journal, archiver=archiver, start_delay=0.0
+    )
+
+    sleep_mock.assert_not_awaited()

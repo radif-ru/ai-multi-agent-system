@@ -117,6 +117,10 @@ async def _build_components(settings: Settings) -> _Components:
         base_url=settings.ollama_base_url,
         timeout=settings.ollama_timeout,
         num_ctx=settings.ollama_num_ctx,
+        think=settings.ollama_think,
+        temperature=settings.ollama_temperature,
+        keep_alive=settings.ollama_keep_alive,
+        max_concurrency=settings.llm_max_concurrency,
     )
     conversations = ConversationStore(
         max_messages=settings.history_max_messages,
@@ -302,6 +306,7 @@ def _wire_telegram(c: _Components) -> tuple[Bot, Dispatcher]:
             archiver=c.archiver,
             users=c.users,
             journal=c.dialog_journal,
+            llm=c.llm,
         )
     )
     dispatcher.include_router(
@@ -368,7 +373,13 @@ async def _shutdown(bot: Bot, components: _Components) -> None:
         await bot.session.close()
     except Exception:  # noqa: BLE001
         logger.exception("ошибка при закрытии bot.session")
-    await _shutdown_components(components)
+    # Bounded shutdown: ограничиваем время завершения компонентов
+    try:
+        await asyncio.wait_for(_shutdown_components(components), timeout=5.0)
+    except asyncio.TimeoutError:
+        logger.warning("shutdown_components не завершился за таймаут, продолжаем")
+    except Exception:  # noqa: BLE001
+        logger.exception("ошибка при shutdown_components")
 
 
 async def main() -> None:
@@ -407,6 +418,9 @@ async def main() -> None:
             recover_pending_journals(
                 journal=components.dialog_journal,
                 archiver=components.archiver,
+                concurrency=settings.journal_recovery_concurrency,
+                min_chars=settings.journal_recovery_min_chars,
+                start_delay=settings.journal_recovery_start_delay,
             ),
             name="journal_recovery",
         )

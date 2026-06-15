@@ -100,7 +100,7 @@ Telegram-адаптер принимает текст, оборачивает е
 Класс `Settings(BaseSettings)` на `pydantic-settings`. Полный список полей и валидаторов — в `stack.md` §9. Ключевые блоки:
 
 - **Telegram**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_MAX_FILE_MB` (default 20).
-- **Ollama (LLM)**: `OLLAMA_BASE_URL`, `OLLAMA_DEFAULT_MODEL`, `OLLAMA_AVAILABLE_MODELS`, `OLLAMA_TIMEOUT`.
+- **Ollama (LLM)**: `OLLAMA_BASE_URL`, `OLLAMA_DEFAULT_MODEL`, `OLLAMA_AVAILABLE_MODELS`, `OLLAMA_TIMEOUT`, `OLLAMA_THINK` (reasoning-токены, default `false`), `OLLAMA_KEEP_ALIVE` (резидентность модели, default `30m`), `OLLAMA_TEMPERATURE` (сэмплирование, default `0.0`), `OLLAMA_VRAM_BUDGET_GB` (бюджет VRAM для предупреждений, default `24.0`), `LLM_MAX_CONCURRENCY` (gate на параллельные вызовы, default `2`), `AGENT_MAX_REPAIR_ATTEMPTS` (переспросы при срыве формата, default `2`).
 - **Ollama (Embedding)**: `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS`.
 - **Agent loop**: `AGENT_MAX_STEPS`, `AGENT_MAX_OUTPUT_CHARS`.
 - **Memory (краткосрочная)**: `HISTORY_MAX_MESSAGES`, `HISTORY_SUMMARY_THRESHOLD`, `SUMMARIZATION_PROMPT`.
@@ -122,11 +122,12 @@ Telegram-адаптер принимает текст, оборачивает е
 
 Класс `OllamaClient` (async, на `ollama.AsyncClient`).
 
-- `chat(messages: list[dict], *, model: str, temperature: float = 0.0) -> str` — основной путь: список сообщений `[{"role", "content"}, ...]`, на возврат — текстовый ответ модели.
+- `chat(messages: list[dict], *, model: str, temperature: float | None = None, think: bool | None = None) -> str` — основной путь: список сообщений `[{"role", "content"}, ...]`, на возврат — текстовый ответ модели. `think` управляет reasoning-токенами Ollama: `None` (по умолчанию) берёт значение из конструктора (`OLLAMA_THINK`, default `false`), per-call можно переопределить. При `think=false` модель не тратит токены на `<think>` (который Ollama всё равно отбрасывает из `content`), что кратно ускоряет ответ; rationale агента остаётся в структурном поле `thought`. `temperature` аналогично: `None` берёт значение из конструктора (`OLLAMA_TEMPERATURE`, default `0.0`), per-call можно переопределить (например, суммаризатор). На каждый `chat` пробрасывается `keep_alive` (`OLLAMA_KEEP_ALIVE`, default `30m`) — Ollama держит модель резидентной между сообщениями, убирая холодную перезагрузку.
 - `embed(text: str, *, model: str) -> list[float]` — эмбеддинг текста через `ollama.AsyncClient.embeddings`.
 - Иерархия исключений: `LLMError` → `LLMTimeout`, `LLMUnavailable`, `LLMBadResponse`.
 - Маппинг: `httpx.TimeoutException` / `asyncio.TimeoutError` → `LLMTimeout`; `httpx.ConnectError` → `LLMUnavailable`; `ollama.ResponseError` 404 → `LLMBadResponse("модель не найдена")`; прочие 4xx/5xx → `LLMBadResponse`; пустой ответ → `LLMBadResponse`.
-- На каждый вызов пишет INFO-строку с метриками (`model`, `len_in`, `len_out`, `dur_ms`, `status`).
+- **Общий gate (`asyncio.Semaphore`)** на весь процесс: `chat` и `embed` сериализуются лимитом `LLM_MAX_CONCURRENCY` (default `2`), чтобы live-запросы и фоновый `journal_recovery` не устраивали пайл-ап на GPU. Время ожидания слота замеряется и пишется в лог как `queue_wait_ms`.
+- На каждый вызов пишет INFO-строку с метриками (`model`, `len_in`, `len_out`, `dur_ms`, `queue_wait_ms`, `status`).
 - `estimate_tokens(value: str | list[dict]) -> int` — приближённая оценка `chars / 4` (для логирования размера контекста).
 
 ### 3.5 Краткосрочная память (`app/services/conversation.py`, `app/services/summarizer.py`)
@@ -203,7 +204,7 @@ class Executor:
             # action → observation → messages.append(...)
 ```
 
-- **Автоматическая суммаризация контекста:** перед отправкой в LLM проверяется размер контекста (суммарно). Если превышает `AGENT_MAX_CONTEXT_CHARS` (default 8000), история автоматически суммаризируется через `Summarizer`. Это предотвращает пустые ответы LLM при больших контекстах (например, при обработке PDF с OCR текстом).
+- **Автоматическая суммаризация контекста:** перед отправкой в LLM проверяется размер контекста (суммарно). Если превышает `AGENT_MAX_CONTEXT_CHARS` (default 90000, согласовано с `OLLAMA_NUM_CTX=32768` и `MAX_DOCUMENT_CHARS=80000`, см. `agent-loop.md` §4), история автоматически суммаризируется через `Summarizer`. Это предотвращает пустые ответы LLM при больших контекстах (например, при обработке PDF с OCR текстом).
 - **Логирование аргументов tools:** при вызове любого tool логируются все переданные аргументы для отладки.
 
 ### 3.13 Telegram-адаптер (`app/adapters/telegram/`)

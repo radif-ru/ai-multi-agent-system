@@ -1,7 +1,7 @@
 """Тесты для WeatherTool."""
 
 import asyncio
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from app.tools.weather import WeatherTool
@@ -57,3 +57,29 @@ async def test_weather_tool_fallback_method_exists() -> None:
     tool = WeatherTool()
     # Проверяем, что метод fallback существует
     assert hasattr(tool, "_fallback_to_web_search")
+
+
+@pytest.mark.asyncio
+async def test_weather_tool_kills_subprocess_on_cancel() -> None:
+    """Подпроцесс curl убивается при отмене задачи."""
+    tool = WeatherTool()
+
+    fake_proc = AsyncMock()
+    fake_proc.returncode = None  # процесс ещё не завершился
+    fake_kill = Mock()
+    fake_proc.kill = fake_kill
+    fake_proc.wait = AsyncMock()
+    # communicate выбрасывает CancelledError для симуляции отмены
+    fake_proc.communicate = AsyncMock(side_effect=asyncio.CancelledError())
+
+    with patch.object(
+        asyncio,
+        "create_subprocess_exec",
+        AsyncMock(return_value=fake_proc),
+    ):
+        with pytest.raises(asyncio.CancelledError):
+            await tool.run({"location": "Moscow"}, ctx=None)
+
+    # Проверяем, что kill() был вызван
+    fake_kill.assert_called_once()
+    fake_proc.wait.assert_called_once()
