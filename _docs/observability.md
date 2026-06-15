@@ -80,7 +80,7 @@ finally:
 
 Точки установки (`grep -n external.call app`):
 
-- `app/services/llm.py` — `service=ollama`, `kind=chat|embed`. Дополнительно пишет `queue_wait_ms` — время ожидания слота общего gate (`LLM_MAX_CONCURRENCY`); полезно для диагностики конкуренции live vs `journal_recovery`.
+- `app/services/llm.py` — `service=ollama`, `kind=chat|embed`. Дополнительно пишет `queue_wait_ms` — время ожидания слота общего gate (`LLM_MAX_CONCURRENCY`); полезно для диагностики конкуренции live vs `journal_recovery`. Для `chat` также пишет `think` (reasoning-токены), `out_tok` (количество сгенерированных токенов из `eval_count`), `tok_per_s` (скорость генерации токенов/с из `eval_duration`).
 - `app/services/transcribe.py` — `service=transcribe`.
 - `app/services/vision.py` — `service=vision`.
 - `app/services/ocr.py` — `service=ocr`.

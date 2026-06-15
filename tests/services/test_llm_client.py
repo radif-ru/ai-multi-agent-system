@@ -176,6 +176,22 @@ async def test_chat_logs_queue_wait_ms(client, mocker, caplog):
     assert any("queue_wait_ms=" in r.message for r in caplog.records)
 
 
+async def test_chat_logs_performance_metrics(client, mocker, caplog):
+    resp = _chat_resp("answer")
+    resp.eval_count = 100
+    resp.eval_duration = 2_000_000_000  # 2 секунды в наносекундах
+    mocker.patch.object(client._client, "chat", return_value=resp)
+    with caplog.at_level("INFO", logger="app.services.llm"):
+        await client.chat([{"role": "user", "content": "hi"}], model="m")
+    # Проверяем, что think, out_tok и tok_per_s присутствуют в extra
+    assert any(
+        getattr(r, "think", None) is False
+        and getattr(r, "out_tok", None) == 100
+        and getattr(r, "tok_per_s", None) == 50.0
+        for r in caplog.records
+    )
+
+
 def _make_tracking_chat():
     """Async side_effect, отслеживающий пиковую конкуренцию вызовов."""
     state = {"in_flight": 0, "max_in_flight": 0}

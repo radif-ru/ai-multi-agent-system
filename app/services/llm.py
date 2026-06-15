@@ -80,22 +80,29 @@ class OllamaClient:
                     options={"temperature": temperature_value, "num_ctx": self._num_ctx},
                 )
             except (httpx.TimeoutException, asyncio.TimeoutError) as exc:
-                self._log_call("chat", model, len_in, 0, started, "timeout", queue_wait_ms)
+                self._log_call("chat", model, len_in, 0, started, "timeout", queue_wait_ms, think_value)
                 raise LLMTimeout(f"chat timeout: {exc}") from exc
             except httpx.ConnectError as exc:
-                self._log_call("chat", model, len_in, 0, started, "unavailable", queue_wait_ms)
+                self._log_call("chat", model, len_in, 0, started, "unavailable", queue_wait_ms, think_value)
                 raise LLMUnavailable(f"chat connection error: {exc}") from exc
             except ResponseError as exc:
-                self._log_call("chat", model, len_in, 0, started, f"http {exc.status_code}", queue_wait_ms)
+                self._log_call("chat", model, len_in, 0, started, f"http {exc.status_code}", queue_wait_ms, think_value)
                 if exc.status_code == 404:
                     raise LLMBadResponse(f"model not found: {exc.error}") from exc
                 raise LLMBadResponse(f"chat http error {exc.status_code}: {exc.error}") from exc
 
             content = (resp.message.content or "") if resp.message else ""
             if not content:
-                self._log_call("chat", model, len_in, 0, started, "empty", queue_wait_ms)
+                self._log_call("chat", model, len_in, 0, started, "empty", queue_wait_ms, think_value)
                 raise LLMBadResponse("chat empty response")
-            self._log_call("chat", model, len_in, len(content), started, "ok", queue_wait_ms)
+            # Метрики производительности из ответа Ollama
+            eval_count = getattr(resp, "eval_count", None)
+            eval_duration_ns = getattr(resp, "eval_duration", None)
+            out_tok = int(eval_count) if eval_count is not None else None
+            tok_per_s = None
+            if eval_count is not None and eval_duration_ns is not None and eval_duration_ns > 0:
+                tok_per_s = round(eval_count / (eval_duration_ns / 1_000_000_000), 2)
+            self._log_call("chat", model, len_in, len(content), started, "ok", queue_wait_ms, think_value, out_tok, tok_per_s)
             return content
 
     async def embed(self, text: str, *, model: str) -> list[float]:
@@ -107,22 +114,22 @@ class OllamaClient:
             try:
                 resp = await self._client.embeddings(model=model, prompt=text)
             except (httpx.TimeoutException, asyncio.TimeoutError) as exc:
-                self._log_call("embed", model, len_in, 0, started, "timeout", queue_wait_ms)
+                self._log_call("embed", model, len_in, 0, started, "timeout", queue_wait_ms, False)
                 raise LLMTimeout(f"embed timeout: {exc}") from exc
             except httpx.ConnectError as exc:
-                self._log_call("embed", model, len_in, 0, started, "unavailable", queue_wait_ms)
+                self._log_call("embed", model, len_in, 0, started, "unavailable", queue_wait_ms, False)
                 raise LLMUnavailable(f"embed connection error: {exc}") from exc
             except ResponseError as exc:
-                self._log_call("embed", model, len_in, 0, started, f"http {exc.status_code}", queue_wait_ms)
+                self._log_call("embed", model, len_in, 0, started, f"http {exc.status_code}", queue_wait_ms, False)
                 if exc.status_code == 404:
                     raise LLMBadResponse(f"embedding model not found: {exc.error}") from exc
                 raise LLMBadResponse(f"embed http error {exc.status_code}: {exc.error}") from exc
 
             embedding = list(resp.embedding or [])
             if not embedding:
-                self._log_call("embed", model, len_in, 0, started, "empty", queue_wait_ms)
+                self._log_call("embed", model, len_in, 0, started, "empty", queue_wait_ms, False)
                 raise LLMBadResponse("embed empty response")
-            self._log_call("embed", model, len_in, len(embedding), started, "ok", queue_wait_ms)
+            self._log_call("embed", model, len_in, len(embedding), started, "ok", queue_wait_ms, False)
             return embedding
 
     async def list_models(self) -> dict[str, int]:
@@ -173,26 +180,36 @@ class OllamaClient:
         started: float,
         status: str,
         queue_wait_ms: int = 0,
+        think: bool = False,
+        out_tok: int | None = None,
+        tok_per_s: float | None = None,
     ) -> None:
         dur_ms = int((time.monotonic() - started) * 1000)
         event = "external.ok" if status == "ok" else "external.fail"
         log_fn = logger.info if status == "ok" else logger.error
+        extra = {
+            "service": "ollama",
+            "kind": kind,
+            "model": model,
+            "len_in": len_in,
+            "len_out": len_out,
+            "duration_ms": dur_ms,
+            "queue_wait_ms": queue_wait_ms,
+            "status": status,
+            "think": think,
+        }
+        if out_tok is not None:
+            extra["out_tok"] = out_tok
+        if tok_per_s is not None:
+            extra["tok_per_s"] = tok_per_s
         log_fn(
-            "%s service=ollama kind=%s model=%s dur_ms=%d queue_wait_ms=%d status=%s",
+            "%s service=ollama kind=%s model=%s dur_ms=%d queue_wait_ms=%d status=%s think=%s",
             event,
             kind,
             model,
             dur_ms,
             queue_wait_ms,
             status,
-            extra={
-                "service": "ollama",
-                "kind": kind,
-                "model": model,
-                "len_in": len_in,
-                "len_out": len_out,
-                "duration_ms": dur_ms,
-                "queue_wait_ms": queue_wait_ms,
-                "status": status,
-            },
+            think,
+            extra=extra,
         )
