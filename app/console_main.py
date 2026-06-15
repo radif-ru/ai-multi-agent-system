@@ -81,6 +81,7 @@ async def main() -> None:
         users=components.users,
         event_bus=components.event_bus,
         journal=components.dialog_journal,
+        llm=components.llm,
     )
 
     try:

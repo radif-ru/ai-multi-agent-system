@@ -125,6 +125,32 @@ class OllamaClient:
             self._log_call("embed", model, len_in, len(embedding), started, "ok", queue_wait_ms)
             return embedding
 
+    async def list_models(self) -> dict[str, int]:
+        """Локальные модели Ollama как `{tag: size_bytes}`.
+
+        Используется командой `/models` (показ размеров) и `/model`
+        (VRAM-предупреждение). При недоступности Ollama возвращает пустой
+        dict — graceful degradation, чтобы команда работала и без размеров.
+        """
+        async with self._semaphore:
+            try:
+                resp = await self._client.list()
+            except (
+                httpx.TimeoutException,
+                httpx.ConnectError,
+                ResponseError,
+                asyncio.TimeoutError,
+            ) as exc:
+                logger.warning("ollama list failed: %s", exc)
+                return {}
+        sizes: dict[str, int] = {}
+        for model in getattr(resp, "models", None) or []:
+            name = getattr(model, "model", None) or getattr(model, "name", None)
+            size = getattr(model, "size", None)
+            if name and size is not None:
+                sizes[str(name)] = int(size)
+        return sizes
+
     async def close(self) -> None:
         # ollama.AsyncClient наследует httpx.AsyncClient; aclose закрывает соединения.
         aclose = getattr(self._client, "aclose", None)

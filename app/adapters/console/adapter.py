@@ -101,6 +101,7 @@ class ConsoleAdapter:
         users: Any,
         event_bus: Any = None,
         journal: Any = None,
+        llm: Any = None,
     ) -> None:
         """Инициализировать консольный адаптер.
 
@@ -131,6 +132,7 @@ class ConsoleAdapter:
         self.users = users
         self.event_bus = event_bus
         self.journal = journal
+        self.llm = llm
 
         from app.commands import CommandRegistry
 
@@ -163,6 +165,7 @@ class ConsoleAdapter:
             user=user_obj,
             channel="console",
             journal=self.journal,
+            llm=self.llm,
         )
 
     async def run(self) -> None:

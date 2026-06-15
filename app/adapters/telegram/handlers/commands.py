@@ -46,6 +46,7 @@ def build_command_handlers(
     archiver: "Archiver",
     users: Any = None,
     journal: "DialogJournal | None" = None,
+    llm: Any = None,
 ) -> dict[str, Any]:
     """Собрать словарь handler'ов команд.
 
@@ -108,6 +109,7 @@ def build_command_handlers(
             conversations=conversations,
             archiver=archiver,
             users=users,
+            llm=llm,
         )
         result = await registry.execute("models", ctx)
         await message.answer(result.text)
@@ -126,6 +128,7 @@ def build_command_handlers(
             conversations=conversations,
             archiver=archiver,
             users=users,
+            llm=llm,
         )
         arg = (command.args or "").strip()
         result = await registry.execute("model", ctx, args=arg)
@@ -304,6 +307,7 @@ def build_commands_router(
     archiver: "Archiver",
     users: Any = None,
     journal: "DialogJournal | None" = None,
+    llm: Any = None,
 ) -> Router:
     """Собрать aiogram-Router с handler'ами команд.
 
@@ -323,6 +327,7 @@ def build_commands_router(
         archiver=archiver,
         users=users,
         journal=journal,
+        llm=llm,
     )
     router = Router(name="commands")
     router.message.register(handlers["start"], Command("start"))
@@ -353,6 +358,7 @@ def _build_context(
     user: Any = None,
     channel: str = "telegram",
     journal: "DialogJournal | None" = None,
+    llm: Any = None,
 ) -> CommandContext:
     """Построить контекст команды для Telegram."""
     return CommandContext(
@@ -369,6 +375,7 @@ def _build_context(
         user=user,
         channel=channel,
         journal=journal,
+        llm=llm,
     )
 
 

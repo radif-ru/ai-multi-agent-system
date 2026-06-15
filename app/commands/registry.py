@@ -20,6 +20,11 @@ logger = logging.getLogger(__name__)
 
 PROMPT_PREVIEW_CHARS = 200
 
+_BYTES_PER_GB = 1024 ** 3
+# Доля бюджета VRAM, начиная с которой модель считается «тяжёлой» и при выборе
+# через /model выдаётся мягкое предупреждение (см. _docs/commands.md § /model).
+_VRAM_WARN_FRACTION = 0.9
+
 _START_TEXT = (
     "Привет! Я — AI-агент на локальной LLM.\n"
     "\n"
@@ -84,14 +89,17 @@ async def cmd_help(ctx: "CommandContext") -> "CommandResult":
 
 
 async def cmd_models(ctx: "CommandContext") -> "CommandResult":
-    """Команда /models — список доступных моделей."""
+    """Команда /models — список доступных моделей с их размерами."""
     from app.commands.context import CommandResult
 
     active = ctx.user_settings.get_model(ctx.user_id)
+    sizes = await _model_sizes(ctx)
     lines = ["Доступные модели:"]
     for name in ctx.settings.ollama_available_models:
         mark = " ← активная" if name == active else ""
-        lines.append(f"• {name}{mark}")
+        size = sizes.get(name)
+        size_str = f" ({_format_gb(size)})" if size is not None else ""
+        lines.append(f"• {name}{size_str}{mark}")
     lines.append("")
     lines.append("Смени командой: /model <имя>")
     return CommandResult(text="\n".join(lines))
@@ -107,7 +115,11 @@ async def cmd_model(ctx: "CommandContext", arg: str) -> "CommandResult":
         available = ", ".join(ctx.settings.ollama_available_models)
         return CommandResult(text=f"Модель не найдена. Доступно: {available}")
     ctx.user_settings.set_model(ctx.user_id, arg)
-    return CommandResult(text=f"Модель переключена на {arg}.")
+    text = f"Модель переключена на {arg}."
+    warning = await _vram_warning(ctx, arg)
+    if warning:
+        text = f"{text}\n\n{warning}"
+    return CommandResult(text=text)
 
 
 async def cmd_prompt(ctx: "CommandContext", arg: str) -> "CommandResult":
@@ -317,6 +329,47 @@ class CommandRegistry:
     def list_commands(self) -> list[str]:
         """Список доступных команд."""
         return list(self._commands.keys())
+
+
+async def _model_sizes(ctx: "CommandContext") -> dict[str, int]:
+    """Размеры локальных моделей `{tag: bytes}` или `{}` (если llm недоступен).
+
+    Graceful degradation: команды `/models` / `/model` работают и без Ollama —
+    просто без размеров и VRAM-предупреждения.
+    """
+    if getattr(ctx, "llm", None) is None:
+        return {}
+    try:
+        return await ctx.llm.list_models()
+    except Exception:  # noqa: BLE001
+        logger.warning("не удалось получить размеры моделей", exc_info=True)
+        return {}
+
+
+def _format_gb(size_bytes: int) -> str:
+    return f"{size_bytes / _BYTES_PER_GB:.1f} ГБ"
+
+
+async def _vram_warning(ctx: "CommandContext", model_name: str) -> str | None:
+    """Мягкое предупреждение, если модель близка/превышает бюджет VRAM.
+
+    Возвращает `None`, если бюджет отключён (`<= 0`), размер модели неизвестен
+    или она помещается в бюджет с запасом. Без жёсткого запрета.
+    """
+    budget_gb = getattr(ctx.settings, "ollama_vram_budget_gb", 0.0) or 0.0
+    if budget_gb <= 0:
+        return None
+    size_bytes = (await _model_sizes(ctx)).get(model_name)
+    if size_bytes is None:
+        return None
+    size_gb = size_bytes / _BYTES_PER_GB
+    if size_gb < budget_gb * _VRAM_WARN_FRACTION:
+        return None
+    return (
+        f"⚠️ Модель {model_name} ({size_gb:.1f} ГБ) близка к бюджету VRAM "
+        f"({budget_gb:.0f} ГБ) или превышает его — возможна выгрузка на CPU "
+        "и деградация скорости. Это не запрет, просто предупреждение."
+    )
 
 
 def _truncate(text: str, limit: int) -> str:

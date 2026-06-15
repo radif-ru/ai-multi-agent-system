@@ -83,6 +83,28 @@ async def test_embed_success(client, mocker):
     assert out == [0.1, 0.2, 0.3]
 
 
+async def test_list_models_success(client, mocker):
+    mocker.patch.object(
+        client._client,
+        "list",
+        return_value=SimpleNamespace(
+            models=[
+                SimpleNamespace(model="qwen3.5:4b", size=2_800_000_000),
+                SimpleNamespace(model="qwen3.6:35b", size=23_000_000_000),
+            ]
+        ),
+    )
+    sizes = await client.list_models()
+    assert sizes == {"qwen3.5:4b": 2_800_000_000, "qwen3.6:35b": 23_000_000_000}
+
+
+async def test_list_models_returns_empty_on_error(client, mocker):
+    mocker.patch.object(
+        client._client, "list", side_effect=httpx.ConnectError("refused")
+    )
+    assert await client.list_models() == {}
+
+
 async def test_chat_timeout_maps_to_llm_timeout(client, mocker):
     mocker.patch.object(
         client._client, "chat", side_effect=httpx.TimeoutException("slow")

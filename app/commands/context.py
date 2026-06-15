@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from app.services.archiver import Archiver
     from app.services.conversation import ConversationStore
     from app.services.dialog_journal import DialogJournal
+    from app.services.llm import OllamaClient
     from app.services.model_registry import UserSettingsRegistry
     from app.services.prompts import PromptLoader
     from app.users.models import User
@@ -50,6 +51,7 @@ class CommandContext:
     user: "User | None" = None
     channel: str | None = None
     journal: "DialogJournal | None" = None
+    llm: "OllamaClient | None" = None
 
 
 @dataclass
