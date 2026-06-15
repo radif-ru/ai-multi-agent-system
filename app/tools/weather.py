@@ -55,7 +55,13 @@ class WeatherTool(Tool):
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
-            stdout, stderr = await process.communicate()
+            try:
+                stdout, stderr = await process.communicate()
+            finally:
+                # Гарантируем завершение процесса при отмене или исключении
+                if process.returncode is None:
+                    process.kill()
+                    await process.wait()
 
             if process.returncode != 0:
                 error_msg = stderr.decode("utf-8", errors="ignore").strip()

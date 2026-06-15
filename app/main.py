@@ -373,7 +373,13 @@ async def _shutdown(bot: Bot, components: _Components) -> None:
         await bot.session.close()
     except Exception:  # noqa: BLE001
         logger.exception("ошибка при закрытии bot.session")
-    await _shutdown_components(components)
+    # Bounded shutdown: ограничиваем время завершения компонентов
+    try:
+        await asyncio.wait_for(_shutdown_components(components), timeout=5.0)
+    except asyncio.TimeoutError:
+        logger.warning("shutdown_components не завершился за таймаут, продолжаем")
+    except Exception:  # noqa: BLE001
+        logger.exception("ошибка при shutdown_components")
 
 
 async def main() -> None:

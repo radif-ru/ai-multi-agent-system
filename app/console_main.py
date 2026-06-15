@@ -88,7 +88,13 @@ async def main() -> None:
         logger.info("Console adapter started")
         await adapter.run()
     finally:
-        await _shutdown_components(components)
+        # Bounded shutdown: ограничиваем время завершения компонентов
+        try:
+            await asyncio.wait_for(_shutdown_components(components), timeout=5.0)
+        except asyncio.TimeoutError:
+            logger.warning("shutdown_components не завершился за таймаут, продолжаем")
+        except Exception:  # noqa: BLE001
+            logger.exception("ошибка при shutdown_components")
 
 
 def run() -> None:
