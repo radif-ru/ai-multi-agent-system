@@ -405,7 +405,7 @@ Bash-launcher: запускает бот в собственной группе 
 
 ### Задача 8.1. Снимать отметку cancelled после Ctrl+C в консольном adapter'е
 
-- **Статус:** В работе
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -418,9 +418,9 @@ Bash-launcher: запускает бот в собственной группе 
 
 #### Definition of Done
 
-- [ ] `Ctrl+C` в консоли не приводит к трейсбеку `CancelledError` на shutdown.
-- [ ] **Тесты**: регрессионный тест на снятие отметки cancelled; `pytest -q` зелёный.
-- [ ] `git status` чист.
+- [x] `Ctrl+C` в консоли не приводит к трейсбеку `CancelledError` на shutdown.
+- [x] **Тесты**: регрессионный тест на снятие отметки cancelled; `pytest -q` зелёный.
+- [x] `git status` чист.
 
 ## 12. Риски и смягчение
 
@@ -452,7 +452,7 @@ Bash-launcher: запускает бот в собственной группе 
 | 6.1 | `scripts/run.sh` с trap | medium | S | ToDo | — |
 | 6.2 | Bounded shutdown + добивание `curl` | medium | M | ToDo | — |
 | 7.1 | Метрики генерации в логах LLM | medium | S | ToDo | 1.1 |
-| 8.1 | Снимать отметку cancelled после Ctrl+C (console) | medium | S | В работе | — |
+| 8.1 | Снимать отметку cancelled после Ctrl+C (console) | medium | S | Done | — |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
@@ -470,3 +470,4 @@ Bash-launcher: запускает бот в собственной группе 
 - **2026-06-14** — закрыта задача 4.2: дефолты согласованы под большие документы — `OLLAMA_NUM_CTX` `8192→32768`, `AGENT_MAX_CONTEXT_CHARS` `8000→90000`, `MAX_DOCUMENT_CHARS` `50000→80000` (документ умещается в контекст без преждевременной суммаризации); обоснование баланса в `agent-loop.md` §4, синхронизированы устаревшие `default 8000` в `architecture.md`/`current-state.md`/`README.md`; тест `test_context_document_defaults_balanced`. Жёсткий cross-validator не добавлен (реальный `.env` читается тестом `test_summarizer_subscriber.py`).
 - **2026-06-14** — закрыта задача 4.3: `.env.example` переоформлен (секции «LLM gate», «Journal recovery», все ключи `Settings` представлены — completeness-проверка `MISSING: none`, балансные значения под RTX 5090); локальный `.env` синхронизирован безопасным in-place скриптом (токен не тронут, `.env` не коммитим). Попутно обнаружен и зафиксирован (`current-state.md` §2.3) латентный баг: гонка одного sqlite-соединения `DialogJournal` при `JOURNAL_RECOVERY_CONCURRENCY>1` → флак `test_concurrency_respects_configured_limit` (SQLITE_MISUSE); продакшен-дефолт `concurrency=1` безопасен.
 - **2026-06-14** — добавлена и закрыта задача 4.4 (фикс бага из §2.3): доступ к sqlite-соединению `DialogJournal` сериализован `threading.Lock`-ом в `_*_sync`-методах, `JOURNAL_RECOVERY_CONCURRENCY>1` теперь безопасен; ранее флакавший `test_concurrency_respects_configured_limit` зелёный 10/10, добавлен регрессионный `test_concurrent_access_does_not_misuse_sqlite`; доки `current-state.md` §2.3 (→ исправлено) и `memory.md` §4.4. **Этап 4 завершён.**
+- **2026-06-15** — добавлена и закрыта внеплановая задача 8.1 (Этап 8): `Ctrl+C` во время `input()` в консольном adapter'е помечал главную задачу `cancelled`, и отложенный `CancelledError` падал трейсбеком на shutdown после `/exit`; снимаем отмену через `task.uncancel()` в обработчике `KeyboardInterrupt`, добавлен регрессионный тест (`app/adapters/console/adapter.py`, `tests/adapters/console/test_adapter.py`).
