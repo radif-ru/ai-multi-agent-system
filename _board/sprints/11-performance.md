@@ -422,6 +422,30 @@ Bash-launcher: запускает бот в собственной группе 
 - [x] **Тесты**: регрессионный тест на снятие отметки cancelled; `pytest -q` зелёный.
 - [x] `git status` чист.
 
+### Задача 8.2. Не выдавать `thought` за ответ + bounded self-repair формата
+
+- **Статус:** В работе
+- **Приоритет:** high
+- **Объём:** S
+- **Зависит от:** —
+- **Связанные документы:** `_docs/agent-loop.md` §2.3–2.4; `_docs/stack.md` §9.
+- **Затрагиваемые файлы:** `app/agents/protocol.py`, `app/agents/executor.py`, `app/config.py`, `.env.example`, `_docs/agent-loop.md`, `_docs/stack.md`, `tests/agents/test_protocol.py`, `tests/agents/test_executor.py`, `tests/test_config.py`.
+
+#### Описание
+
+Маленькая модель (`qwen3.5:4b`) на больших OCR-входах часто срывается с JSON-контракта: кладёт рассуждение в `thought` и завершает объект как `action: null` / `action: "final_answer"`, не записав `final_answer`. «Толерантные» ветки `parse_agent_response` подменяли `final_answer` текстом `thought` — рассуждение утекало пользователю (расходится с задокументированным контрактом `agent-loop.md` §2.3).
+
+1. **A (парсер).** Убрать ветки, отдающие `thought` как `final_answer` (`action: null`, `action == "final_answer"`, thought-only): теперь это `LLMBadResponse`. Извлечение реального `final_answer` из усечённого JSON (regex) сохраняется.
+2. **C (executor).** Добавить ограниченную само-починку: при срыве формата дописать корректирующее сообщение и переспросить модель до `AGENT_MAX_REPAIR_ATTEMPTS` раз (default 2; `0` — выключить), затем — `LLMBadResponse` (адаптеры показывают нейтральное «Модель ответила в неожиданном формате», без утечки рассуждения).
+
+#### Definition of Done
+
+- [ ] `thought` никогда не возвращается пользователю как ответ; `action: null` / `action: "final_answer"` / thought-only → `LLMBadResponse`.
+- [ ] Срыв формата → до `AGENT_MAX_REPAIR_ATTEMPTS` переспросов; при успехе возвращается валидный `final_answer`, при исчерпании — нейтральная ошибка.
+- [ ] **Документация обновлена**: `_docs/agent-loop.md` §2.3–2.4 (запрет утечки + repair), `_docs/stack.md` §9 и `.env.example` (новый ключ `AGENT_MAX_REPAIR_ATTEMPTS`).
+- [ ] **Тесты**: парсер (no-leak) + executor (repair успех/исчерпание) + config (новый ключ); `pytest -q` и `flake8 app tests` зелёные.
+- [ ] `git status` чист.
+
 ## 12. Риски и смягчение
 
 | # | Риск | Смягчение |
@@ -453,6 +477,7 @@ Bash-launcher: запускает бот в собственной группе 
 | 6.2 | Bounded shutdown + добивание `curl` | medium | M | ToDo | — |
 | 7.1 | Метрики генерации в логах LLM | medium | S | ToDo | 1.1 |
 | 8.1 | Снимать отметку cancelled после Ctrl+C (console) | medium | S | Done | — |
+| 8.2 | Не выдавать `thought` за ответ + bounded self-repair | high | S | В работе | — |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
