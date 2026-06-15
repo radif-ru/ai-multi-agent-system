@@ -52,6 +52,36 @@
 - **tesseract-ocr** (опционально, для OCR в PDF): `sudo apt-get install tesseract-ocr tesseract-ocr-rus`
 - ОС: Linux / WSL2 / macOS. Windows нативно — не приоритет.
 
+## Целевая система и тюнинг под неё
+
+Дефолты в `.env.example` (размер контекста, параллелизм, выбор моделей, `keep_alive`, бюджет VRAM) **подобраны под мощную локальную систему**, на которой ведётся разработка:
+
+- **Ноутбук:** ASUS ROG Strix SCAR 18 — флагманская игровая платформа (быстрая DDR5-память, NVMe SSD, производительное охлаждение).
+- **GPU:** NVIDIA GeForce RTX 5090 Laptop — **24 ГБ GDDR7 VRAM**. Это ключевой ресурс: вся LLM-нагрузка (chat, эмбеддинги, vision) идёт через GPU, а 24 ГБ позволяют держать модель резидентной (`OLLAMA_KEEP_ALIVE=30m`), большой контекст (`OLLAMA_NUM_CTX=32768`) и две параллельные сессии (`LLM_MAX_CONCURRENCY=2`).
+- **CPU:** Intel Core Ultra 9 275HX (Arrow Lake-HX) — 24 ядра / 24 потока + интегрированный NPU (Intel AI Boost). Быстрый prefill контекста, параллельная транскрипция речи (`faster-whisper`) и OCR (Tesseract). *Примечание:* текущий стек гоняет LLM на GPU через Ollama; NPU — задел на будущие сценарии локального ускорения.
+
+Поэтому дефолты «щедрые»: большой `OLLAMA_NUM_CTX`, высокий порог суммаризации (`AGENT_MAX_CONTEXT_CHARS=90000`), крупные документы целиком в контексте (`MAX_DOCUMENT_CHARS=80000`), резидентная модель и бюджет VRAM 24 ГБ для предупреждений (`OLLAMA_VRAM_BUDGET_GB=24.0`).
+
+### Если ваша система слабее
+
+Уменьшите ключевые значения в `.env` и выберите модели полегче. Пример для системы с ~8 ГБ VRAM:
+
+```dotenv
+# Меньше контекст и параллелизм — экономия VRAM
+OLLAMA_NUM_CTX=8192
+LLM_MAX_CONCURRENCY=1
+OLLAMA_KEEP_ALIVE=0           # выгружать модель сразу после ответа
+OLLAMA_VRAM_BUDGET_GB=8       # порог предупреждения о тяжёлой модели в /model
+AGENT_MAX_CONTEXT_CHARS=24000
+MAX_DOCUMENT_CHARS=16000
+
+# Модели полегче
+OLLAMA_DEFAULT_MODEL=qwen3.5:0.8b
+VISION_MODEL=moondream2        # лёгкая vision-модель (см. _docs/vision-models.md)
+```
+
+Ориентир: размер модели не должен превышать свободный VRAM. Команда `/models` показывает размеры моделей, а `/model <имя>` предупреждает о тяжёлых. На CPU-only Ollama работает, но медленно — берите самые маленькие модели и `OLLAMA_NUM_CTX` ≤ 4096.
+
 ## Установка
 
 ```bash
