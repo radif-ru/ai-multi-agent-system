@@ -424,7 +424,7 @@ Bash-launcher: запускает бот в собственной группе 
 
 ### Задача 8.2. Не выдавать `thought` за ответ + bounded self-repair формата
 
-- **Статус:** В работе
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** —
@@ -440,11 +440,11 @@ Bash-launcher: запускает бот в собственной группе 
 
 #### Definition of Done
 
-- [ ] `thought` никогда не возвращается пользователю как ответ; `action: null` / `action: "final_answer"` / thought-only → `LLMBadResponse`.
-- [ ] Срыв формата → до `AGENT_MAX_REPAIR_ATTEMPTS` переспросов; при успехе возвращается валидный `final_answer`, при исчерпании — нейтральная ошибка.
-- [ ] **Документация обновлена**: `_docs/agent-loop.md` §2.3–2.4 (запрет утечки + repair), `_docs/stack.md` §9 и `.env.example` (новый ключ `AGENT_MAX_REPAIR_ATTEMPTS`).
-- [ ] **Тесты**: парсер (no-leak) + executor (repair успех/исчерпание) + config (новый ключ); `pytest -q` и `flake8 app tests` зелёные.
-- [ ] `git status` чист.
+- [x] `thought` никогда не возвращается пользователю как ответ; `action: null` / `action: "final_answer"` / thought-only → `LLMBadResponse`.
+- [x] Срыв формата → до `AGENT_MAX_REPAIR_ATTEMPTS` переспросов; при успехе возвращается валидный `final_answer`, при исчерпании — нейтральная ошибка.
+- [x] **Документация обновлена**: `_docs/agent-loop.md` §2.3–2.4 (запрет утечки + repair), `_docs/stack.md` §9 и `.env.example` (новый ключ `AGENT_MAX_REPAIR_ATTEMPTS`).
+- [x] **Тесты**: парсер (no-leak) + executor (repair успех/исчерпание) + config (новый ключ); `pytest -q` и `flake8 app tests` зелёные.
+- [x] `git status` чист.
 
 ## 12. Риски и смягчение
 
@@ -477,7 +477,7 @@ Bash-launcher: запускает бот в собственной группе 
 | 6.2 | Bounded shutdown + добивание `curl` | medium | M | ToDo | — |
 | 7.1 | Метрики генерации в логах LLM | medium | S | ToDo | 1.1 |
 | 8.1 | Снимать отметку cancelled после Ctrl+C (console) | medium | S | Done | — |
-| 8.2 | Не выдавать `thought` за ответ + bounded self-repair | high | S | В работе | — |
+| 8.2 | Не выдавать `thought` за ответ + bounded self-repair | high | S | Done | — |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
@@ -496,3 +496,4 @@ Bash-launcher: запускает бот в собственной группе 
 - **2026-06-14** — закрыта задача 4.3: `.env.example` переоформлен (секции «LLM gate», «Journal recovery», все ключи `Settings` представлены — completeness-проверка `MISSING: none`, балансные значения под RTX 5090); локальный `.env` синхронизирован безопасным in-place скриптом (токен не тронут, `.env` не коммитим). Попутно обнаружен и зафиксирован (`current-state.md` §2.3) латентный баг: гонка одного sqlite-соединения `DialogJournal` при `JOURNAL_RECOVERY_CONCURRENCY>1` → флак `test_concurrency_respects_configured_limit` (SQLITE_MISUSE); продакшен-дефолт `concurrency=1` безопасен.
 - **2026-06-14** — добавлена и закрыта задача 4.4 (фикс бага из §2.3): доступ к sqlite-соединению `DialogJournal` сериализован `threading.Lock`-ом в `_*_sync`-методах, `JOURNAL_RECOVERY_CONCURRENCY>1` теперь безопасен; ранее флакавший `test_concurrency_respects_configured_limit` зелёный 10/10, добавлен регрессионный `test_concurrent_access_does_not_misuse_sqlite`; доки `current-state.md` §2.3 (→ исправлено) и `memory.md` §4.4. **Этап 4 завершён.**
 - **2026-06-15** — добавлена и закрыта внеплановая задача 8.1 (Этап 8): `Ctrl+C` во время `input()` в консольном adapter'е помечал главную задачу `cancelled`, и отложенный `CancelledError` падал трейсбеком на shutdown после `/exit`; снимаем отмену через `task.uncancel()` в обработчике `KeyboardInterrupt`, добавлен регрессионный тест (`app/adapters/console/adapter.py`, `tests/adapters/console/test_adapter.py`).
+- **2026-06-15** — добавлена и закрыта внеплановая задача 8.2 (Этап 8, баг из обращения пользователя): агент присылал рассуждение вместо ответа на части файловых запросов. **A:** `parse_agent_response` больше не подменяет `final_answer` текстом `thought` — `action: null` / `action == "final_answer"` / thought-only → `LLMBadResponse` (возврат к контракту `agent-loop.md` §2.3). **C:** `Executor._decide` делает bounded self-repair — при срыве формата переспрашивает модель до `AGENT_MAX_REPAIR_ATTEMPTS` раз (env, default 2, `0` — выкл.), затем нейтральная ошибка без утечки рассуждения. Доки `agent-loop.md` §2.3–2.4, `stack.md` §9, `.env.example`; тесты `test_protocol.py` (no-leak), `test_executor.py` (repair), `test_config.py`. **Этап 8 завершён.**
