@@ -311,7 +311,7 @@ JOURNAL_RECOVERY_CONCURRENCY=1
 
 ### Задача 5.1. Предупреждение и размеры моделей в `/model` / `/models`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** low
 - **Объём:** M
 - **Зависит от:** —
@@ -324,10 +324,10 @@ JOURNAL_RECOVERY_CONCURRENCY=1
 
 #### Definition of Done
 
-- [ ] `/models` показывает размеры; `/model <heavy>` выводит предупреждение.
-- [ ] **Документация обновлена**: `_docs/commands.md`.
-- [ ] **Тесты**: `pytest -q` зелёный (мок ollama list).
-- [ ] `git status` чист.
+- [x] `/models` показывает размеры; `/model <heavy>` выводит предупреждение: `OllamaClient.list_models()` (через `ollama list`), размер показывается в `/models`, в `/model` — мягкое предупреждение при размере `>= 90%` от `OLLAMA_VRAM_BUDGET_GB` (default 24.0). Без жёсткого запрета; graceful degradation при недоступности Ollama.
+- [x] **Документация обновлена**: `_docs/commands.md` (`/models`, `/model`), `_docs/stack.md` §9 (`OLLAMA_VRAM_BUDGET_GB`), `.env.example`.
+- [x] **Тесты**: `tests/commands/test_vram_guard.py` (размеры + предупреждение/без), `tests/services/test_llm_client.py` (`list_models`); `pytest -q` и `flake8` зелёные.
+- [x] `git status` чист.
 
 ## 9. Этап 6. Надёжная остановка (lightweight)
 
@@ -472,7 +472,7 @@ Bash-launcher: запускает бот в собственной группе 
 | 4.2 | Согласовать `num_ctx` и порог суммаризации | medium | S | Done | — |
 | 4.3 | Редизайн `.env.example` + синх `.env` | high | M | Done | 1.1, 2.1, 4.1 |
 | 4.4 | Сериализовать sqlite-доступ в `DialogJournal` | high | S | Done | — |
-| 5.1 | VRAM-гард в `/model` / `/models` | low | M | Progress | — |
+| 5.1 | VRAM-гард в `/model` / `/models` | low | M | Done | — |
 | 6.1 | `scripts/run.sh` с trap | medium | S | ToDo | — |
 | 6.2 | Bounded shutdown + добивание `curl` | medium | M | ToDo | — |
 | 7.1 | Метрики генерации в логах LLM | medium | S | ToDo | 1.1 |
@@ -496,4 +496,5 @@ Bash-launcher: запускает бот в собственной группе 
 - **2026-06-14** — закрыта задача 4.3: `.env.example` переоформлен (секции «LLM gate», «Journal recovery», все ключи `Settings` представлены — completeness-проверка `MISSING: none`, балансные значения под RTX 5090); локальный `.env` синхронизирован безопасным in-place скриптом (токен не тронут, `.env` не коммитим). Попутно обнаружен и зафиксирован (`current-state.md` §2.3) латентный баг: гонка одного sqlite-соединения `DialogJournal` при `JOURNAL_RECOVERY_CONCURRENCY>1` → флак `test_concurrency_respects_configured_limit` (SQLITE_MISUSE); продакшен-дефолт `concurrency=1` безопасен.
 - **2026-06-14** — добавлена и закрыта задача 4.4 (фикс бага из §2.3): доступ к sqlite-соединению `DialogJournal` сериализован `threading.Lock`-ом в `_*_sync`-методах, `JOURNAL_RECOVERY_CONCURRENCY>1` теперь безопасен; ранее флакавший `test_concurrency_respects_configured_limit` зелёный 10/10, добавлен регрессионный `test_concurrent_access_does_not_misuse_sqlite`; доки `current-state.md` §2.3 (→ исправлено) и `memory.md` §4.4. **Этап 4 завершён.**
 - **2026-06-15** — добавлена и закрыта внеплановая задача 8.1 (Этап 8): `Ctrl+C` во время `input()` в консольном adapter'е помечал главную задачу `cancelled`, и отложенный `CancelledError` падал трейсбеком на shutdown после `/exit`; снимаем отмену через `task.uncancel()` в обработчике `KeyboardInterrupt`, добавлен регрессионный тест (`app/adapters/console/adapter.py`, `tests/adapters/console/test_adapter.py`).
+- **2026-06-15** — закрыта задача 5.1 (Этап 5): `OllamaClient.list_models()` отдаёт `{tag: size_bytes}` через `ollama list` (graceful degradation до `{}` при недоступности); `/models` показывает размер каждой модели, `/model <heavy>` добавляет мягкое предупреждение, если размер `>= 90%` бюджета `OLLAMA_VRAM_BUDGET_GB` (env, default 24.0, `0` — выкл.) — без жёсткого запрета. `llm` прокинут в `CommandContext` через telegram/console/max. Доки `commands.md`, `stack.md` §9, `.env.example`; тесты `tests/commands/test_vram_guard.py`, `tests/services/test_llm_client.py`. **Этап 5 завершён.**
 - **2026-06-15** — добавлена и закрыта внеплановая задача 8.2 (Этап 8, баг из обращения пользователя): агент присылал рассуждение вместо ответа на части файловых запросов. **A:** `parse_agent_response` больше не подменяет `final_answer` текстом `thought` — `action: null` / `action == "final_answer"` / thought-only → `LLMBadResponse` (возврат к контракту `agent-loop.md` §2.3). **C:** `Executor._decide` делает bounded self-repair — при срыве формата переспрашивает модель до `AGENT_MAX_REPAIR_ATTEMPTS` раз (env, default 2, `0` — выкл.), затем нейтральная ошибка без утечки рассуждения. Доки `agent-loop.md` §2.3–2.4, `stack.md` §9, `.env.example`; тесты `test_protocol.py` (no-leak), `test_executor.py` (repair), `test_config.py`. **Этап 8 завершён.**
