@@ -32,3 +32,6 @@ data/
 .env
 .env.*
 !.env.example
+
+# Graphify — весь каталог генерируется автоматически
+graphify-out/

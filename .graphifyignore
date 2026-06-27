@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.venv*/
+venv/
+
+# Tests / tools
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# Runtime data (vector DB, caches)
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Graphify — весь каталог генерируется автоматически
+graphify-out/
+
+# Сам .graphifyignore — не нужен в графе
+.graphifyignore
+
+# Code-only graph: документы/PDF/office/картинки требуют LLM для
+# семантической экстракции. Исключаем, чтобы `graphify update` работал без API-ключа.
+**/*.md
+**/*.mdx
+**/*.txt
+**/*.rst
+**/*.html
+**/*.yaml
+**/*.yml
+**/*.toml
+**/*.cfg
+**/*.ini
+**/*.json
+**/*.pdf
+**/*.docx
+**/*.xlsx
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.webp
+**/*.svg
+**/*.heic
+**/*.heif
+
+# Проектные каталоги документации и процесса — не код
+_docs/
+_board/
+.agents/
+.claude/
+.cursor/
+.devin/
+.github/
+
+# Скрипты — не доменный код
+scripts/

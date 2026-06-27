@@ -29,7 +29,8 @@
   - `docs(architecture): уточнить поток /new в §5`
   - `chore(plan): начать задачу 01.2.3`
 - **Ритуал коммитов на каждую задачу** — трёхэтапный цикл `chore(plan): начать задачу ... → атомарные коммиты содержимого → chore(plan): закрыть задачу ...`. Подробно — в `_board/process.md` §7 (выполнение задачи: §7.3 старт, §7.8 коммиты, §7.9 закрытие).
-- `.gitignore` обязательно содержит: `.env`, `venv/`, `.venv/`, `__pycache__/`, `*.pyc`, `logs/`, `data/`, `*.db`, `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `.idea/`, `.vscode/`. См. `project-structure.md` § «Что должно попасть в `.gitignore`».
+- `.gitignore` обязательно содержит: `.env`, `venv/`, `.venv/`, `__pycache__/`, `*.pyc`, `logs/`, `data/`, `*.db`, `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `.idea/`, `.vscode/`, `graphify-out/`. См. `project-structure.md` § «Что должно попасть в `.gitignore`».
+- **Graphify** (опционально): `graphify hook install` ставит pre-commit хук для авто-обновления графа кода. См. `_docs/stack.md` §14.
 - **Секреты никогда не коммитить.** Если токен / БД с приватными данными случайно попали — ротировать в @BotFather, удалить из истории (`git filter-repo`), удалить `.db`-файл.
 
 ## 3. Стиль кода

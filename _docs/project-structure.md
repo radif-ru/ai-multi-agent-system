@@ -7,6 +7,7 @@ ai-multi-agent-system/
 ├── .env.example              # шаблон конфигурации (коммитится)
 ├── .env                      # реальные секреты (в .gitignore)
 ├── .gitignore
+├── .graphifyignore           # исключения для graphify (code-only graph)
 ├── AGENTS.md                 # поведенческие гайдлайны LLM-агента (общие)
 ├── README.md                 # инструкция запуска + команды бота
 ├── requirements.txt          # runtime + dev-зависимости
@@ -61,6 +62,8 @@ ai-multi-agent-system/
 │
 ├── logs/                     # файлы логов (в .gitignore)
 │   └── agent.log
+│
+├── graphify-out/             # генерируемый граф кода (в .gitignore, см. _docs/stack.md §14)
 │
 ├── app/                      # код приложения
 │   ├── __init__.py
@@ -319,4 +322,7 @@ data/
 .env
 .env.*
 !.env.example
+
+# Graphify — весь каталог генерируется автоматически
+graphify-out/
 ```

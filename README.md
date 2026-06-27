@@ -210,6 +210,27 @@ pytest --cov=app --cov-report=term-missing
 
 Тесты не делают сетевых вызовов — `aiogram.Bot`, `Message`, `ollama.AsyncClient`, `sqlite-vec` мокаются (см. `_docs/testing.md`). Регрессионные тесты для длительных операций (например, `Archiver.archive`) маркируются маркером `slow` и могут быть пропущены в CI.
 
+## Graphify
+
+[Graphify](https://github.com/safishamsi/graphify) — инструмент для построения графа кода. Используется для навигации по зависимостям и структуре проекта.
+
+### Установка
+
+```bash
+uv tool install graphify          # установить graphify
+graphify hook install             # установить git-хук (авто-обновление графа при коммите)
+```
+
+### Команды
+
+| Команда | Описание |
+|---------|----------|
+| `graphify update` | Ручное обновление графа (после рефакторинга, добавления/удаления модулей) |
+| `graphify hook install` | Установить git-хук для авто-обновления при коммите |
+| `graphify hook uninstall` | Удалить git-хук |
+
+Граф генерируется в `graphify-out/` (в `.gitignore`, не коммитится). Исключения — в `.graphifyignore` (code-only graph: документы, медиа, конфиги исключены). Подробности — `_docs/stack.md` §14.
+
 ## Документация
 
 - 📘 [`_docs/README.md`](./_docs/README.md) — индекс проектной документации.
