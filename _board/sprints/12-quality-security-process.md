@@ -270,7 +270,7 @@
 
 ### Задача 6.1. Усилить и задокументировать выходной guard
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -283,11 +283,11 @@
 
 #### Definition of Done
 
-- [ ] Выходной guard уточнён: меньше ложных срабатываний на легитимном тексте, утечки путей/секретов по-прежнему маскируются.
-- [ ] `_docs/security.md` описывает контракт sanitize/bastion (вход/выход) и места подключения.
-- [ ] Тесты: добавлены кейсы (легитимный текст не калечится; утечка маскируется).
-- [ ] Документация обновлена.
-- [ ] `git status` чист.
+- [x] Выходной guard уточнён: Unix-path regex сужен до системных корней (`home`, `etc`, `var`, `root`, `tmp`, …) — проектные пути (`/app/config.py`, `/data/tmp/42/note.txt`) не калечатся; утечки системных путей по-прежнему маскируются.
+- [x] `_docs/security.md` §3.4 описывает контракт sanitize/bastion (вход/выход) и места подключения; §3.2, §5.3, §5.4 обновлены.
+- [x] Тесты: `test_sanitize_response_legitimate_text_not_masked` (4 кейса), `test_sanitize_response_system_paths_still_masked` (6 кейсов) — 30 passed.
+- [x] Документация обновлена.
+- [x] `git status` чист.
 
 ## 10. Этап 7. Скиллы создания и ревью pull request (MR)
 
@@ -409,7 +409,7 @@
 | 4.1 | Bump Ollama-клиента + инструкции | medium | S | Done | — |
 | 5.1 | Per-user скоуп `read_file` + флаг консоли | high | M | Done | — |
 | 5.2 | Заметка про per-user для MAX/API | low | XS | Done | 5.1 |
-| 6.1 | Усиление+документирование выходного guard'а | medium | S | Progress | — |
+| 6.1 | Усиление+документирование выходного guard'а | medium | S | Done | — |
 | 7.1 | Скилл `pull-request-discipline` | medium | S | ToDo | — |
 | 7.2 | Скилл `pr-review-discipline` | medium | S | ToDo | — |
 | 8.1 | Скрипт `check_doc_links.py` + CI | medium | M | ToDo | — |
@@ -421,6 +421,7 @@
 
 - **2026-06-29** — спринт открыт, ветка `feature/12-quality-security-process` создана от `main`.
 - **2026-06-29** — закрыта задача 1.1: уточнены §3.1/§3.4/§3.5 и добавлен §3.7 (порядок, дополнение спринта, маршрутизация находок).
+- **2026-06-29** — закрыта задача 6.1: выходной guard ResponseSanitizer сужен до системных корней (Unix-path regex), легитимные проектные пути не калечатся; добавлен §3.4 «sanitize на входе → bastion на выходе» в `security.md`; 10 новых тестов.
 - **2026-06-29** — закрыта задача 5.2: зафиксирован принцип per-user видимости файлов для будущих адаптеров (Web/API) в `_docs/roadmap.md` Этап 5 и `_docs/security.md` §4.2.
 - **2026-06-29** — закрыта задача 5.1: per-user скоуп `read_file` для Telegram/MAX (корень = `Settings.get_user_tmp_dir`), флаг `CONSOLE_FILE_SCOPE` для консоли; обновлены `tools.md`/`security.md`/`stack.md`, добавлены тесты.
 - **2026-06-29** — закрыта задача 1.2: в `_docs/instructions.md` §7 добавлено правило «новый конфиг — через `.env`/`.env.example`» со ссылкой на `scripts/check_env_sync.py`.
