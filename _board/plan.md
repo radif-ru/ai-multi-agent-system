@@ -10,12 +10,13 @@
 
 | ID | Название | Файл | Ветка | Статус | Открыт | Закрыт |
 |:--:|----------|------|-------|:------:|:------:|:------:|
-| 12 | Качество, безопасность и процессы | [`sprints/12-quality-security-process.md`](./sprints/12-quality-security-process.md) | `feature/12-quality-security-process` | Active | 2026-06-29 | — |
+| —  | (нет активных спринтов) | — | — | — | — | — |
 
 ### Закрытые
 
 | ID | Название | Файл | Ветка | Статус | Открыт | Закрыт |
 |:--:|----------|------|-------|:------:|:------:|:------:|
+| 12 | Качество, безопасность и процессы | [`sprints/12-quality-security-process.md`](./sprints/12-quality-security-process.md) | `feature/12-quality-security-process` | Closed | 2026-06-29 | 2026-06-29 |
 | 00 | Bootstrap | [`sprints/00-bootstrap.md`](./sprints/00-bootstrap.md) | `main` (инфраструктурный) | Closed | 2026-04-28 | 2026-04-28 |
 | 01 | MVP Agent | [`sprints/01-mvp-agent.md`](./sprints/01-mvp-agent.md) | `feature/mvp-agent` | Closed | 2026-04-28 | 2026-04-28 |
 | 02 | Память и файловые входы | [`sprints/02-memory-and-files.md`](./sprints/02-memory-and-files.md) | `feature/02-memory-and-files` | Closed | 2026-04-29 | 2026-04-29 |
@@ -53,7 +54,7 @@
 | 09. MAX-адаптер | Closed | 0 / 0 / 11 | `sprints/09-max-adapter.md` |
 | 10. Аудит качества и устранение техдолга | Closed | 0 / 0 / 9 | `sprints/10-audit-and-quality.md` |
 | 11. Производительность и эффективность LLM | Closed | 0 / 0 / 20 | `sprints/11-performance.md` |
-| 12. Качество, безопасность и процессы | Active | 0 / 0 / 14 | `sprints/12-quality-security-process.md` |
+| 12. Качество, безопасность и процессы | Closed | 0 / 0 / 14 | `sprints/12-quality-security-process.md` |
 
 > Таблицу обновлять одновременно с переходами статусов в файлах спринтов (см. `process.md` §7.3 и §7.9).
 

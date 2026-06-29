@@ -3,7 +3,7 @@
 - **Источник:** ТЗ пользователя (запрос от 2026-06-29) + кандидаты из `_docs/current-state.md` и `_docs/roadmap.md`.
 - **Ветка:** `feature/12-quality-security-process` (от `main`; см. `_board/process.md` §2 п.2).
 - **Открыт:** 2026-06-29
-- **Закрыт:** —
+- **Закрыт:** 2026-06-29
 
 ## 1. Цель спринта
 
@@ -33,16 +33,16 @@
 
 ## 3. Acceptance Criteria спринта
 
-- [ ] `_board/process.md` явно описывает: целесообразный порядок задач, дополнение спринта новыми задачами с актуализацией плана/доков, маршрутизацию находок (баг/уязвимость/недоработка → `roadmap.md`/`current-state.md`).
-- [ ] `_docs/instructions.md` содержит правило «новый конфиг — не только в `Settings`, но и в `.env`/`.env.example`».
-- [ ] `pytest --cov=app` с порогом `--cov-fail-under` проходит локально и в CI; гейт виден в `.github/workflows/test.yml`.
-- [ ] Нет настроек, захардкоженных мимо `.env` (проверяется скриптом `scripts/check_env_sync.py`).
-- [ ] Python-клиент Ollama обновлён, тесты зелёные, инструкции установки актуальны.
-- [ ] В Telegram/MAX `read_file` ограничен каталогом пользователя; консоль управляется флагом `CONSOLE_FILE_SCOPE`.
-- [ ] Выходной guard усилён и документирован в `_docs/security.md`.
-- [ ] Добавлены скиллы `pull-request-discipline` и `pr-review-discipline` с симлинками и записями в `AGENTS.md`/`.agents/README.md`.
-- [ ] `README.md` актуален и презентабелен; относительные ссылки проверены скриптом `scripts/check_doc_links.py`.
-- [ ] Все задачи спринта — `Done`, сводная таблица актуальна.
+- [x] `_board/process.md` явно описывает: целесообразный порядок задач, дополнение спринта новыми задачами с актуализацией плана/доков, маршрутизацию находок (баг/уязвимость/недоработка → `roadmap.md`/`current-state.md`).
+- [x] `_docs/instructions.md` содержит правило «новый конфиг — не только в `Settings`, но и в `.env`/`.env.example`».
+- [x] `pytest --cov=app` с порогом `--cov-fail-under` проходит локально и в CI; гейт виден в `.github/workflows/test.yml`.
+- [x] Нет настроек, захардкоженных мимо `.env` (проверяется скриптом `scripts/check_env_sync.py`).
+- [x] Python-клиент Ollama обновлён, тесты зелёные, инструкции установки актуальны.
+- [x] В Telegram/MAX `read_file` ограничен каталогом пользователя; консоль управляется флагом `CONSOLE_FILE_SCOPE`.
+- [x] Выходной guard усилен и документирован в `_docs/security.md`.
+- [x] Добавлены скиллы `pull-request-discipline` и `pr-review-discipline` с симлинками и записями в `AGENTS.md`/`.agents/README.md`.
+- [x] `README.md` актуален и презентабелен; относительные ссылки проверены скриптом `scripts/check_doc_links.py`.
+- [x] Все задачи спринта — `Done`, сводная таблица актуальна.
 
 ## 4. Этап 1. Процессные правила и дисциплина конфигурации
 
@@ -434,3 +434,4 @@
 - **2026-06-29** — закрыта задача 7.2: создан скилл `pr-review-discipline` (ревью PR/MR: чек-лист, approve/reject, запрет при красном CI), symlink, обновлены `AGENTS.md` и `.agents/README.md`.
 - **2026-06-29** — закрыта задача 8.1: добавлен `scripts/check_doc_links.py` (проверка относительных ссылок в markdown, пропуск code blocks, детекция абсолютных путей ФС), шаг в CI, 8 тестов, ссылка в `instructions.md` §9.
 - **2026-06-29** — закрыта задача 8.2: `README.md` актуализирован (спринт 12, CI-гейты, per-user scope, sanitize/bastion, скиллы PR/MR, раздел «Инженерная дисциплина и процессы»), graphify URL сверен (`github.com/safishamsi/graphify` — корректен), `check_doc_links.py` зелёный.
+- **2026-06-29** — спринт закрыт: все 14 задач Done, AC проставлены, `plan.md` актуализирован (статус → Closed).
