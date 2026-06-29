@@ -192,7 +192,7 @@
 
 ### Задача 4.1. Bump Python-клиента Ollama и проверка совместимости
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -406,7 +406,7 @@
 | 2.2 | Гейт покрытия в CI и DoD | high | S | Done | 2.1 |
 | 3.1 | Вынести хардкоды в `Settings` + `.env.example` | medium | S | Done | — |
 | 3.2 | Скрипт `check_env_sync.py` + CI | medium | M | Done | 3.1 |
-| 4.1 | Bump Ollama-клиента + инструкции | medium | S | ToDo | — |
+| 4.1 | Bump Ollama-клиента + инструкции | medium | S | Progress | — |
 | 5.1 | Per-user скоуп `read_file` + флаг консоли | high | M | ToDo | — |
 | 5.2 | Заметка про per-user для MAX/API | low | XS | ToDo | 5.1 |
 | 6.1 | Усиление+документирование выходного guard'а | medium | S | ToDo | — |
