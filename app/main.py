@@ -169,7 +169,10 @@ async def _build_components(settings: Settings) -> _Components:
     tools = ToolRegistry(
         [
             CalculatorTool(),
-            ReadFileTool(max_output_chars=settings.max_tool_output_chars),
+            ReadFileTool(
+                max_bytes=settings.read_file_max_bytes,
+                max_output_chars=settings.max_tool_output_chars,
+            ),
             ReadDocumentTool(
                 tmp_files_dir=settings.tmp_base_dir,
                 max_file_size_mb=settings.telegram_max_file_mb,

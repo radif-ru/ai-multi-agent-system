@@ -103,6 +103,7 @@
 | `LOG_LEVEL`                 | Уровень логов (`DEBUG\|INFO\|WARNING\|ERROR`).                   | `DEBUG`                   |
 | `LOG_FILE`                  | Путь к файлу логов.                                              | `logs/agent.log`          |
 | `LOG_LLM_CONTEXT`           | Логировать полный JSON контекста перед LLM-запросом.             | `true`                    |
+| `READ_FILE_MAX_BYTES`       | Лимит размера файла для tool `read_file`, байты (крупнее — `ToolError`). | `1048576` (1 MiB)         |
 
 ## 10. Тестирование
 

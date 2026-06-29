@@ -129,6 +129,10 @@ class Settings(BaseSettings):
     # --- Temporary files ---
     tmp_base_dir: Path = Path("data/tmp")
     max_tool_output_chars: int = 50000
+    # Максимальный размер файла (байты), который читает tool read_file. Файлы
+    # крупнее отклоняются с ToolError (защита от чтения гигантских файлов в
+    # контекст). Дефолт 1 MiB совпадает с прежним DEFAULT_MAX_FILE_BYTES.
+    read_file_max_bytes: int = 1024 * 1024
     # Настройки для чтения документов. Порог < agent_max_context_chars, чтобы
     # один документ помещался в контекст без преждевременной суммаризации.
     max_document_chars: int = 80000
@@ -286,6 +290,13 @@ class Settings(BaseSettings):
     def _check_journal_recovery_start_delay(cls, v: float) -> float:
         if v < 0:
             raise ValueError("JOURNAL_RECOVERY_START_DELAY must be >= 0")
+        return v
+
+    @field_validator("read_file_max_bytes")
+    @classmethod
+    def _check_read_file_max_bytes(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("READ_FILE_MAX_BYTES must be > 0")
         return v
 
     @model_validator(mode="after")
