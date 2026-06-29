@@ -43,6 +43,9 @@ jobs:
       - name: Env sync (Settings ↔ .env.example)
         run: python -m scripts.check_env_sync
 
+      - name: Sprint sync (plan.md ↔ sprint files)
+        run: python -m scripts.check_sprint_sync
+
       - name: Tests + coverage gate (pytest)
         env:
           TELEGRAM_BOT_TOKEN: dummy-token-for-ci
