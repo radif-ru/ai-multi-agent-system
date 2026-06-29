@@ -317,7 +317,7 @@
 
 ### Задача 7.2. Скилл `pr-review-discipline`
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -411,7 +411,7 @@
 | 5.2 | Заметка про per-user для MAX/API | low | XS | Done | 5.1 |
 | 6.1 | Усиление+документирование выходного guard'а | medium | S | Done | — |
 | 7.1 | Скилл `pull-request-discipline` | medium | S | Done | — |
-| 7.2 | Скилл `pr-review-discipline` | medium | S | ToDo | — |
+| 7.2 | Скилл `pr-review-discipline` | medium | S | Progress | — |
 | 8.1 | Скрипт `check_doc_links.py` + CI | medium | M | ToDo | — |
 | 8.2 | Презентабельный README + сверка graphify | high | M | ToDo | 1.1, 2.x, 3.x, 4.1, 5.1, 6.1, 7.x, 8.1 |
 
