@@ -183,7 +183,7 @@ dangerous_tools_allowlist: list[str]  # список явно разрешённ
 - `all` (по умолчанию) — широкий доступ ко всему `data/` (оператор доверенный);
 - `user` — то же per-user ограничение, что и в мессенджерах.
 
-Решение принимается на сборке (`app/main.py:_build_components(read_file_user_scoped=...)`): Telegram/MAX передают `True`, консоль — `settings.console_file_scope == "user"`. Будущие адаптеры (Web/API) должны наследовать ту же per-user модель.
+Решение принимается на сборке (`app/main.py:_build_components(read_file_user_scoped=...)`): Telegram/MAX передают `True`, консоль — `settings.console_file_scope == "user"`. **Будущие адаптеры (Web/API из `_docs/roadmap.md` этап 5) обязаны наследовать ту же per-user модель** — передавать `read_file_user_scoped=True` и использовать `Settings.get_user_tmp_dir(user_id)` как корень видимости файлов.
 
 См. задачу 6.2 спринта 05 и задачу 5.1 спринта 12.
 

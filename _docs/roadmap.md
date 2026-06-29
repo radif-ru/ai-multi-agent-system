@@ -70,6 +70,7 @@
 
 - [ ] FastAPI/aiohttp + simple HTML chat-страница, общается с `core` напрямую (тот же event loop).
 - [ ] Унифицированный `user_id` cross-channel (например, через таблицу `external_id → internal_user_id`).
+- [ ] **Per-user видимость файлов:** Web-адаптер должен наследовать ту же per-user модель `read_file`, что и мессенджеры (корень = `Settings.get_user_tmp_dir(user_id)`, сборка с `read_file_user_scoped=True`). См. `_docs/security.md` §4.2.
 
 ## Этап 6. Webhook вместо polling (Telegram и MAX)
 
