@@ -52,6 +52,7 @@
 | `documentation-discipline` | Только относительные пути, синхронизация ссылок, doc-before-code. |
 | `git-discipline` | Conventional Commits, ритуал задачи, зелёные `pytest`+`flake8` до коммита. |
 | `pull-request-discipline` | Подготовка PR/MR: ветка, тело, зелёные проверки, merge только пользователем. |
+| `pr-review-discipline` | Ревью PR/MR: чек-лист, approve/reject, запрет апрува при красном CI. |
 
 ## Как пользоваться
 

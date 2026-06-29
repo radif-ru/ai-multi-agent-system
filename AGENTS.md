@@ -94,10 +94,11 @@
 - `.agents/skills/documentation-discipline/SKILL.md` — относительные пути, синхронизация ссылок, doc-before-code.
 - `.agents/skills/git-discipline/SKILL.md` — Conventional Commits, ритуал задачи, зелёные `pytest` + `flake8` до коммита.
 - `.agents/skills/pull-request-discipline/SKILL.md` — подготовка PR/MR: ветка, тело, зелёные проверки, merge только пользователем.
+- `.agents/skills/pr-review-discipline/SKILL.md` — ревью PR/MR: чек-лист, исходы approve/reject, запрет апрува при красном CI.
 
 ## Рекомендуемый порядок загрузки
 
 - Широкая или неочевидная задача: `architecture-discipline` → профильный скилл.
 - Код в `app/`: `architecture-discipline` → `async-discipline` → `testing-discipline` → `error-handling-discipline`.
 - Новая точка входа пользовательского текста или tool с ФС/сетью: `prompt-injection-defense`.
-- Задача про документацию: `documentation-discipline`. Задача про коммит/ветку: `git-discipline`. Задача про PR/MR: `pull-request-discipline`.
+- Задача про документацию: `documentation-discipline`. Задача про коммит/ветку: `git-discipline`. Задача про PR/MR: `pull-request-discipline` → `pr-review-discipline`.
