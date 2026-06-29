@@ -421,12 +421,12 @@
 
 - **2026-06-29** — спринт открыт, ветка `feature/12-quality-security-process` создана от `main`.
 - **2026-06-29** — закрыта задача 1.1: уточнены §3.1/§3.4/§3.5 и добавлен §3.7 (порядок, дополнение спринта, маршрутизация находок).
-- **2026-06-29** — закрыта задача 6.1: выходной guard ResponseSanitizer сужен до системных корней (Unix-path regex), легитимные проектные пути не калечатся; добавлен §3.4 «sanitize на входе → bastion на выходе» в `security.md`; 10 новых тестов.
-- **2026-06-29** — закрыта задача 5.2: зафиксирован принцип per-user видимости файлов для будущих адаптеров (Web/API) в `_docs/roadmap.md` Этап 5 и `_docs/security.md` §4.2.
-- **2026-06-29** — закрыта задача 5.1: per-user скоуп `read_file` для Telegram/MAX (корень = `Settings.get_user_tmp_dir`), флаг `CONSOLE_FILE_SCOPE` для консоли; обновлены `tools.md`/`security.md`/`stack.md`, добавлены тесты.
 - **2026-06-29** — закрыта задача 1.2: в `_docs/instructions.md` §7 добавлено правило «новый конфиг — через `.env`/`.env.example`» со ссылкой на `scripts/check_env_sync.py`.
-- **2026-06-29** — закрыта задача 3.2: добавлен `scripts/check_env_sync.py` (сравнение полей `Settings` с `.env.example`, исключение секретов), шаг «Env sync» в CI и `tests/test_check_env_sync.py`.
 - **2026-06-29** — закрыта задача 2.1: подключён `pytest-cov`, в `pyproject.toml` задан `--cov=app` и порог `--cov-fail-under=80` (факт 86.94%), обновлён `_docs/testing.md`.
 - **2026-06-29** — закрыта задача 2.2: гейт покрытия сделан явным в CI (`test.yml`), порог добавлен в DoD-шаблон (`process.md` §4.2/§11) и `_docs/instructions.md` §8.4.
-- **2026-06-29** — закрыта задача 4.1: `ollama` в `requirements.txt`/`stack.md` §12 поднят до `>=0.6,<1` (установлена 0.6.2), добавлена команда установки сервера Ubuntu в `instructions.md` §12, vision-модель в `stack.md` §3 сверена (`gemma3:4b`).
 - **2026-06-29** — закрыта задача 3.1: лимит размера файла `read_file` вынесен в `READ_FILE_MAX_BYTES` (`Settings` + `.env.example` + `stack.md` §9), дефолт 1 MiB, валидатор `> 0`, тесты в `test_config.py`.
+- **2026-06-29** — закрыта задача 3.2: добавлен `scripts/check_env_sync.py` (сравнение полей `Settings` с `.env.example`, исключение секретов), шаг «Env sync» в CI и `tests/test_check_env_sync.py`.
+- **2026-06-29** — закрыта задача 4.1: `ollama` в `requirements.txt`/`stack.md` §12 поднят до `>=0.6,<1` (установлена 0.6.2), добавлена команда установки сервера Ubuntu в `instructions.md` §12, vision-модель в `stack.md` §3 сверена (`gemma3:4b`).
+- **2026-06-29** — закрыта задача 5.1: per-user скоуп `read_file` для Telegram/MAX (корень = `Settings.get_user_tmp_dir`), флаг `CONSOLE_FILE_SCOPE` для консоли; обновлены `tools.md`/`security.md`/`stack.md`, добавлены тесты.
+- **2026-06-29** — закрыта задача 5.2: зафиксирован принцип per-user видимости файлов для будущих адаптеров (Web/API) в `_docs/roadmap.md` Этап 5 и `_docs/security.md` §4.2.
+- **2026-06-29** — закрыта задача 6.1: выходной guard ResponseSanitizer сужен до системных корней (Unix-path regex), легитимные проектные пути не калечатся; добавлен §3.4 «sanitize на входе → bastion на выходе» в `security.md`; 10 новых тестов.
