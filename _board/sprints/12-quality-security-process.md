@@ -317,7 +317,7 @@
 
 ### Задача 7.2. Скилл `pr-review-discipline`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -330,12 +330,12 @@
 
 #### Definition of Done
 
-- [ ] `.agents/skills/pr-review-discipline/SKILL.md` создан по формату.
-- [ ] Симлинк `.claude/skills/pr-review-discipline → ../../.agents/skills/pr-review-discipline`.
-- [ ] Записи в `AGENTS.md` и `.agents/README.md` добавлены.
-- [ ] Документация обновлена.
-- [ ] Тесты: `n/a`.
-- [ ] `git status` чист.
+- [x] `.agents/skills/pr-review-discipline/SKILL.md` создан по формату.
+- [x] Симлинк `.claude/skills/pr-review-discipline → ../../.agents/skills/pr-review-discipline`.
+- [x] Записи в `AGENTS.md` и `.agents/README.md` добавлены.
+- [x] Документация обновлена.
+- [x] Тесты: `n/a`.
+- [x] `git status` чист.
 
 ## 11. Этап 8. Актуализация документации и README
 
@@ -411,7 +411,7 @@
 | 5.2 | Заметка про per-user для MAX/API | low | XS | Done | 5.1 |
 | 6.1 | Усиление+документирование выходного guard'а | medium | S | Done | — |
 | 7.1 | Скилл `pull-request-discipline` | medium | S | Done | — |
-| 7.2 | Скилл `pr-review-discipline` | medium | S | Progress | — |
+| 7.2 | Скилл `pr-review-discipline` | medium | S | Done | — |
 | 8.1 | Скрипт `check_doc_links.py` + CI | medium | M | ToDo | — |
 | 8.2 | Презентабельный README + сверка graphify | high | M | ToDo | 1.1, 2.x, 3.x, 4.1, 5.1, 6.1, 7.x, 8.1 |
 
@@ -431,3 +431,4 @@
 - **2026-06-29** — закрыта задача 5.2: зафиксирован принцип per-user видимости файлов для будущих адаптеров (Web/API) в `_docs/roadmap.md` Этап 5 и `_docs/security.md` §4.2.
 - **2026-06-29** — закрыта задача 6.1: выходной guard ResponseSanitizer сужен до системных корней (Unix-path regex), легитимные проектные пути не калечатся; добавлен §3.4 «sanitize на входе → bastion на выходе» в `security.md`; 10 новых тестов.
 - **2026-06-29** — закрыта задача 7.1: создан скилл `pull-request-discipline` (подготовка PR/MR), symlink `.claude/skills/`, обновлены `AGENTS.md` и `.agents/README.md`.
+- **2026-06-29** — закрыта задача 7.2: создан скилл `pr-review-discipline` (ревью PR/MR: чек-лист, approve/reject, запрет при красном CI), symlink, обновлены `AGENTS.md` и `.agents/README.md`.
