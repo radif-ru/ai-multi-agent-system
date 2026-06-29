@@ -166,7 +166,7 @@
 
 ### Задача 3.2. Скрипт авто-проверки синхронизации `Settings` ↔ `.env.example`
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** M
 - **Зависит от:** Задача 3.1
@@ -405,7 +405,7 @@
 | 2.1 | `pytest-cov` + порог покрытия | high | S | Done | — |
 | 2.2 | Гейт покрытия в CI и DoD | high | S | Done | 2.1 |
 | 3.1 | Вынести хардкоды в `Settings` + `.env.example` | medium | S | Done | — |
-| 3.2 | Скрипт `check_env_sync.py` + CI | medium | M | ToDo | 3.1 |
+| 3.2 | Скрипт `check_env_sync.py` + CI | medium | M | Progress | 3.1 |
 | 4.1 | Bump Ollama-клиента + инструкции | medium | S | ToDo | — |
 | 5.1 | Per-user скоуп `read_file` + флаг консоли | high | M | ToDo | — |
 | 5.2 | Заметка про per-user для MAX/API | low | XS | ToDo | 5.1 |
