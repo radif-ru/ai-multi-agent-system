@@ -246,7 +246,7 @@
 
 ### Задача 5.2. Заметка про per-user области видимости для MAX/API
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** low
 - **Объём:** XS
 - **Зависит от:** Задача 5.1
@@ -408,7 +408,7 @@
 | 3.2 | Скрипт `check_env_sync.py` + CI | medium | M | Done | 3.1 |
 | 4.1 | Bump Ollama-клиента + инструкции | medium | S | Done | — |
 | 5.1 | Per-user скоуп `read_file` + флаг консоли | high | M | Done | — |
-| 5.2 | Заметка про per-user для MAX/API | low | XS | ToDo | 5.1 |
+| 5.2 | Заметка про per-user для MAX/API | low | XS | Progress | 5.1 |
 | 6.1 | Усиление+документирование выходного guard'а | medium | S | ToDo | — |
 | 7.1 | Скилл `pull-request-discipline` | medium | S | ToDo | — |
 | 7.2 | Скилл `pr-review-discipline` | medium | S | ToDo | — |
