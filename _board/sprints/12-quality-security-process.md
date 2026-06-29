@@ -166,7 +166,7 @@
 
 ### Задача 3.2. Скрипт авто-проверки синхронизации `Settings` ↔ `.env.example`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** M
 - **Зависит от:** Задача 3.1
@@ -179,12 +179,12 @@
 
 #### Definition of Done
 
-- [ ] `scripts/check_env_sync.py` детектирует поля `Settings` без записи в `.env.example` и падает с ненулевым кодом.
-- [ ] Скрипт зелёный на текущем репозитории (после задачи 3.1).
-- [ ] Шаг добавлен в CI.
-- [ ] Документация обновлена: `_docs/instructions.md` §7 ссылается на скрипт; `scripts/` упомянут в `_docs/project-structure.md` при необходимости.
-- [ ] Тесты добавлены: unit на логику сравнения (поле есть/нет) — если оформлен как импортируемая функция.
-- [ ] `git status` чист.
+- [x] `scripts/check_env_sync.py` детектирует поля `Settings` без записи в `.env.example` и падает с ненулевым кодом.
+- [x] Скрипт зелёный на текущем репозитории (после задачи 3.1).
+- [x] Шаг добавлен в CI (`.github/workflows/test.yml`, отдельный шаг «Env sync»).
+- [x] Документация обновлена: `_docs/instructions.md` §7 уже ссылается на скрипт (задача 1.2); `scripts/` в `_docs/project-structure.md` не перечислялся ранее — консистентно не добавляем.
+- [x] Тесты добавлены: `tests/test_check_env_sync.py` (парсинг env, обнаружение пропуска, исключение секретов).
+- [x] `git status` чист.
 
 ## 7. Этап 4. Актуальная версия Ollama
 
@@ -405,7 +405,7 @@
 | 2.1 | `pytest-cov` + порог покрытия | high | S | Done | — |
 | 2.2 | Гейт покрытия в CI и DoD | high | S | Done | 2.1 |
 | 3.1 | Вынести хардкоды в `Settings` + `.env.example` | medium | S | Done | — |
-| 3.2 | Скрипт `check_env_sync.py` + CI | medium | M | Progress | 3.1 |
+| 3.2 | Скрипт `check_env_sync.py` + CI | medium | M | Done | 3.1 |
 | 4.1 | Bump Ollama-клиента + инструкции | medium | S | ToDo | — |
 | 5.1 | Per-user скоуп `read_file` + флаг консоли | high | M | ToDo | — |
 | 5.2 | Заметка про per-user для MAX/API | low | XS | ToDo | 5.1 |
@@ -422,6 +422,7 @@
 - **2026-06-29** — спринт открыт, ветка `feature/12-quality-security-process` создана от `main`.
 - **2026-06-29** — закрыта задача 1.1: уточнены §3.1/§3.4/§3.5 и добавлен §3.7 (порядок, дополнение спринта, маршрутизация находок).
 - **2026-06-29** — закрыта задача 1.2: в `_docs/instructions.md` §7 добавлено правило «новый конфиг — через `.env`/`.env.example`» со ссылкой на `scripts/check_env_sync.py`.
+- **2026-06-29** — закрыта задача 3.2: добавлен `scripts/check_env_sync.py` (сравнение полей `Settings` с `.env.example`, исключение секретов), шаг «Env sync» в CI и `tests/test_check_env_sync.py`.
 - **2026-06-29** — закрыта задача 2.1: подключён `pytest-cov`, в `pyproject.toml` задан `--cov=app` и порог `--cov-fail-under=80` (факт 86.94%), обновлён `_docs/testing.md`.
 - **2026-06-29** — закрыта задача 2.2: гейт покрытия сделан явным в CI (`test.yml`), порог добавлен в DoD-шаблон (`process.md` §4.2/§11) и `_docs/instructions.md` §8.4.
 - **2026-06-29** — закрыта задача 3.1: лимит размера файла `read_file` вынесен в `READ_FILE_MAX_BYTES` (`Settings` + `.env.example` + `stack.md` §9), дефолт 1 MiB, валидатор `> 0`, тесты в `test_config.py`.
