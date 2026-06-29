@@ -218,7 +218,7 @@
 
 ### Задача 5.1. Per-user скоуп `read_file` + флаг для консоли
 
-- **Статус:** InProgress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** —
@@ -237,12 +237,12 @@
 
 #### Definition of Done
 
-- [ ] `read_file` в Telegram/MAX ограничен каталогом пользователя; за его пределами — `ToolError`.
-- [ ] Флаг `CONSOLE_FILE_SCOPE` в `Settings` + `.env.example` с описанием.
-- [ ] Защиты `..`/системные пути сохранены.
-- [ ] Тесты: путь пользователя читается; чужой каталог/`data/`-корень в мессенджере → `ToolError`; консольный режим с `all` — широкий доступ.
-- [ ] Документация обновлена: `_docs/tools.md` §4.2 и `_docs/security.md`.
-- [ ] `git status` чист.
+- [x] `read_file` в Telegram/MAX ограничен каталогом пользователя (`Settings.get_user_tmp_dir`); за его пределами — `ToolError`. Решается на сборке: `_build_components(read_file_user_scoped=True)` для мессенджеров.
+- [x] Флаг `CONSOLE_FILE_SCOPE` (`all`/`user`, default `all`) в `Settings` + `.env.example` с описанием; консоль передаёт `read_file_user_scoped` по флагу.
+- [x] Защиты `..`/системные пути сохранены (логика `_read_sync` не изменена, меняется только набор разрешённых корней).
+- [x] Тесты: путь пользователя читается; чужой каталог/`data/`-корень в per-user → `ToolError`; per-user без контекста → `ToolError`; `console_file_scope` (дефолт/нормализация/невалидный) в `tests/test_config.py`.
+- [x] Документация обновлена: `_docs/tools.md` §4.2, `_docs/security.md` §4, `_docs/stack.md` §9.
+- [x] `git status` чист.
 
 ### Задача 5.2. Заметка про per-user области видимости для MAX/API
 
@@ -407,7 +407,7 @@
 | 3.1 | Вынести хардкоды в `Settings` + `.env.example` | medium | S | Done | — |
 | 3.2 | Скрипт `check_env_sync.py` + CI | medium | M | Done | 3.1 |
 | 4.1 | Bump Ollama-клиента + инструкции | medium | S | Done | — |
-| 5.1 | Per-user скоуп `read_file` + флаг консоли | high | M | ToDo | — |
+| 5.1 | Per-user скоуп `read_file` + флаг консоли | high | M | Done | — |
 | 5.2 | Заметка про per-user для MAX/API | low | XS | ToDo | 5.1 |
 | 6.1 | Усиление+документирование выходного guard'а | medium | S | ToDo | — |
 | 7.1 | Скилл `pull-request-discipline` | medium | S | ToDo | — |
@@ -421,6 +421,7 @@
 
 - **2026-06-29** — спринт открыт, ветка `feature/12-quality-security-process` создана от `main`.
 - **2026-06-29** — закрыта задача 1.1: уточнены §3.1/§3.4/§3.5 и добавлен §3.7 (порядок, дополнение спринта, маршрутизация находок).
+- **2026-06-29** — закрыта задача 5.1: per-user скоуп `read_file` для Telegram/MAX (корень = `Settings.get_user_tmp_dir`), флаг `CONSOLE_FILE_SCOPE` для консоли; обновлены `tools.md`/`security.md`/`stack.md`, добавлены тесты.
 - **2026-06-29** — закрыта задача 1.2: в `_docs/instructions.md` §7 добавлено правило «новый конфиг — через `.env`/`.env.example`» со ссылкой на `scripts/check_env_sync.py`.
 - **2026-06-29** — закрыта задача 3.2: добавлен `scripts/check_env_sync.py` (сравнение полей `Settings` с `.env.example`, исключение секретов), шаг «Env sync» в CI и `tests/test_check_env_sync.py`.
 - **2026-06-29** — закрыта задача 2.1: подключён `pytest-cov`, в `pyproject.toml` задан `--cov=app` и порог `--cov-fail-under=80` (факт 86.94%), обновлён `_docs/testing.md`.
