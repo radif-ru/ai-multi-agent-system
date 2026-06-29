@@ -129,11 +129,12 @@ class ToolRegistry:
 
 ### 4.2 `read_file`
 
-- **Описание:** Прочитать содержимое файла из разрешённых каталогов (по умолчанию `data/`).
+- **Описание:** Прочитать содержимое файла из разрешённых каталогов.
 - **Args:** `{"path": "<строка>"}` или `{"file_id": "<строка>"}` (один из параметров обязателен).
 - **Return:** содержимое файла (UTF-8), усечённое до `MAX_TOOL_OUTPUT_CHARS`.
-- **Реализация:** валидация пути (`Path.resolve()` должен начинаться с одного из путей whitelist'а из `Settings`); запрет `..`; запрет симлинков, которые ведут наружу; ограничение размера файла (`MAX_FILE_BYTES`, default 1 MiB). Если передан `file_id`, путь восстанавливается через `FileIdMapper`.
-- **Ошибки:** путь вне whitelist → `ToolError("path not allowed")`; файла нет → `ToolError("file not found")`; файл бинарный → `ToolError("binary file not supported")`; file_id не найден → `ToolError("file_id ... не найден")`.
+- **Область видимости (per-user):** в мессенджер-каналах (Telegram, MAX) `read_file` собирается в per-user режиме — разрешённый корень вычисляется по `ctx.user_id` как `Settings.get_user_tmp_dir(user_id)` (`data/tmp/<user_id>`), доступ к чужим каталогам и в корень `data/` запрещён. В консольном режиме область задаётся флагом `CONSOLE_FILE_SCOPE` (`all` — весь `data/` по умолчанию; `user` — только каталог пользователя). См. `_docs/security.md` §4.
+- **Реализация:** валидация пути (`Path.resolve()` должен начинаться с одного из разрешённых корней); запрет `..`; запрет системных путей; ограничение размера файла (`READ_FILE_MAX_BYTES`, default 1 MiB). Если передан `file_id`, путь восстанавливается через `FileIdMapper` и проходит ту же проверку области видимости.
+- **Ошибки:** путь вне разрешённого корня → `ToolError("path not allowed")`; файла нет → `ToolError("file not found")`; файл бинарный → `ToolError("binary file not supported")`; file_id не найден → `ToolError("file_id ... не найден")`; per-user режим без `user_id`/`settings` в контексте → `ToolError("per-user scope ...")`.
 
 ### 4.3 `http_request`
 

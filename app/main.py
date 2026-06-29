@@ -112,7 +112,9 @@ class _Components:
     event_bus: EventBus
 
 
-async def _build_components(settings: Settings) -> _Components:
+async def _build_components(
+    settings: Settings, *, read_file_user_scoped: bool = True
+) -> _Components:
     llm = OllamaClient(
         base_url=settings.ollama_base_url,
         timeout=settings.ollama_timeout,
@@ -170,6 +172,7 @@ async def _build_components(settings: Settings) -> _Components:
         [
             CalculatorTool(),
             ReadFileTool(
+                user_scoped=read_file_user_scoped,
                 max_bytes=settings.read_file_max_bytes,
                 max_output_chars=settings.max_tool_output_chars,
             ),

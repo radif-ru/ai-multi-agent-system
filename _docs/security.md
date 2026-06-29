@@ -174,11 +174,18 @@ dangerous_tools_allowlist: list[str]  # список явно разрешённ
 - Проверка `netloc` на валидность URL.
 
 **`read_file` / `read_document`:**
-- Запрет на path traversal через `..` (реализовано в строках 64-65 `read_file.py` и 84-85 `read_document.py`).
-- Запрет на системные пути: `/etc`, `/sys`, `/proc`, `/root/.ssh`, `/home/*/.ssh` (реализовано в строках 71-75 `read_file.py` и 92-96 `read_document.py`).
-- Проверка, что путь находится внутри разрешённой директории (whitelist для `read_file`, `tmp_dir` для `read_document`).
+- Запрет на path traversal через `..`.
+- Запрет на системные пути: `/etc`, `/sys`, `/proc`, `/root/.ssh`, `/home/*/.ssh`.
+- Проверка, что путь находится внутри разрешённой директории (per-user корень или whitelist для `read_file`, `tmp_dir` для `read_document`).
 
-См. задачу 6.2 спринта 05.
+**Область видимости `read_file` по пользователю (per-user, спринт 12).** В мессенджер-каналах (Telegram, MAX) `read_file` собирается в per-user режиме: разрешённый корень вычисляется в момент вызова по `ctx.user_id` как `Settings.get_user_tmp_dir(user_id)` (`data/tmp/<user_id>` — туда же адаптеры скачивают файлы пользователя). Это исключает чтение чужих файлов и корня `data/`. В консольном режиме (локальный оператор) область задаётся флагом `CONSOLE_FILE_SCOPE`:
+
+- `all` (по умолчанию) — широкий доступ ко всему `data/` (оператор доверенный);
+- `user` — то же per-user ограничение, что и в мессенджерах.
+
+Решение принимается на сборке (`app/main.py:_build_components(read_file_user_scoped=...)`): Telegram/MAX передают `True`, консоль — `settings.console_file_scope == "user"`. Будущие адаптеры (Web/API) должны наследовать ту же per-user модель.
+
+См. задачу 6.2 спринта 05 и задачу 5.1 спринта 12.
 
 ## 5. Усиление System Prompt
 

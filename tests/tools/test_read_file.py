@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -115,3 +116,52 @@ async def test_system_path_rejected(tmp_path, ctx):
         await tool.run({"path": "/sys/kernel"}, ctx)
     with pytest.raises(ToolError, match="системный путь не разрешён"):
         await tool.run({"path": "/proc/cpuinfo"}, ctx)
+
+
+# --- Per-user область видимости (спринт 12, задача 5.1) ---
+
+
+def _user_ctx(tmp_base: Path, user_id: int) -> SimpleNamespace:
+    """Контекст с settings, разводящим каталоги по user_id (как Settings)."""
+    settings = SimpleNamespace(
+        get_user_tmp_dir=lambda uid: tmp_base / str(uid)
+    )
+    return SimpleNamespace(user_id=user_id, settings=settings)
+
+
+async def test_user_scoped_reads_own_file(tmp_path):
+    """В per-user режиме файл в каталоге пользователя читается."""
+    user_dir = tmp_path / "42"
+    user_dir.mkdir()
+    f = user_dir / "note.txt"
+    f.write_text("mine", encoding="utf-8")
+    tool = ReadFileTool(user_scoped=True)
+    out = await tool.run({"path": str(f)}, _user_ctx(tmp_path, 42))
+    assert out == "mine"
+
+
+async def test_user_scoped_rejects_other_user_dir(tmp_path):
+    """Чужой каталог пользователя в per-user режиме → ToolError."""
+    other_dir = tmp_path / "99"
+    other_dir.mkdir()
+    f = other_dir / "secret.txt"
+    f.write_text("nope", encoding="utf-8")
+    tool = ReadFileTool(user_scoped=True)
+    with pytest.raises(ToolError, match="path not allowed"):
+        await tool.run({"path": str(f)}, _user_ctx(tmp_path, 42))
+
+
+async def test_user_scoped_rejects_base_dir_root(tmp_path):
+    """Файл в корне data/tmp (вне каталога пользователя) → ToolError."""
+    f = tmp_path / "shared.txt"
+    f.write_text("nope", encoding="utf-8")
+    tool = ReadFileTool(user_scoped=True)
+    with pytest.raises(ToolError, match="path not allowed"):
+        await tool.run({"path": str(f)}, _user_ctx(tmp_path, 42))
+
+
+async def test_user_scoped_requires_context(tmp_path, ctx):
+    """Без user_id/settings per-user режим отказывает."""
+    tool = ReadFileTool(user_scoped=True)
+    with pytest.raises(ToolError, match="per-user scope"):
+        await tool.run({"path": str(tmp_path / "x.txt")}, ctx)

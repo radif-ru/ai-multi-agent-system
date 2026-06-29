@@ -133,6 +133,10 @@ class Settings(BaseSettings):
     # крупнее отклоняются с ToolError (защита от чтения гигантских файлов в
     # контекст). Дефолт 1 MiB совпадает с прежним DEFAULT_MAX_FILE_BYTES.
     read_file_max_bytes: int = 1024 * 1024
+    # Область видимости read_file в консольном режиме: "all" — локальный
+    # оператор видит весь data/; "user" — только каталог пользователя
+    # (как в Telegram/MAX). В мессенджерах всегда per-user (см. _docs/security.md).
+    console_file_scope: Literal["all", "user"] = "all"
     # Настройки для чтения документов. Порог < agent_max_context_chars, чтобы
     # один документ помещался в контекст без преждевременной суммаризации.
     max_document_chars: int = 80000
@@ -290,6 +294,13 @@ class Settings(BaseSettings):
     def _check_journal_recovery_start_delay(cls, v: float) -> float:
         if v < 0:
             raise ValueError("JOURNAL_RECOVERY_START_DELAY must be >= 0")
+        return v
+
+    @field_validator("console_file_scope", mode="before")
+    @classmethod
+    def _normalize_console_file_scope(cls, v):
+        if isinstance(v, str):
+            return v.strip().lower()
         return v
 
     @field_validator("read_file_max_bytes")

@@ -244,3 +244,21 @@ def test_read_file_max_bytes_from_env(base_env):
 def test_read_file_max_bytes_non_positive_raises(base_env):
     with pytest.raises(ValidationError):
         _build(base_env, READ_FILE_MAX_BYTES=0)
+
+
+# --- console_file_scope (спринт 12, задача 5.1) ---
+
+
+def test_console_file_scope_default_all(base_env):
+    s = _build(base_env)
+    assert s.console_file_scope == "all"
+
+
+def test_console_file_scope_user_normalized(base_env):
+    s = _build(base_env, CONSOLE_FILE_SCOPE="USER")
+    assert s.console_file_scope == "user"
+
+
+def test_console_file_scope_invalid_raises(base_env):
+    with pytest.raises(ValidationError):
+        _build(base_env, CONSOLE_FILE_SCOPE="everything")

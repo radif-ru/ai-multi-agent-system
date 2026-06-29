@@ -35,16 +35,19 @@ class ReadFileTool(Tool):
         self,
         allowed_dirs: Iterable[str | Path] | None = None,
         *,
+        user_scoped: bool = False,
         max_bytes: int = DEFAULT_MAX_FILE_BYTES,
         max_output_chars: int = 50000,
     ) -> None:
         if allowed_dirs is None:
             allowed_dirs = [Path("data")]
         self._allowed: list[Path] = [Path(p).resolve() for p in allowed_dirs]
+        self._user_scoped = user_scoped
         self._max_bytes = max_bytes
         self._max_output_chars = max_output_chars
 
     async def run(self, args: Mapping[str, Any], ctx: ToolContext) -> str:
+        allowed = self._resolve_allowed(ctx)
         # Если передан file_id, восстанавливаем путь через FileIdMapper
         if "file_id" in args and args["file_id"]:
             mapper = get_global_mapper()
@@ -56,9 +59,24 @@ class ReadFileTool(Tool):
             raw = str(args["path"])
         else:
             raise ToolError("требуется path или file_id")
-        return await asyncio.to_thread(self._read_sync, raw)
+        return await asyncio.to_thread(self._read_sync, raw, allowed)
 
-    def _read_sync(self, raw: str) -> str:
+    def _resolve_allowed(self, ctx: ToolContext) -> list[Path]:
+        """Определить разрешённые корни для текущего вызова.
+
+        В per-user режиме (мессенджеры) корень — каталог пользователя
+        (`Settings.get_user_tmp_dir`), вычисляемый по `ctx.user_id`. Иначе —
+        статический список из конструктора.
+        """
+        if not self._user_scoped:
+            return self._allowed
+        settings = getattr(ctx, "settings", None)
+        user_id = getattr(ctx, "user_id", None)
+        if settings is None or user_id is None:
+            raise ToolError("per-user scope требует user_id и settings в контексте")
+        return [settings.get_user_tmp_dir(int(user_id)).resolve()]
+
+    def _read_sync(self, raw: str, allowed: list[Path]) -> str:
         candidate = Path(raw)
         # Запрещаем явные `..`-обходы.
         if ".." in candidate.parts:
@@ -74,7 +92,7 @@ class ReadFileTool(Tool):
             if str(resolved).startswith(sys_path):
                 raise ToolError("системный путь не разрешён")
 
-        if not any(self._is_within(resolved, root) for root in self._allowed):
+        if not any(self._is_within(resolved, root) for root in allowed):
             raise ToolError("path not allowed")
 
         if not resolved.exists():
