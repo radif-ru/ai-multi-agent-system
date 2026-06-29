@@ -40,7 +40,9 @@ jobs:
       - name: Lint (flake8)
         run: flake8 app tests
 
-      - name: Tests (pytest)
+      - name: Tests + coverage gate (pytest)
         env:
           TELEGRAM_BOT_TOKEN: dummy-token-for-ci
+        # Порог покрытия (--cov-fail-under) задан в pyproject.toml addopts:
+        # pytest падает (красный CI), если покрытие app/ ниже порога.
         run: pytest -q

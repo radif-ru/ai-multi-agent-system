@@ -110,6 +110,8 @@
 
 Workflow `.github/workflows/test.yml` автоматически прогоняет `flake8 app tests` и `pytest -q` на каждый `push` в любую ветку и на `pull_request` в `main`. Job — один: Python 3.14 на `ubuntu-latest`, кеш pip по `requirements.txt`, без матрицы версий и без секретов. Тесты на CI запускаются **без** реальных Ollama/Telegram/сети — все внешние клиенты замоканы, `sqlite-vec` поднимается на `tmp_path`.
 
+Контроль покрытия — часть CI: порог `--cov-fail-under` задан в `pyproject.toml` (`addopts`), поэтому `pytest -q` (и локально, и в CI) падает при покрытии `app/` ниже порога. Подробности и текущее значение порога — `testing.md` §2/§5.
+
 Правило для веток спринта:
 
 - Push в ветку `feature/<NN>-<short-name>` **должен** оставлять workflow зелёным. Красный CI — то же, что красный локальный `pytest -q`: чиним до того, как двигаться дальше.
