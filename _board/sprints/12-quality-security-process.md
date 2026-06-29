@@ -295,7 +295,7 @@
 
 ### Задача 7.1. Скилл `pull-request-discipline`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -308,12 +308,12 @@
 
 #### Definition of Done
 
-- [ ] `.agents/skills/pull-request-discipline/SKILL.md` создан (frontmatter `name`+`description` ≤200, разделы «Когда использовать/Алгоритм/Чего избегать»).
-- [ ] Симлинк `.claude/skills/pull-request-discipline → ../../.agents/skills/pull-request-discipline`.
-- [ ] Записи добавлены в `AGENTS.md` (раздел Skills + порядок загрузки) и `.agents/README.md` (таблица).
-- [ ] Документация обновлена.
-- [ ] Тесты: `n/a` (контент скилла).
-- [ ] `git status` чист.
+- [x] `.agents/skills/pull-request-discipline/SKILL.md` создан (frontmatter `name`+`description` ≤200, разделы «Когда использовать/Алгоритм/Чего избегать»).
+- [x] Симлинк `.claude/skills/pull-request-discipline → ../../.agents/skills/pull-request-discipline`.
+- [x] Записи добавлены в `AGENTS.md` (раздел Skills + порядок загрузки) и `.agents/README.md` (таблица).
+- [x] Документация обновлена.
+- [x] Тесты: `n/a` (контент скилла).
+- [x] `git status` чист.
 
 ### Задача 7.2. Скилл `pr-review-discipline`
 
@@ -410,7 +410,7 @@
 | 5.1 | Per-user скоуп `read_file` + флаг консоли | high | M | Done | — |
 | 5.2 | Заметка про per-user для MAX/API | low | XS | Done | 5.1 |
 | 6.1 | Усиление+документирование выходного guard'а | medium | S | Done | — |
-| 7.1 | Скилл `pull-request-discipline` | medium | S | Progress | — |
+| 7.1 | Скилл `pull-request-discipline` | medium | S | Done | — |
 | 7.2 | Скилл `pr-review-discipline` | medium | S | ToDo | — |
 | 8.1 | Скрипт `check_doc_links.py` + CI | medium | M | ToDo | — |
 | 8.2 | Презентабельный README + сверка graphify | high | M | ToDo | 1.1, 2.x, 3.x, 4.1, 5.1, 6.1, 7.x, 8.1 |
@@ -430,3 +430,4 @@
 - **2026-06-29** — закрыта задача 5.1: per-user скоуп `read_file` для Telegram/MAX (корень = `Settings.get_user_tmp_dir`), флаг `CONSOLE_FILE_SCOPE` для консоли; обновлены `tools.md`/`security.md`/`stack.md`, добавлены тесты.
 - **2026-06-29** — закрыта задача 5.2: зафиксирован принцип per-user видимости файлов для будущих адаптеров (Web/API) в `_docs/roadmap.md` Этап 5 и `_docs/security.md` §4.2.
 - **2026-06-29** — закрыта задача 6.1: выходной guard ResponseSanitizer сужен до системных корней (Unix-path regex), легитимные проектные пути не калечатся; добавлен §3.4 «sanitize на входе → bastion на выходе» в `security.md`; 10 новых тестов.
+- **2026-06-29** — закрыта задача 7.1: создан скилл `pull-request-discipline` (подготовка PR/MR), symlink `.claude/skills/`, обновлены `AGENTS.md` и `.agents/README.md`.
