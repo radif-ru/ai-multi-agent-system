@@ -16,7 +16,7 @@
 
 ## Возможности
 
-Реализовано в спринтах 01 (MVP Agent), 02 (Память и файловые входы), 03 (Баги и консольный режим), 04 (Событийная модель и модуль Users), 05 (Безопасность и OCR-рефакторинг), 06 (Надёжность диалога и observability), 07 (Multi-agent: Planner + Critic), 08 (Hardening и зачистка), 09 (MAX-адаптер), 10 (Аудит качества и устранение техдолга) и 11 (Производительность и эффективность LLM). Индекс спринтов — [`_board/plan.md`](./_board/plan.md). Фактическое состояние кода — [`_docs/current-state.md`](./_docs/current-state.md).
+Реализовано в спринтах 01 (MVP Agent), 02 (Память и файловые входы), 03 (Баги и консольный режим), 04 (Событийная модель и модуль Users), 05 (Безопасность и OCR-рефакторинг), 06 (Надёжность диалога и observability), 07 (Multi-agent: Planner + Critic), 08 (Hardening и зачистка), 09 (MAX-адаптер), 10 (Аудит качества и устранение техдолга), 11 (Производительность и эффективность LLM) и 12 (Качество, безопасность и процессы). Индекс спринтов — [`_board/plan.md`](./_board/plan.md). Фактическое состояние кода — [`_docs/current-state.md`](./_docs/current-state.md).
 
 - **Агентный цикл** `thought → action → observation` со строгим JSON-форматом, лимитом `AGENT_MAX_STEPS` и лимитом размера output’а — [`app/agents/executor.py`](./app/agents/executor.py), [`app/agents/protocol.py`](./app/agents/protocol.py).
 - **Multi-agent** (Planner + Executor + Critic) с режимами `OFF | NORMAL | DEEP` (`AGENT_REFLECTION_MODE`, `AGENT_REFLECTION_MAX_ITERATIONS`), graceful degradation при ошибках Planner/Critic, команда `/mode` для per-user override — [`app/agents/planner.py`](./app/agents/planner.py), [`app/agents/critic.py`](./app/agents/critic.py), [`app/core/orchestrator.py`](./app/core/orchestrator.py); подробнее в [`_docs/multi-agent.md`](./_docs/multi-agent.md).
@@ -35,12 +35,12 @@
 - **Авто-подгрузка архива** при старте новой сессии через `SemanticMemory.search` — [`app/core/orchestrator.py`](./app/core/orchestrator.py).
 - **Skills** из [`app/skills/`](./app/skills): markdown с `Description:` в первой строке или YAML frontmatter; описания инжектятся в системный промпт, полное тело — через tool `load_skill` — [`app/services/skills.py`](./app/services/skills.py).
 - **Пользователи и событийная шина**: модуль Users с персистентным SQLite-`UserRepository` (таблица `users` в `data/memory.db`, стабильный `user.id` между рестартами) + `EventBus` для развязки компонентов (события `UserCreated`, `MessageReceived`, `ResponseGenerated`, `ConversationArchived`) — [`app/users/`](./app/users), [`app/core/events.py`](./app/core/events.py).
-- **Безопасность**: `InputSanitizer` (prompt injection), `FileIdMapper` (маскировка путей), `ResponseSanitizer` (фильтрация системной информации), allowlist для опасных tools в режиме «secure by default» (пустой allowlist = запрет, явное разрешение через `.env`) — [`app/security/`](./app/security).
+- **Безопасность** по контракту «sanitize на входе → bastion на выходе»: `InputSanitizer` (prompt injection) на входе всех адаптеров, `ResponseSanitizer` (маскировка системных путей/секретов) на выходе, `FileIdMapper` (маскировка путей в ответах), **per-user область видимости файлов** (в Telegram/MAX `read_file` ограничен каталогом пользователя `data/tmp/<user_id>`; консоль — флаг `CONSOLE_FILE_SCOPE`), allowlist для опасных tools в режиме «secure by default» (пустой allowlist = запрет, явное разрешение через `.env`) — [`app/security/`](./app/security), подробнее [`_docs/security.md`](./_docs/security.md).
 - **Prompts** (`app/prompts/`): системный промпт агента и промпт суммаризации в markdown — [`app/services/prompts.py`](./app/services/prompts.py).
 - **Настройки на пользователя** (выбранная модель, промпт) — [`app/services/model_registry.py`](./app/services/model_registry.py).
 - **Логирование** через `TimedRotatingFileHandler` (ежедневная ротация, хранение ~14 дней) + middleware на каждый update; структурные JSON-логи со сквозным `trace_id` и опциональный error tracking в self-hosted GlitchTip (`SENTRY_DSN`) — [`app/core/logging_config.py`](./app/core/logging_config.py), [`app/observability/`](./app/observability), [`docker-compose.observability.yml`](./docker-compose.observability.yml). Подробнее — [`_docs/observability.md`](./_docs/observability.md).
 - **Журнал диалога** (`dialog_journal` в `data/memory.db`, append-only) и фоновое восстановление незаархивированных сессий при старте — [`app/services/dialog_journal.py`](./app/services/dialog_journal.py), [`app/services/journal_recovery.py`](./app/services/journal_recovery.py); раздел `_docs/memory.md` §4.
-- **CI** на GitHub Actions: `pytest -q` + `flake8` на push/PR — [`.github/workflows/test.yml`](./.github/workflows/test.yml).
+- **CI** на GitHub Actions (push/PR) — пять гейтов: `flake8`, синхронизация `Settings` ↔ `.env.example` (`check_env_sync`), синхронизация `_board/plan.md` ↔ файлов спринтов (`check_sprint_sync`), проверка относительных ссылок в markdown (`check_doc_links`) и `pytest` с жёстким порогом покрытия (`--cov-fail-under=80`) — [`.github/workflows/test.yml`](./.github/workflows/test.yml), [`scripts/`](./scripts).
 - **Сборка приложения** (DI, polling, graceful shutdown) — [`app/main.py`](./app/main.py), точка входа [`app/__main__.py`](./app/__main__.py).
 - **Unit-тесты** через моки ([`tests/`](./tests)): без реального Telegram / Ollama / сети; `sqlite-vec` — на `tmp_path`.
 
@@ -198,14 +198,11 @@ ai-multi-agent-system/
 
 ## Тесты
 
-```bash
-pytest -q
-```
-
-Покрытие (если установлен `pytest-cov`):
+`pytest-cov` — обязательная зависимость: `pytest` всегда измеряет покрытие `app/` и **падает, если оно ниже порога** `--cov-fail-under=80` (задан в `pyproject.toml`; тот же гейт работает в CI). Подробнее — [`_docs/testing.md`](./_docs/testing.md).
 
 ```bash
-pytest --cov=app --cov-report=term-missing
+pytest -q                                # тесты + гейт покрытия
+pytest --cov-report=term-missing         # детальный отчёт по непокрытым строкам
 ```
 
 Тесты не делают сетевых вызовов — `aiogram.Bot`, `Message`, `ollama.AsyncClient`, `sqlite-vec` мокаются (см. `_docs/testing.md`). Регрессионные тесты для длительных операций (например, `Archiver.archive`) маркируются маркером `slow` и могут быть пропущены в CI.
@@ -231,6 +228,17 @@ graphify hook install             # установить git-хук (авто-о
 
 Граф генерируется в `graphify-out/` (в `.gitignore`, не коммитится). Исключения — в `.graphifyignore` (code-only graph: документы, медиа, конфиги исключены). Подробности — `_docs/stack.md` §14.
 
+## Инженерная дисциплина и процессы
+
+Проект ведётся как инженерный продукт: правила разработки, документация и дисциплины AI-ассистента зафиксированы и проверяются автоматически — это снижает регрессии и делает вклад любого агента/человека предсказуемым.
+
+- **Правила и процесс спринтов** — [`_board/`](./_board): [`process.md`](./_board/process.md) (жизненный цикл спринта/задачи, ветки `feature/<NN>-...`, DoD, целесообразный порядок задач, маршрутизация находок), [`plan.md`](./_board/plan.md) (индекс спринтов), файлы спринтов в [`_board/sprints/`](./_board/sprints). Правила разработки (git, стиль, async, ошибки, секреты, тесты, документация) — [`_docs/instructions.md`](./_docs/instructions.md).
+- **Проектная документация** — [`_docs/`](./_docs): архитектура, агентный цикл, память, tools, безопасность, observability и др. (индекс — [`_docs/README.md`](./_docs/README.md)).
+- **Скиллы и промпты для AI-ассистента разработки** — [`.agents/`](./.agents): переиспользуемые промпты ([`.agents/prompts/`](./.agents/prompts)) и скиллы-дисциплины ([`.agents/skills/`](./.agents/skills)) — архитектура, async, тесты, обработка ошибок, защита от prompt injection, документация, git, **подготовка и ревью pull request (MR)**.
+- **Единые правила для всех AI-инструментов** — единственный источник истины [`AGENTS.md`](./AGENTS.md) зеркалится относительными симлинками ([`CLAUDE.md`](./CLAUDE.md), [`GEMINI.md`](./GEMINI.md), [`QWEN.md`](./QWEN.md), `.github/copilot-instructions.md`); Cursor (`.cursor/rules/`) и Windsurf/Devin (`.devin/rules/`) — через файл-указатель; скиллы — в `.claude/skills/`. Подробнее — [`.agents/README.md`](./.agents/README.md).
+- **Автоматический контроль качества (в CI, без ИИ)** — `flake8`, `pytest` с порогом покрытия `--cov-fail-under=80` и скрипты-гейты [`scripts/`](./scripts): `check_env_sync` (нет конфигов мимо `.env`), `check_doc_links` (нет битых/абсолютных ссылок в markdown), `check_sprint_sync` (`plan.md` не расходится с файлами спринтов).
+- **Безопасность по умолчанию** — sanitize на входе / bastion на выходе, per-user область видимости файлов, allowlist опасных tools, маскирование секретов в логах — [`_docs/security.md`](./_docs/security.md).
+
 ## Документация
 
 - 📘 [`_docs/README.md`](./_docs/README.md) — индекс проектной документации.
@@ -245,7 +253,8 @@ graphify hook install             # установить git-хук (авто-о
 - 🛠️ [`_docs/instructions.md`](./_docs/instructions.md) — правила разработки (включая обязательные тесты перед коммитом).
 - 🧪 [`_docs/testing.md`](./_docs/testing.md) — стратегия и категории тестов, моки, покрытие.
 - 🔭 [`_docs/observability.md`](./_docs/observability.md) — структурные JSON-логи, `trace_id`, маскирование секретов, error tracking (GlitchTip).
-- 📋 [`_board/README.md`](./_board/README.md) — процесс спринтов и задач.
+- � [`_docs/security.md`](./_docs/security.md) — sanitize/bastion, per-user область видимости файлов, allowlist tools, маскирование секретов.
+- �📋 [`_board/README.md`](./_board/README.md) — процесс спринтов и задач.
 - 📌 [`_docs/current-state.md`](./_docs/current-state.md) — фактическое состояние кода (читать перед правками).
 - 🗺️ [`_docs/roadmap.md`](./_docs/roadmap.md) — этапы развития (capability graph, внешние онлайн-LLM, web-адаптер, MAX-webhook и др.).
 - 🤖 [`.agents/README.md`](./.agents/README.md) — переиспользуемые промпты и скиллы для **AI-ассистента разработки**; здесь же разделение: `app/skills/` — runtime-скиллы бота, `.agents/skills/` — дисциплины ассистента.
