@@ -192,7 +192,7 @@
 
 ### Задача 4.1. Bump Python-клиента Ollama и проверка совместимости
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -205,12 +205,12 @@
 
 #### Definition of Done
 
-- [ ] `requirements.txt`: `ollama` обновлён до актуальной нижней границы.
-- [ ] `pytest -q` зелёный (моки LLM не сломаны).
-- [ ] Инструкция установки сервера Ollama (Ubuntu) актуализирована в `_docs/instructions.md` §12 и/или `README.md`; в `_docs/stack.md` версия клиента синхронизирована (там сейчас `ollama>=0.3`).
-- [ ] Документация обновлена.
-- [ ] Тесты: `n/a` (изменение версии зависимости; новое поведение в `app/` не вводится — при отсутствии правок кода).
-- [ ] `git status` чист.
+- [x] `requirements.txt`: `ollama` обновлён до `>=0.6,<1` (фактически установлена 0.6.2).
+- [x] `pytest -q` зелёный (моки LLM не сломаны; API `chat`/`embeddings`/`list` совместим).
+- [x] Инструкция установки сервера Ollama (Ubuntu) добавлена в `_docs/instructions.md` §12 (`curl ... install.sh | sh`); в `_docs/stack.md` §12 версия клиента синхронизирована (`ollama>=0.6,<1`).
+- [x] Документация обновлена (в т.ч. vision-модель в `stack.md` §3 сверена с `.env.example`: `gemma3:4b`).
+- [x] Тесты: `n/a` (изменение версии зависимости; правок кода в `app/` нет).
+- [x] `git status` чист.
 
 ## 8. Этап 5. Область видимости файлов по пользователю
 
@@ -406,7 +406,7 @@
 | 2.2 | Гейт покрытия в CI и DoD | high | S | Done | 2.1 |
 | 3.1 | Вынести хардкоды в `Settings` + `.env.example` | medium | S | Done | — |
 | 3.2 | Скрипт `check_env_sync.py` + CI | medium | M | Done | 3.1 |
-| 4.1 | Bump Ollama-клиента + инструкции | medium | S | Progress | — |
+| 4.1 | Bump Ollama-клиента + инструкции | medium | S | Done | — |
 | 5.1 | Per-user скоуп `read_file` + флаг консоли | high | M | ToDo | — |
 | 5.2 | Заметка про per-user для MAX/API | low | XS | ToDo | 5.1 |
 | 6.1 | Усиление+документирование выходного guard'а | medium | S | ToDo | — |
@@ -425,4 +425,5 @@
 - **2026-06-29** — закрыта задача 3.2: добавлен `scripts/check_env_sync.py` (сравнение полей `Settings` с `.env.example`, исключение секретов), шаг «Env sync» в CI и `tests/test_check_env_sync.py`.
 - **2026-06-29** — закрыта задача 2.1: подключён `pytest-cov`, в `pyproject.toml` задан `--cov=app` и порог `--cov-fail-under=80` (факт 86.94%), обновлён `_docs/testing.md`.
 - **2026-06-29** — закрыта задача 2.2: гейт покрытия сделан явным в CI (`test.yml`), порог добавлен в DoD-шаблон (`process.md` §4.2/§11) и `_docs/instructions.md` §8.4.
+- **2026-06-29** — закрыта задача 4.1: `ollama` в `requirements.txt`/`stack.md` §12 поднят до `>=0.6,<1` (установлена 0.6.2), добавлена команда установки сервера Ubuntu в `instructions.md` §12, vision-модель в `stack.md` §3 сверена (`gemma3:4b`).
 - **2026-06-29** — закрыта задача 3.1: лимит размера файла `read_file` вынесен в `READ_FILE_MAX_BYTES` (`Settings` + `.env.example` + `stack.md` §9), дефолт 1 MiB, валидатор `> 0`, тесты в `test_config.py`.
