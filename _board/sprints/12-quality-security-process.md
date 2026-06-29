@@ -343,7 +343,7 @@
 
 ### Задача 8.1. Скрипт проверки относительных ссылок в документации
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** M
 - **Зависит от:** —
@@ -412,7 +412,7 @@
 | 6.1 | Усиление+документирование выходного guard'а | medium | S | Done | — |
 | 7.1 | Скилл `pull-request-discipline` | medium | S | Done | — |
 | 7.2 | Скилл `pr-review-discipline` | medium | S | Done | — |
-| 8.1 | Скрипт `check_doc_links.py` + CI | medium | M | ToDo | — |
+| 8.1 | Скрипт `check_doc_links.py` + CI | medium | M | Progress | — |
 | 8.2 | Презентабельный README + сверка graphify | high | M | ToDo | 1.1, 2.x, 3.x, 4.1, 5.1, 6.1, 7.x, 8.1 |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
