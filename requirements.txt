@@ -11,5 +11,6 @@ Pillow>=10.0.0
 pytest>=8
 pytest-asyncio>=0.23
 pytest-mock>=3.12
+pytest-cov>=5,<6
 flake8>=7.0
 sentry-sdk>=2.0,<3

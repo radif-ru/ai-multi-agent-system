@@ -1,7 +1,20 @@
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "-ra -q -m 'not slow'"
+addopts = "-ra -q -m 'not slow' --cov=app --cov-report=term-missing --cov-fail-under=80"
 markers = [
     "slow: помечает тесты с бюджетом по времени (пропускаются по умолчанию; запустить с `-m slow`; см. `_docs/testing.md`)",
 ]
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "app/__main__.py",
+    "app/main.py",
+    "app/console/__init__.py",
+    "app/console_main.py",
+    "app/max_main.py",
+]
+
+[tool.coverage.report]
+show_missing = true
