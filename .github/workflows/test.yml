@@ -46,6 +46,9 @@ jobs:
       - name: Sprint sync (plan.md ↔ sprint files)
         run: python -m scripts.check_sprint_sync
 
+      - name: Doc links (relative links in markdown)
+        run: python -m scripts.check_doc_links
+
       - name: Tests + coverage gate (pytest)
         env:
           TELEGRAM_BOT_TOKEN: dummy-token-for-ci
