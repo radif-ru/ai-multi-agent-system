@@ -10,7 +10,7 @@
 
 | ID | Название | Файл | Ветка | Статус | Открыт | Закрыт |
 |:--:|----------|------|-------|:------:|:------:|:------:|
-| — | (нет активных спринтов) | — | — | — | — | — |
+| 12 | Качество, безопасность и процессы | [`sprints/12-quality-security-process.md`](./sprints/12-quality-security-process.md) | `feature/12-quality-security-process` | Active | 2026-06-29 | — |
 
 ### Закрытые
 
@@ -53,6 +53,7 @@
 | 09. MAX-адаптер | Closed | 0 / 0 / 11 | `sprints/09-max-adapter.md` |
 | 10. Аудит качества и устранение техдолга | Closed | 0 / 0 / 9 | `sprints/10-audit-and-quality.md` |
 | 11. Производительность и эффективность LLM | Closed | 0 / 0 / 20 | `sprints/11-performance.md` |
+| 12. Качество, безопасность и процессы | Active | 14 / 0 / 0 | `sprints/12-quality-security-process.md` |
 
 > Таблицу обновлять одновременно с переходами статусов в файлах спринтов (см. `process.md` §7.3 и §7.9).
 
