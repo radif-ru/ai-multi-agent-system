@@ -40,6 +40,9 @@ jobs:
       - name: Lint (flake8)
         run: flake8 app tests
 
+      - name: Env sync (Settings ↔ .env.example)
+        run: python -m scripts.check_env_sync
+
       - name: Tests + coverage gate (pytest)
         env:
           TELEGRAM_BOT_TOKEN: dummy-token-for-ci
