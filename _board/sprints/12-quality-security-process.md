@@ -246,7 +246,7 @@
 
 ### Задача 5.2. Заметка про per-user области видимости для MAX/API
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** low
 - **Объём:** XS
 - **Зависит от:** Задача 5.1
@@ -259,10 +259,10 @@
 
 #### Definition of Done
 
-- [ ] В `_docs/roadmap.md`/`_docs/security.md` зафиксирован принцип per-user видимости для будущих адаптеров.
-- [ ] Документация обновлена.
-- [ ] Тесты: `n/a`.
-- [ ] `git status` чист.
+- [x] В `_docs/roadmap.md` (Этап 5) и `_docs/security.md` §4.2 зафиксирован принцип per-user видимости для будущих адаптеров.
+- [x] Документация обновлена.
+- [x] Тесты: `n/a`.
+- [x] `git status` чист.
 
 ## 9. Этап 6. Усиление guard'ов sanitize (вход) / «bastion» (выход)
 
@@ -408,7 +408,7 @@
 | 3.2 | Скрипт `check_env_sync.py` + CI | medium | M | Done | 3.1 |
 | 4.1 | Bump Ollama-клиента + инструкции | medium | S | Done | — |
 | 5.1 | Per-user скоуп `read_file` + флаг консоли | high | M | Done | — |
-| 5.2 | Заметка про per-user для MAX/API | low | XS | Progress | 5.1 |
+| 5.2 | Заметка про per-user для MAX/API | low | XS | Done | 5.1 |
 | 6.1 | Усиление+документирование выходного guard'а | medium | S | ToDo | — |
 | 7.1 | Скилл `pull-request-discipline` | medium | S | ToDo | — |
 | 7.2 | Скилл `pr-review-discipline` | medium | S | ToDo | — |
@@ -421,6 +421,7 @@
 
 - **2026-06-29** — спринт открыт, ветка `feature/12-quality-security-process` создана от `main`.
 - **2026-06-29** — закрыта задача 1.1: уточнены §3.1/§3.4/§3.5 и добавлен §3.7 (порядок, дополнение спринта, маршрутизация находок).
+- **2026-06-29** — закрыта задача 5.2: зафиксирован принцип per-user видимости файлов для будущих адаптеров (Web/API) в `_docs/roadmap.md` Этап 5 и `_docs/security.md` §4.2.
 - **2026-06-29** — закрыта задача 5.1: per-user скоуп `read_file` для Telegram/MAX (корень = `Settings.get_user_tmp_dir`), флаг `CONSOLE_FILE_SCOPE` для консоли; обновлены `tools.md`/`security.md`/`stack.md`, добавлены тесты.
 - **2026-06-29** — закрыта задача 1.2: в `_docs/instructions.md` §7 добавлено правило «новый конфиг — через `.env`/`.env.example`» со ссылкой на `scripts/check_env_sync.py`.
 - **2026-06-29** — закрыта задача 3.2: добавлен `scripts/check_env_sync.py` (сравнение полей `Settings` с `.env.example`, исключение секретов), шаг «Env sync» в CI и `tests/test_check_env_sync.py`.
