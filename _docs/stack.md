@@ -18,7 +18,7 @@
 - **Модели**:
   - LLM: `qwen3.5:4b` (по умолчанию). Меняется через `OLLAMA_DEFAULT_MODEL` / `OLLAMA_AVAILABLE_MODELS`.
   - Embedding: `nomic-embed-text` (768 dimensions, по умолчанию). Меняется через `EMBEDDING_MODEL` + `EMBEDDING_DIMENSIONS`.
-  - Vision: `llava:7b` (для описания изображений). Меняется через `VISION_MODEL`.
+  - Vision: `gemma3:4b` (для описания изображений, см. `_docs/vision-models.md`). Меняется через `VISION_MODEL`.
 - **Клиент**: официальная `ollama` (async-вариант — `ollama.AsyncClient`).
 
 ### Обоснование выбора
@@ -133,7 +133,7 @@ addopts = "-ra -q"
 
 ```
 aiogram>=3.4,<4
-ollama>=0.3
+ollama>=0.6,<1
 pydantic-settings>=2.1,<3
 sqlite-vec>=0.1
 ddgs>=9.0

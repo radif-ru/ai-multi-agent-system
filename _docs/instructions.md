@@ -167,6 +167,8 @@ cp .env.example .env
 # отредактировать .env — вписать TELEGRAM_BOT_TOKEN
 
 # 3) Ollama
+# Установка/обновление сервера (Ubuntu) — системное действие, выполняется вручную:
+curl -fsSL https://ollama.com/install.sh | sh
 ollama serve &
 ollama pull qwen3.5:4b
 ollama pull nomic-embed-text
