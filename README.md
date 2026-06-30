@@ -1,6 +1,6 @@
 # ai-multi-agent-system
 
-[![tests](https://github.com/radif-ru/ai_multi_agent_system/actions/workflows/test.yml/badge.svg)](https://github.com/radif-ru/ai_multi_agent_system/actions/workflows/test.yml)
+[![tests](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml/badge.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
 
 **Локальная мульти-агентная система** на self-hosted LLM через [Ollama](https://ollama.com). Принимает задачу от пользователя и **выполняет цикл `thought → action → observation`** до финального ответа: думает, выбирает инструмент, наблюдает результат, повторяет. Ответ модели в цикле — строго JSON (`{"thought", "action", "args"}` либо `{"final_answer"}`).
 
@@ -55,12 +55,14 @@
 
 ## Целевая система и тюнинг под неё
 
-Дефолты в `.env.example` (размер контекста, параллелизм, выбор моделей, `keep_alive`, бюджет VRAM) **подобраны под мощную локальную систему**, на которой ведётся разработка:
+Дефолты в `.env.example` (размер контекста, параллелизм, выбор моделей, `keep_alive`, бюджет VRAM) **подобраны под мощную локальную систему**, на которой ведётся разработка. Это отдельная машина под локальный ИИ: тяжёлые задачи (LLM, эмбеддинги, vision, дообучение) гоняются локально, без облака — данные не покидают устройство, нет внешних API-ключей и лимитов (подробнее о железе — [radif.ru](https://radif.ru/)):
 
 - **Ноутбук:** ASUS ROG Strix SCAR 18 — флагманская мобильная рабочая платформа (быстрая DDR5-память, NVMe SSD (PCIe 5.0 x4), производительное охлаждение).
 - **GPU:** NVIDIA GeForce RTX 5090 Laptop — **24 ГБ GDDR7 VRAM**. Это ключевой ресурс: вся LLM-нагрузка (chat, эмбеддинги, vision) идёт через GPU, а 24 ГБ позволяют держать модель резидентной (`OLLAMA_KEEP_ALIVE=30m`), большой контекст (`OLLAMA_NUM_CTX=32768`) и параллельные сессии (`LLM_MAX_CONCURRENCY=2`).
 - **CPU:** Intel Core Ultra 9 275HX (Arrow Lake-HX) — 24 ядра / 24 потока + интегрированный NPU (Intel AI Boost). Быстрый prefill контекста, параллельная транскрипция речи (`faster-whisper`) и OCR (Tesseract). *Примечание:* текущий стек гоняет LLM на GPU через Ollama; NPU — задел на будущие сценарии локального ускорения.
 - **SSD:** Kingston FURY Renegade G5 4 ТБ (SFYR2S/4T0) — флагманский NVMe-накопитель формата M.2 с интерфейсом PCIe 5.0 x4 и архитектурой 3D TLC NAND. Рекордная производительность для ресурсоёмких приложений, игр и работы с большими объёмами данных.
+- **Экран:** 18″ 2.5K WQXGA (2560×1600, 16:10), ROG Nebula HDR Mini-LED, 240 Гц, 1200 нит, 100% DCI-P3 — комфорт для долгой работы с кодом и точная цветопередача для vision-задач.
+- **Порты:** 2× Thunderbolt 5 (USB-C), 3× USB 3.2 Gen 2 Type-A, HDMI 2.1, 2.5G LAN — в том числе для подключения внешних ускорителей.
 
 Поэтому дефолты «щедрые»: большой `OLLAMA_NUM_CTX`, высокий порог суммаризации (`AGENT_MAX_CONTEXT_CHARS=90000`), крупные документы целиком в контексте (`MAX_DOCUMENT_CHARS=80000`), резидентная модель и бюджет VRAM 24 ГБ для предупреждений (`OLLAMA_VRAM_BUDGET_GB=24.0`).
 
@@ -254,7 +256,7 @@ graphify hook install             # установить git-хук (авто-о
 - 🧪 [`_docs/testing.md`](./_docs/testing.md) — стратегия и категории тестов, моки, покрытие.
 - 🔭 [`_docs/observability.md`](./_docs/observability.md) — структурные JSON-логи, `trace_id`, маскирование секретов, error tracking (GlitchTip).
 - � [`_docs/security.md`](./_docs/security.md) — sanitize/bastion, per-user область видимости файлов, allowlist tools, маскирование секретов.
-- �📋 [`_board/README.md`](./_board/README.md) — процесс спринтов и задач.
+- �� [`_board/README.md`](./_board/README.md) — процесс спринтов и задач.
 - 📌 [`_docs/current-state.md`](./_docs/current-state.md) — фактическое состояние кода (читать перед правками).
 - 🗺️ [`_docs/roadmap.md`](./_docs/roadmap.md) — этапы развития (capability graph, внешние онлайн-LLM, web-адаптер, MAX-webhook и др.).
 - 🤖 [`.agents/README.md`](./.agents/README.md) — переиспользуемые промпты и скиллы для **AI-ассистента разработки**; здесь же разделение: `app/skills/` — runtime-скиллы бота, `.agents/skills/` — дисциплины ассистента.

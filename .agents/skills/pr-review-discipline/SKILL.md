@@ -5,7 +5,7 @@ description: "Ревью PR/MR: чек-лист (хирургичность, т�
 
 # Skill: pr-review-discipline
 
-Правила ревью pull request / merge request. Дополняет промпт `.agents/prompts/code-review.prompt.md` (чей-лист проверок) и добавляет процедуру исхода ревью.
+Правила ревью pull request / merge request. Дополняет промпт `.agents/prompts/code-review.prompt.md` (чек-лист проверок) и добавляет процедуру исхода ревью.
 
 ## Когда использовать
 
@@ -15,7 +15,7 @@ description: "Ревью PR/MR: чек-лист (хирургичность, т�
 
 ## Алгоритм
 
-1. **Проверить CI зелёный.** Если `pytest`/`flake8`/`check_env_sync`/`check_sprint_sync` красные — **reject** без детального ревью. Сначала чиним CI.
+1. **Проверить CI зелёный.** Если `pytest`/`flake8`/`check_env_sync`/`check_sprint_sync`/`check_doc_links` красные — **reject** без детального ревью. Сначала чиним CI.
 2. **Пройти чек-лист** из `.agents/prompts/code-review.prompt.md`:
    - **Хирургичность** — каждая изменённая строка соответствует задаче (`AGENTS.md` §3).
    - **Минимализм** — нет лишних абстракций/фич (`AGENTS.md` §2).

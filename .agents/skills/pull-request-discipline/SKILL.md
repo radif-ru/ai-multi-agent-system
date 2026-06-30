@@ -21,7 +21,8 @@ description: "Подготовка pull request (GitHub) / merge request (GitLab
    - `pytest -q` (включая порог `--cov-fail-under`);
    - `flake8 app tests`;
    - `python -m scripts.check_env_sync`;
-   - `python -m scripts.check_sprint_sync`.
+   - `python -m scripts.check_sprint_sync`;
+   - `python -m scripts.check_doc_links`.
 4. **Тело PR/MR:**
    - **Summary** — что сделано и зачем, 2–5 строк. Ссылка на спринт (`_board/sprints/<NN>-*.md`).
    - **Test plan** — как проверялось: `pytest -q`, smoke-test, конкретные тесты на новое поведение.
