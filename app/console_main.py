@@ -37,7 +37,9 @@ async def main() -> None:
             "DANGEROUS_TOOLS_ALLOWLIST=http_request,read_file"
         )
 
-    components: _Components = await _build_components(settings)
+    components: _Components = await _build_components(
+        settings, read_file_user_scoped=(settings.console_file_scope == "user")
+    )
 
     # Функция core.handle_user_task для текстовых сообщений
     async def core_handle_user_task(

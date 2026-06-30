@@ -40,7 +40,18 @@ jobs:
       - name: Lint (flake8)
         run: flake8 app tests
 
-      - name: Tests (pytest)
+      - name: Env sync (Settings ↔ .env.example)
+        run: python -m scripts.check_env_sync
+
+      - name: Sprint sync (plan.md ↔ sprint files)
+        run: python -m scripts.check_sprint_sync
+
+      - name: Doc links (relative links in markdown)
+        run: python -m scripts.check_doc_links
+
+      - name: Tests + coverage gate (pytest)
         env:
           TELEGRAM_BOT_TOKEN: dummy-token-for-ci
+        # Порог покрытия (--cov-fail-under) задан в pyproject.toml addopts:
+        # pytest падает (красный CI), если покрытие app/ ниже порога.
         run: pytest -q

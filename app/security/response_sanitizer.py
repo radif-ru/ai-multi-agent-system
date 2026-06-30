@@ -11,10 +11,20 @@ import re
 logger = logging.getLogger(__name__)
 
 # Паттерны системной информации для маскирования
+# Unix системные пути — только известные корни (home, etc, var, root, tmp, …),
+# чтобы не калечить легитимные проектные пути вроде /app/config.py.
+_UNIX_SYS_ROOTS = (
+    "home", "etc", "var", "root", "tmp", "usr", "opt", "srv",
+    "proc", "sys", "dev", "mnt", "media", "boot", "bin", "lib",
+    "run", "snap", "lost\\+found",
+)
+_UNIX_PATH_RE = re.compile(
+    rf"(?<!\S)/(?:{'|'.join(_UNIX_SYS_ROOTS)})(?:/[^<>\s\"'|?*]+)+",
+)
 _SENSITIVE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     # Полные пути к файлам (Unix и Windows)
     (re.compile(r"[a-zA-Z]:\\[^<>:\"|?*\n]+"), "[FILE_PATH]"),  # Windows: C:\path\to\file
-    (re.compile(r"/[^<>\s\"'|?*]+/[^<>\s\"'|?*]*"), "[FILE_PATH]"),  # Unix: /path/to/file
+    (_UNIX_PATH_RE, "[FILE_PATH]"),  # Unix: /home/user/file
     # Конфигурационные ключи (типичные форматы)
     (re.compile(r"[A-Z_]{2,}=\s*[\"']?[^\s\"']+[\"']?"), "[CONFIG_KEY]"),  # KEY=value
     (re.compile(r"[a-z][a-z_]+\.[a-z_]+\s*="), "[CONFIG_KEY]"),  # config.key=

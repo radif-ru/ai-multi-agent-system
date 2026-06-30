@@ -124,7 +124,8 @@ def sanitize_response(text: str) -> str
 
 1. **Полные пути к файлам:**
    - Windows: `C:\Users\username\Documents\file.txt` → `[FILE_PATH]`
-   - Unix: `/home/user/documents/file.txt` → `[FILE_PATH]`
+   - Unix (только системные корни): `/home/user/documents/file.txt` → `[FILE_PATH]`
+   - Список системных корней: `home`, `etc`, `var`, `root`, `tmp`, `usr`, `opt`, `srv`, `proc`, `sys`, `dev`, `mnt`, `media`, `boot`, `bin`, `lib`, `run`, `snap`. Проектные пути (`/app/config.py`, `/data/tmp/42/note.txt`) **не маскируются** — они не являются утечкой системной информации (спринт 12, задача 6.1).
 
 2. **Конфигурационные ключи:**
    - ENV-формат: `DATABASE_URL=postgresql://localhost/db` → `[CONFIG_KEY]`
@@ -144,6 +145,17 @@ def sanitize_response(text: str) -> str
 - `app/agents/executor.py` — метод `run`, перед возвратом `parsed.final_answer`.
 
 См. задачу 7.2 спринта 05.
+
+### 3.4 Контракт «sanitize на входе → bastion на выходе»
+
+Единый контракт безопасности диалога:
+
+| Этап | Модуль | Точка подключения | Назначение |
+|------|--------|-------------------|------------|
+| **Вход (sanitize)** | `InputSanitizer` | `app/adapters/telegram/handlers/messages.py`, `app/adapters/console/adapter.py` | Детекция prompt injection в пользовательском вводе до передачи в `core` |
+| **Выход (bastion)** | `ResponseSanitizer` | `app/agents/executor.py` (`run`, перед возвратом `final_answer`) | Маскирование утечек системной информации (пути, ключи, фрагменты промпта) в ответе модели |
+
+Принцип: пользовательский текст проверяется **до** попадания в агентный цикл, ответ модели — **после** генерации, но **до** отправки пользователю. Оба guard'а точечные: они не калечат легитимный текст, маскируя только подтверждённые паттерны утечек (спринт 12, задача 6.1).
 
 ## 4. Защита Tools
 
@@ -174,11 +186,18 @@ dangerous_tools_allowlist: list[str]  # список явно разрешённ
 - Проверка `netloc` на валидность URL.
 
 **`read_file` / `read_document`:**
-- Запрет на path traversal через `..` (реализовано в строках 64-65 `read_file.py` и 84-85 `read_document.py`).
-- Запрет на системные пути: `/etc`, `/sys`, `/proc`, `/root/.ssh`, `/home/*/.ssh` (реализовано в строках 71-75 `read_file.py` и 92-96 `read_document.py`).
-- Проверка, что путь находится внутри разрешённой директории (whitelist для `read_file`, `tmp_dir` для `read_document`).
+- Запрет на path traversal через `..`.
+- Запрет на системные пути: `/etc`, `/sys`, `/proc`, `/root/.ssh`, `/home/*/.ssh`.
+- Проверка, что путь находится внутри разрешённой директории (per-user корень или whitelist для `read_file`, `tmp_dir` для `read_document`).
 
-См. задачу 6.2 спринта 05.
+**Область видимости `read_file` по пользователю (per-user, спринт 12).** В мессенджер-каналах (Telegram, MAX) `read_file` собирается в per-user режиме: разрешённый корень вычисляется в момент вызова по `ctx.user_id` как `Settings.get_user_tmp_dir(user_id)` (`data/tmp/<user_id>` — туда же адаптеры скачивают файлы пользователя). Это исключает чтение чужих файлов и корня `data/`. В консольном режиме (локальный оператор) область задаётся флагом `CONSOLE_FILE_SCOPE`:
+
+- `all` (по умолчанию) — широкий доступ ко всему `data/` (оператор доверенный);
+- `user` — то же per-user ограничение, что и в мессенджерах.
+
+Решение принимается на сборке (`app/main.py:_build_components(read_file_user_scoped=...)`): Telegram/MAX передают `True`, консоль — `settings.console_file_scope == "user"`. **Будущие адаптеры (Web/API из `_docs/roadmap.md` этап 5) обязаны наследовать ту же per-user модель** — передавать `read_file_user_scoped=True` и использовать `Settings.get_user_tmp_dir(user_id)` как корень видимости файлов.
+
+См. задачу 6.2 спринта 05 и задачу 5.1 спринта 12.
 
 ## 5. Усиление System Prompt
 
@@ -214,13 +233,14 @@ dangerous_tools_allowlist: list[str]  # список явно разрешённ
 ### 5.3 ResponseSanitizer — что ловится
 
 - Windows-пути (`C:\...`, `D:\My Documents\...`) для всех букв диска.
-- Unix-пути с минимум двумя `/` (включая `~/.ssh/config`, т. к. в нём два `/`).
+- Unix-пути системных корней (`/home/...`, `/etc/...`, `/var/...`, `/root/...`, `/tmp/...` и др.) с минимум двумя `/`.
 - ENV-ключи (`KEY=value`, `KEY="value"`) и dot-конфиги (`a.b=...`).
 - Секции системного промпта (`# Запреты`, `# Правила безопасности`, `# Готовность`, `# Инструкции`) в любом регистре.
 - Идентичность `Ты — AI`, `Ты есть помощник`.
 
 ### 5.4 ResponseSanitizer — что НЕ ловится (known limitations)
 
+- **Проектные пути с ведущим `/`** (`/app/config.py`, `/data/tmp/42/note.txt`) — по дизайну (спринт 12, задача 6.1): Unix-паттерн маскирует только системные корни (`/home/`, `/etc/`, `/var/`, …). Проектные пути не являются утечкой.
 - **Пути с одним слешем** (`~/file.txt`, `app/config.py`) — regex требует двух `/`. Расширение паттерна без увеличения ложноположительных срабатываний — отдельная задача.
 - **API-ключи / токены без `=`** (например, голый `sk-XXXX`) — нет паттерна для голых секретов; полагаемся на правило «не выводить системную информацию» в `app/prompts/agent_system.md`.
 

@@ -51,6 +51,9 @@
 | `prompt-injection-defense` | Защита: InputSanitizer / ResponseSanitizer / FileIdMapper / allowlist. |
 | `documentation-discipline` | Только относительные пути, синхронизация ссылок, doc-before-code. |
 | `git-discipline` | Conventional Commits, ритуал задачи, зелёные `pytest`+`flake8` до коммита. |
+| `pull-request-discipline` | Подготовка PR/MR: ветка, тело, зелёные проверки, merge только пользователем. |
+| `pr-review-discipline` | Ревью PR/MR: чек-лист, approve/reject, запрет апрува при красном CI. |
+| `automation-discipline` | Детерминированное автоматизируй скриптом/CI-гейтом, а не ИИ; ИИ — для суждений. |
 
 ## Как пользоваться
 

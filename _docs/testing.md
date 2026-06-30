@@ -12,7 +12,7 @@
 - **`pytest`** — раннер.
 - **`pytest-asyncio`** — поддержка `async def test_...`.
 - **`pytest-mock`** — фикстура `mocker`.
-- Опционально: **`pytest-cov`** для покрытия.
+- **`pytest-cov`** — обязателен: покрытие измеряется на каждом прогоне, порог контролируется автоматически (`--cov-fail-under`).
 
 Конфиг (в `pyproject.toml`):
 
@@ -20,11 +20,17 @@
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "-ra -q"
+addopts = "-ra -q -m 'not slow' --cov=app --cov-report=term-missing --cov-fail-under=80"
 markers = [
     "slow: тесты с бюджетом по времени (например, регрессия `Archiver.archive` на 50 сообщениях, спринт 08 задача 4.1).",
 ]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/__main__.py", "app/main.py", "app/console/__init__.py", "app/console_main.py", "app/max_main.py"]
 ```
+
+Порог `--cov-fail-under=80` — жёсткий гейт: `pytest` падает при покрытии ниже 80%. Порог выставлен ниже фактического (~87%) с запасом на случай `skip` тестов `sqlite-vec` в CI; ужесточение — отдельной задачей.
 
 Маркер `slow` запускается вместе с остальными тестами. При необходимости отключить — `pytest -m "not slow"`.
 
@@ -194,8 +200,8 @@ def fake_message(mocker):
 
 ## 5. Покрытие
 
-- Цель на MVP: **70%+** по пакету `app/` (без `__main__.py` и `main.py`).
-- Модули `services/`, `agents/`, `tools/` — **≥ 85%**.
+- Автоматический гейт (`--cov-fail-under=80`): общее покрытие пакета `app/` не ниже **80%** (фактическое — ~87%). Из покрытия исключены точки входа: `app/__main__.py`, `app/main.py`, `app/console/__init__.py`, `app/console_main.py`, `app/max_main.py` (см. `[tool.coverage.run] omit` в `pyproject.toml`).
+- Ориентиры по критичным подпакетам: `services/`, `agents/`, `tools/` — **≥ 85%**.
 - Модуль `app/agents/protocol.py` (парсер JSON) — **100%** (мал, но критичен).
 
 ## 6. Запуск

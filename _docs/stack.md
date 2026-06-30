@@ -18,7 +18,7 @@
 - **Модели**:
   - LLM: `qwen3.5:4b` (по умолчанию). Меняется через `OLLAMA_DEFAULT_MODEL` / `OLLAMA_AVAILABLE_MODELS`.
   - Embedding: `nomic-embed-text` (768 dimensions, по умолчанию). Меняется через `EMBEDDING_MODEL` + `EMBEDDING_DIMENSIONS`.
-  - Vision: `llava:7b` (для описания изображений). Меняется через `VISION_MODEL`.
+  - Vision: `gemma3:4b` (для описания изображений, см. `_docs/vision-models.md`). Меняется через `VISION_MODEL`.
 - **Клиент**: официальная `ollama` (async-вариант — `ollama.AsyncClient`).
 
 ### Обоснование выбора
@@ -103,6 +103,8 @@
 | `LOG_LEVEL`                 | Уровень логов (`DEBUG\|INFO\|WARNING\|ERROR`).                   | `DEBUG`                   |
 | `LOG_FILE`                  | Путь к файлу логов.                                              | `logs/agent.log`          |
 | `LOG_LLM_CONTEXT`           | Логировать полный JSON контекста перед LLM-запросом.             | `true`                    |
+| `READ_FILE_MAX_BYTES`       | Лимит размера файла для tool `read_file`, байты (крупнее — `ToolError`). | `1048576` (1 MiB)         |
+| `CONSOLE_FILE_SCOPE`        | Область видимости `read_file` в консоли: `all` — весь `data/`; `user` — каталог пользователя. В Telegram/MAX всегда per-user. | `all`                     |
 
 ## 10. Тестирование
 
@@ -132,7 +134,7 @@ addopts = "-ra -q"
 
 ```
 aiogram>=3.4,<4
-ollama>=0.3
+ollama>=0.6,<1
 pydantic-settings>=2.1,<3
 sqlite-vec>=0.1
 ddgs>=9.0

@@ -129,3 +129,45 @@ def test_sanitize_response_known_limitations(text):
     assert "[FILE_PATH]" not in result, (
         f"кейс неожиданно замаскирован — обнови security.md §5: {text!r}"
     )
+
+
+# --- Спринт 12, задача 6.1: легитимный текст не калечится ---
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # Проектные пути с ведущим '/' — не системные корни.
+        "См. /app/config.py",
+        "Файл: /data/tmp/42/note.txt",
+        # Markdown-ссылки.
+        "[документация](/docs/architecture.md)",
+        # Обычный текст с косой чертой.
+        "Ответ: 10 / 2 = 5",
+    ],
+)
+def test_sanitize_response_legitimate_text_not_masked(text):
+    """Легитимный текст не маскируется после сужения паттернов (спринт 12.6.1)."""
+    result = sanitize_response(text)
+    assert "[FILE_PATH]" not in result, (
+        f"легитимный текст неожиданно замаскирован: {text!r}"
+    )
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "/home/user/.ssh/config",
+        "/etc/passwd",
+        "/var/log/app/agent.log",
+        "/root/.bashrc",
+        "/tmp/secret.txt",
+        "/usr/local/bin/agent",
+    ],
+)
+def test_sanitize_response_system_paths_still_masked(text):
+    """Системные пути по-прежнему маскируются после сужения паттернов (спринт 12.6.1)."""
+    result = sanitize_response(text)
+    assert "[FILE_PATH]" in result, (
+        f"системный путь не замаскирован: {text!r}"
+    )
