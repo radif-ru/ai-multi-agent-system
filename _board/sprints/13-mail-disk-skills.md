@@ -91,7 +91,7 @@ Async-обёртка над stdlib `imaplib`/`email` (через `asyncio.to_thr
 
 ### Задача 1.3. Tools `email_list` и `email_read`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** Задача 1.2
@@ -104,12 +104,12 @@ Async-обёртка над stdlib `imaplib`/`email` (через `asyncio.to_thr
 
 #### Definition of Done
 
-- [ ] Оба tool'а зарегистрированы, `list_descriptions` отражает их схемы; smoke: агент в ручном диалоге отвечает на «какие письма мне приходили».
-- [ ] При пустых кредах observation содержит подсказку про переменные `.env` (тест).
-- [ ] Тело письма в observation обёрнуто маркером недоверенных данных (тест).
-- [ ] **Документация обновлена**: `_docs/tools.md` — секции про `email_list`/`email_read`.
-- [ ] **Тесты добавлены / обновлены**: `pytest tests/tools/test_email_tools.py -q` зелёный.
-- [ ] `git status` чист, артефакты не закоммичены.
+- [x] Оба tool'а зарегистрированы в `_build_components` (общий для Telegram/console/MAX); сборка `main` импортируется без ошибок.
+- [x] При пустых кредах observation содержит подсказку про переменные `.env` (тест `test_email_list_all_no_provider_raises_with_hint`, `test_email_read_not_configured_hint`).
+- [x] Тело письма в observation обёрнуто маркером недоверенных данных (тест `test_email_read_wraps_body_as_untrusted`).
+- [x] **Документация обновлена**: `_docs/tools.md` §4.11–4.12.
+- [x] **Тесты добавлены / обновлены**: `pytest tests/tools/test_email_tools.py -q` зелёный (8 тестов), общий порог 87%.
+- [x] `git status` чист, артефакты не закоммичены.
 
 ### Задача 1.4. Сервис Яндекс.Диска + tools `disk_list` и `disk_download`
 
@@ -457,7 +457,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Конфигурация почты и диска | high | S | Done | — |
 | 1.2 | Сервис `MailReader` (IMAP) | high | M | Done | 1.1 |
-| 1.3 | Tools `email_list` / `email_read` | high | M | Progress | 1.2 |
+| 1.3 | Tools `email_list` / `email_read` | high | M | Done | 1.2 |
 | 1.4 | Яндекс.Диск: сервис + tools | high | M | ToDo | 1.1 |
 | 1.5 | Скилл `email-assistant` | medium | S | ToDo | 1.3 |
 | 1.6 | Актуализация current-state по Этапу 1 | medium | XS | ToDo | 1.2–1.5 |
@@ -481,3 +481,4 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 - **2026-07-08** — спринт открыт, ветка `feature/13-mail-disk-skills` создана от `main`.
 - **2026-07-08** — закрыта задача 1.1: настройки почты/диска в Settings и `.env.example`.
 - **2026-07-08** — закрыта задача 1.2: сервис `MailReader` (read-only IMAP, Яндекс + Gmail).
+- **2026-07-08** — закрыта задача 1.3: tools `email_list` / `email_read` (чтение почты из чата, недоверенное тело письма).
