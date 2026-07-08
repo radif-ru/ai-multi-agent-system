@@ -215,6 +215,22 @@ class ToolRegistry:
 - **Реализация:** `MailReader(ctx.settings).read_message(provider, uid)`; извлекается text/plain (fallback — text/html без тегов).
 - **Ошибки:** неизвестный провайдер / пустой uid → `ToolError`; почта не подключена / неверный пароль / недоступна → `ToolError` (человекочитаемый текст).
 
+### 4.13 `disk_list`
+
+- **Описание:** Список файлов и папок на Яндекс.Диске (read-only, REST API).
+- **Args:** `{"path": "<папка>"}` (опционально, по умолчанию `/`).
+- **Return:** JSON `{"items": [{name, path, type, size, modified}, ...]}`.
+- **Реализация:** `YandexDiskReader(ctx.settings).list_path(path)` → `GET /v1/disk/resources` с заголовком `Authorization: OAuth <token>` (см. `app/services/yandex_disk.py`).
+- **Ошибки:** диск не подключён → `ToolError` с подсказкой заполнить `YANDEX_DISK_TOKEN`; токен отклонён (401/403) → `ToolError`; путь не найден (404) → `ToolError`; сеть/таймаут → `ToolError`.
+
+### 4.14 `disk_download`
+
+- **Описание:** Скачать файл с Яндекс.Диска в рабочий каталог пользователя и вернуть `file_id` для чтения через `read_document`.
+- **Args:** `{"path": "<полный путь к файлу>"}`.
+- **Return:** JSON `{file_id, name, hint}`. Дальше файл читается через `read_document` по `file_id`.
+- **Реализация:** `YandexDiskReader.download(path, dest_dir)` (ссылка `/resources/download` → потоковое скачивание с лимитом `TELEGRAM_MAX_FILE_MB`) в `Settings.get_user_tmp_dir(user_id)` (изоляция по пользователю); `file_id` — через `FileIdMapper`.
+- **Ошибки:** пустой path → `ToolError`; файл больше лимита → `ToolError`; диск не подключён / токен отклонён / недоступен → `ToolError`.
+
 ## 5. Как добавить новый tool
 
 1. Создать `app/tools/<name>.py` по контракту §2.
