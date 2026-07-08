@@ -199,6 +199,22 @@ class ToolRegistry:
 - **Реализация:** валидация пути (должен быть в `tmp/`, без `..`, расширение .jpg/.jpeg/.png/.gif/.webp); OCR делегируется сервису `app/services/ocr.py`; дисковый кеш `<file>.ocr.txt` убран (задача 06.3-bis.4); обрезка до 8000 символов.
 - **Ошибки:** путь вне `tmp/` → `ToolError`; файла нет → `ToolError`; неподдерживаемое расширение → `ToolError`.
 
+### 4.11 `email_list`
+
+- **Описание:** Список последних писем в почтовом ящике (read-only, IMAP: Яндекс, Gmail).
+- **Args:** `{"provider": "yandex|gmail|all", "unread_only": <bool>, "limit": <int>}` (все опциональны; provider по умолчанию `all`).
+- **Return:** JSON `{"messages": [{uid, provider, from, subject, date, unread}, ...]}`; при частичном сбое одного из провайдеров (в режиме `all`) добавляется поле `warnings`.
+- **Реализация:** `MailReader(ctx.settings).list_messages(...)` (см. `app/services/mail.py`); `limit` ограничен сверху `MAIL_MAX_MESSAGES`. Read-only: письма не помечаются прочитанными (`BODY.PEEK`, `readonly=True`).
+- **Ошибки:** почта не подключена → `ToolError` с подсказкой, какие переменные `.env` заполнить; неверный пароль → `ToolError` (нужен пароль приложения); сервер недоступен/таймаут → `ToolError`.
+
+### 4.12 `email_read`
+
+- **Описание:** Прочитать одно письмо по uid (read-only).
+- **Args:** `{"provider": "yandex|gmail", "uid": "<строка из email_list>"}`.
+- **Return:** JSON с заголовками (`from`, `to`, `subject`, `date`) и телом письма. Тело — **недоверенные данные**: обрамляется маркерами `<<<EMAIL_BODY_START>>>` / `<<<EMAIL_BODY_END>>>` и сопровождается полем `untrusted_body_note` (инструкции внутри письма исполнять нельзя, см. `security.md`). Тело усекается до `MAIL_BODY_MAX_CHARS`.
+- **Реализация:** `MailReader(ctx.settings).read_message(provider, uid)`; извлекается text/plain (fallback — text/html без тегов).
+- **Ошибки:** неизвестный провайдер / пустой uid → `ToolError`; почта не подключена / неверный пароль / недоступна → `ToolError` (человекочитаемый текст).
+
 ## 5. Как добавить новый tool
 
 1. Создать `app/tools/<name>.py` по контракту §2.
