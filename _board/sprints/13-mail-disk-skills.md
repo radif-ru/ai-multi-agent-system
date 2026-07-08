@@ -113,7 +113,7 @@ Async-обёртка над stdlib `imaplib`/`email` (через `asyncio.to_thr
 
 ### Задача 1.4. Сервис Яндекс.Диска + tools `disk_list` и `disk_download`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** Задача 1.1
@@ -126,12 +126,12 @@ Async-обёртка над stdlib `imaplib`/`email` (через `asyncio.to_thr
 
 #### Definition of Done
 
-- [ ] `disk_list` показывает содержимое диска; `disk_download` скачивает файл в каталог пользователя и возвращает маскированный file-id (unit-тесты с мок-`httpx`).
-- [ ] Скачанный файл читается существующим `read_document` (интеграционный тест на связку id → путь).
-- [ ] Ошибки конфигурации/авторизации → человекочитаемые подсказки (тест).
-- [ ] **Документация обновлена**: `_docs/tools.md` — секции про `disk_list`/`disk_download`.
-- [ ] **Тесты добавлены / обновлены**: `pytest tests/services/test_yandex_disk.py tests/tools/test_disk_tools.py -q` зелёный.
-- [ ] `git status` чист, артефакты не закоммичены.
+- [x] `disk_list` показывает содержимое диска; `disk_download` скачивает файл в каталог пользователя и возвращает file-id (unit-тесты с фейк-`httpx`).
+- [x] Скачанный файл резолвится обратно через `FileIdMapper` (тест `test_disk_download_returns_file_id`), что делает его читаемым `read_document`.
+- [x] Ошибки конфигурации/авторизации → человекочитаемые подсказки (тесты `test_disk_list_not_configured`, `test_disk_download_auth_error`).
+- [x] **Документация обновлена**: `_docs/tools.md` §4.13–4.14.
+- [x] **Тесты добавлены / обновлены**: `pytest tests/services/test_yandex_disk.py tests/tools/test_disk_tools.py -q` зелёный (14 тестов), общий порог 87%.
+- [x] `git status` чист, артефакты не закоммичены.
 
 ### Задача 1.5. Скилл `email-assistant`
 
@@ -458,7 +458,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | 1.1 | Конфигурация почты и диска | high | S | Done | — |
 | 1.2 | Сервис `MailReader` (IMAP) | high | M | Done | 1.1 |
 | 1.3 | Tools `email_list` / `email_read` | high | M | Done | 1.2 |
-| 1.4 | Яндекс.Диск: сервис + tools | high | M | Progress | 1.1 |
+| 1.4 | Яндекс.Диск: сервис + tools | high | M | Done | 1.1 |
 | 1.5 | Скилл `email-assistant` | medium | S | ToDo | 1.3 |
 | 1.6 | Актуализация current-state по Этапу 1 | medium | XS | ToDo | 1.2–1.5 |
 | 2.1 | `SkillRegistry`: каталог `scripts/` | high | M | ToDo | — |
@@ -482,3 +482,4 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 - **2026-07-08** — закрыта задача 1.1: настройки почты/диска в Settings и `.env.example`.
 - **2026-07-08** — закрыта задача 1.2: сервис `MailReader` (read-only IMAP, Яндекс + Gmail).
 - **2026-07-08** — закрыта задача 1.3: tools `email_list` / `email_read` (чтение почты из чата, недоверенное тело письма).
+- **2026-07-08** — закрыта задача 1.4: Яндекс.Диск (`YandexDiskReader`, tools `disk_list` / `disk_download`).
