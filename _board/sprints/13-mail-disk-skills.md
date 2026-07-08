@@ -200,7 +200,7 @@ Async-обёртка над stdlib `imaplib`/`email` (через `asyncio.to_thr
 
 ### Задача 2.2. Tool `run_skill_script` (sandbox-раннер)
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** L
 - **Зависит от:** Задача 2.1
@@ -462,7 +462,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | 1.5 | Скилл `email-assistant` | medium | S | Done | 1.3 |
 | 1.6 | Актуализация current-state по Этапу 1 | medium | XS | Done | 1.2–1.5 |
 | 2.1 | `SkillRegistry`: каталог `scripts/` | high | M | Done | — |
-| 2.2 | Tool `run_skill_script` | high | L | ToDo | 2.1 |
+| 2.2 | Tool `run_skill_script` | high | L | Progress | 2.1 |
 | 2.3 | Контракт скиллов в документации | medium | S | ToDo | 2.2 |
 | 2.4 | Скилл со скриптом `mail-digest` | medium | S | ToDo | 1.3, 2.2 |
 | 3.1 | Скилл `humanizer` | medium | S | ToDo | — |
