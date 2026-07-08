@@ -70,7 +70,7 @@
 
 ### Задача 1.2. Сервис `MailReader` (IMAP, Яндекс + Gmail)
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** Задача 1.1
@@ -456,7 +456,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | #   | Задача | Приоритет | Объём | Статус | Зависит от |
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Конфигурация почты и диска | high | S | Done | — |
-| 1.2 | Сервис `MailReader` (IMAP) | high | M | ToDo | 1.1 |
+| 1.2 | Сервис `MailReader` (IMAP) | high | M | Progress | 1.1 |
 | 1.3 | Tools `email_list` / `email_read` | high | M | ToDo | 1.2 |
 | 1.4 | Яндекс.Диск: сервис + tools | high | M | ToDo | 1.1 |
 | 1.5 | Скилл `email-assistant` | medium | S | ToDo | 1.3 |
