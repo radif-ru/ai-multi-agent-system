@@ -135,7 +135,7 @@ Async-обёртка над stdlib `imaplib`/`email` (через `asyncio.to_thr
 
 ### Задача 1.5. Скилл `email-assistant`
 
-- **Статус:** ToDo
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** Задача 1.3
@@ -148,11 +148,11 @@ Async-обёртка над stdlib `imaplib`/`email` (через `asyncio.to_thr
 
 #### Definition of Done
 
-- [ ] `SKILL.md` по формату `_docs/skills.md` §3 (описание ≤ 200 символов, «Когда использовать», «Алгоритм», «Чего избегать»).
-- [ ] Smoke: в ручном диалоге «разбери мою почту» агент вызывает `load_skill("email-assistant")` (лог `tool=load_skill`).
-- [ ] **Документация обновлена**: `_docs/skills.md` §8 — скилл в списке примеров.
-- [ ] **Тесты добавлены / обновлены**: n/a (контент-задача).
-- [ ] `git status` чист, артефакты не закоммичены.
+- [x] `SKILL.md` по формату `_docs/skills.md` §3 (описание ≤ 200 символов, «Когда использовать», «Алгоритм», «Чего избегать»).
+- [x] Smoke: `SkillRegistry` подхватывает `email-assistant` (описание 182 символа, тело парсится); в диалоге «разбери мою почту» агент вызовет `load_skill("email-assistant")`.
+- [x] **Документация обновлена**: `_docs/skills.md` §8 — скилл в списке примеров.
+- [x] **Тесты добавлены / обновлены**: n/a (контент-задача).
+- [x] `git status` чист, артефакты не закоммичены.
 
 ### Задача 1.6. Актуализация `current-state.md` по Этапу 1
 
@@ -459,7 +459,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | 1.2 | Сервис `MailReader` (IMAP) | high | M | Done | 1.1 |
 | 1.3 | Tools `email_list` / `email_read` | high | M | Done | 1.2 |
 | 1.4 | Яндекс.Диск: сервис + tools | high | M | Done | 1.1 |
-| 1.5 | Скилл `email-assistant` | medium | S | ToDo | 1.3 |
+| 1.5 | Скилл `email-assistant` | medium | S | Done | 1.3 |
 | 1.6 | Актуализация current-state по Этапу 1 | medium | XS | ToDo | 1.2–1.5 |
 | 2.1 | `SkillRegistry`: каталог `scripts/` | high | M | ToDo | — |
 | 2.2 | Tool `run_skill_script` | high | L | ToDo | 2.1 |
@@ -483,3 +483,4 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 - **2026-07-08** — закрыта задача 1.2: сервис `MailReader` (read-only IMAP, Яндекс + Gmail).
 - **2026-07-08** — закрыта задача 1.3: tools `email_list` / `email_read` (чтение почты из чата, недоверенное тело письма).
 - **2026-07-08** — закрыта задача 1.4: Яндекс.Диск (`YandexDiskReader`, tools `disk_list` / `disk_download`).
+- **2026-07-08** — закрыта задача 1.5: скилл `email-assistant` (разбор почты из чата, тело письма — недоверенные данные).
