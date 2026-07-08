@@ -48,6 +48,8 @@ from app.tools.memory_search import MemorySearchTool
 from app.tools.ocr_image import OcrImageTool
 from app.tools.read_document import ReadDocumentTool
 from app.tools.read_file import ReadFileTool
+from app.tools.email_list import EmailListTool
+from app.tools.email_read import EmailReadTool
 from app.tools.registry import ToolRegistry
 from app.tools.web_search import WebSearchTool
 from app.tools.weather import WeatherTool
@@ -191,6 +193,8 @@ async def _build_components(
             DescribeImageTool(tmp_dir=settings.tmp_base_dir),
             OcrImageTool(tmp_dir=settings.tmp_base_dir, max_output_chars=settings.max_tool_output_chars),
             WeatherTool(max_output_chars=settings.max_tool_output_chars),
+            EmailListTool(max_output_chars=settings.max_tool_output_chars),
+            EmailReadTool(max_output_chars=settings.max_tool_output_chars),
         ],
         max_output_chars=settings.max_tool_output_chars
     )
