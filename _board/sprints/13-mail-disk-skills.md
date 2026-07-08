@@ -91,7 +91,7 @@ Async-обёртка над stdlib `imaplib`/`email` (через `asyncio.to_thr
 
 ### Задача 1.3. Tools `email_list` и `email_read`
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** Задача 1.2
@@ -457,7 +457,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Конфигурация почты и диска | high | S | Done | — |
 | 1.2 | Сервис `MailReader` (IMAP) | high | M | Done | 1.1 |
-| 1.3 | Tools `email_list` / `email_read` | high | M | ToDo | 1.2 |
+| 1.3 | Tools `email_list` / `email_read` | high | M | Progress | 1.2 |
 | 1.4 | Яндекс.Диск: сервис + tools | high | M | ToDo | 1.1 |
 | 1.5 | Скилл `email-assistant` | medium | S | ToDo | 1.3 |
 | 1.6 | Актуализация current-state по Этапу 1 | medium | XS | ToDo | 1.2–1.5 |
