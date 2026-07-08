@@ -180,7 +180,7 @@ Async-обёртка над stdlib `imaplib`/`email` (через `asyncio.to_thr
 
 ### Задача 2.1. Расширение `SkillRegistry`: каталог `scripts/`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** —
@@ -193,10 +193,10 @@ Async-обёртка над stdlib `imaplib`/`email` (через `asyncio.to_thr
 
 #### Definition of Done
 
-- [ ] `SkillRegistry.list_scripts` возвращает скрипты скилла; скиллы без `scripts/` работают как раньше (обратная совместимость, тест).
-- [ ] **Документация обновлена**: `_docs/skills.md` §2 (структура каталога) — в задаче 2.3 разом.
-- [ ] **Тесты добавлены / обновлены**: unit-тесты на реестр; `pytest -q` зелёный.
-- [ ] `git status` чист, артефакты не закоммичены.
+- [x] `SkillRegistry.list_scripts` возвращает скрипты скилла; скиллы без `scripts/` работают как раньше (обратная совместимость, тест). Добавлен `resolve_script` (резолв + запрет traversal) для задачи 2.2.
+- [x] **Документация обновлена**: `_docs/skills.md` §2 (структура каталога) — в задаче 2.3 разом.
+- [x] **Тесты добавлены / обновлены**: unit-тесты на реестр (7 новых); `pytest -q` зелёный (87.6%).
+- [x] `git status` чист, артефакты не закоммичены.
 
 ### Задача 2.2. Tool `run_skill_script` (sandbox-раннер)
 
@@ -461,7 +461,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | 1.4 | Яндекс.Диск: сервис + tools | high | M | Done | 1.1 |
 | 1.5 | Скилл `email-assistant` | medium | S | Done | 1.3 |
 | 1.6 | Актуализация current-state по Этапу 1 | medium | XS | Done | 1.2–1.5 |
-| 2.1 | `SkillRegistry`: каталог `scripts/` | high | M | Progress | — |
+| 2.1 | `SkillRegistry`: каталог `scripts/` | high | M | Done | — |
 | 2.2 | Tool `run_skill_script` | high | L | ToDo | 2.1 |
 | 2.3 | Контракт скиллов в документации | medium | S | ToDo | 2.2 |
 | 2.4 | Скилл со скриптом `mail-digest` | medium | S | ToDo | 1.3, 2.2 |
@@ -485,3 +485,4 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 - **2026-07-08** — закрыта задача 1.4: Яндекс.Диск (`YandexDiskReader`, tools `disk_list` / `disk_download`).
 - **2026-07-08** — закрыта задача 1.5: скилл `email-assistant` (разбор почты из чата, тело письма — недоверенные данные).
 - **2026-07-08** — закрыта задача 1.6: Этап 1 зафиксирован в `_docs/current-state.md` §1.9. Этап 1 закрыт.
+- **2026-07-08** — закрыта задача 2.1: `SkillRegistry.list_scripts` / `resolve_script` (обнаружение скриптов скилла, защита от traversal).

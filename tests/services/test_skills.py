@@ -167,3 +167,68 @@ def test_yaml_frontmatter_empty_description_raises(tmp_path: Path) -> None:
     reg = SkillRegistry(tmp_path)
     with pytest.raises(ValueError, match="Пустое описание"):
         reg.load()
+
+
+def _write_script(root: Path, skill: str, script: str, body: str = "x") -> None:
+    scripts_dir = root / skill / "scripts"
+    scripts_dir.mkdir(parents=True, exist_ok=True)
+    (scripts_dir / script).write_text(body, encoding="utf-8")
+
+
+def test_list_scripts_returns_sorted_py_and_sh(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "with-scripts", "Description: ok\n\nТело.\n")
+    _write_script(tmp_path, "with-scripts", "stats.py")
+    _write_script(tmp_path, "with-scripts", "run.sh")
+    _write_script(tmp_path, "with-scripts", "notes.txt")  # игнорируется
+
+    reg = SkillRegistry(tmp_path)
+    reg.load()
+
+    assert reg.list_scripts("with-scripts") == ["run.sh", "stats.py"]
+
+
+def test_list_scripts_empty_for_skill_without_scripts_dir(tmp_path: Path) -> None:
+    """Обратная совместимость: скилл без scripts/ работает как раньше."""
+    _write_skill(tmp_path, "plain", "Description: ok\n\nТело.\n")
+    reg = SkillRegistry(tmp_path)
+    reg.load()
+    assert reg.list_scripts("plain") == []
+
+
+def test_list_scripts_unknown_skill_raises_key_error(tmp_path: Path) -> None:
+    reg = SkillRegistry(tmp_path)
+    reg.load()
+    with pytest.raises(KeyError):
+        reg.list_scripts("missing")
+
+
+def test_resolve_script_returns_path_inside_scripts(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "with-scripts", "Description: ok\n\nТело.\n")
+    _write_script(tmp_path, "with-scripts", "stats.py")
+    reg = SkillRegistry(tmp_path)
+    reg.load()
+
+    path = reg.resolve_script("with-scripts", "stats.py")
+    assert path.name == "stats.py"
+    assert path.parent.name == "scripts"
+
+
+def test_resolve_script_rejects_traversal(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "with-scripts", "Description: ok\n\nТело.\n")
+    _write_script(tmp_path, "with-scripts", "stats.py")
+    (tmp_path / "with-scripts" / "SECRET.md").write_text("x", encoding="utf-8")
+    reg = SkillRegistry(tmp_path)
+    reg.load()
+
+    with pytest.raises(ValueError, match="scripts/"):
+        reg.resolve_script("with-scripts", "../SECRET.md")
+
+
+def test_resolve_script_missing_file_raises(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "with-scripts", "Description: ok\n\nТело.\n")
+    (tmp_path / "with-scripts" / "scripts").mkdir(parents=True)
+    reg = SkillRegistry(tmp_path)
+    reg.load()
+
+    with pytest.raises(FileNotFoundError):
+        reg.resolve_script("with-scripts", "nope.py")
