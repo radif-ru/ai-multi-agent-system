@@ -42,6 +42,14 @@ ENV_KEYS = (
     "LOG_LEVEL",
     "LOG_FILE",
     "LOG_LLM_CONTEXT",
+    "YANDEX_MAIL_USER",
+    "YANDEX_MAIL_APP_PASSWORD",
+    "GMAIL_USER",
+    "GMAIL_APP_PASSWORD",
+    "YANDEX_DISK_TOKEN",
+    "MAIL_IMAP_TIMEOUT",
+    "MAIL_MAX_MESSAGES",
+    "MAIL_BODY_MAX_CHARS",
 )
 
 
@@ -244,6 +252,52 @@ def test_read_file_max_bytes_from_env(base_env):
 def test_read_file_max_bytes_non_positive_raises(base_env):
     with pytest.raises(ValidationError):
         _build(base_env, READ_FILE_MAX_BYTES=0)
+
+
+# --- Mail и Яндекс.Диск (спринт 13, задача 1.1) ---
+
+
+def test_mail_disk_defaults_unconfigured(base_env):
+    """Без кредов бот стартует: все интеграции опциональны."""
+    s = _build(base_env)
+    assert s.yandex_mail_user is None
+    assert s.yandex_mail_app_password is None
+    assert s.gmail_user is None
+    assert s.gmail_app_password is None
+    assert s.yandex_disk_token is None
+    assert s.mail_imap_timeout == 15.0
+    assert s.mail_max_messages == 10
+    assert s.mail_body_max_chars == 4000
+
+
+def test_mail_fields_loaded_from_env(base_env):
+    s = _build(
+        base_env,
+        YANDEX_MAIL_USER="user@yandex.ru",
+        YANDEX_MAIL_APP_PASSWORD="app-pass",
+        GMAIL_USER="user@gmail.com",
+        GMAIL_APP_PASSWORD="gmail-pass",
+        YANDEX_DISK_TOKEN="oauth-token",
+        MAIL_IMAP_TIMEOUT=5,
+        MAIL_MAX_MESSAGES=3,
+        MAIL_BODY_MAX_CHARS=1000,
+    )
+    assert s.yandex_mail_user == "user@yandex.ru"
+    assert s.yandex_mail_app_password == "app-pass"
+    assert s.gmail_user == "user@gmail.com"
+    assert s.gmail_app_password == "gmail-pass"
+    assert s.yandex_disk_token == "oauth-token"
+    assert s.mail_imap_timeout == 5.0
+    assert s.mail_max_messages == 3
+    assert s.mail_body_max_chars == 1000
+
+
+@pytest.mark.parametrize(
+    "key", ["MAIL_IMAP_TIMEOUT", "MAIL_MAX_MESSAGES", "MAIL_BODY_MAX_CHARS"]
+)
+def test_mail_numeric_non_positive_raises(base_env, key):
+    with pytest.raises(ValidationError):
+        _build(base_env, **{key: 0})
 
 
 # --- console_file_scope (спринт 12, задача 5.1) ---
