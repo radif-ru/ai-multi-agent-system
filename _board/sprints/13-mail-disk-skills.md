@@ -180,7 +180,7 @@ Async-обёртка над stdlib `imaplib`/`email` (через `asyncio.to_thr
 
 ### Задача 2.1. Расширение `SkillRegistry`: каталог `scripts/`
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** —
@@ -461,7 +461,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | 1.4 | Яндекс.Диск: сервис + tools | high | M | Done | 1.1 |
 | 1.5 | Скилл `email-assistant` | medium | S | Done | 1.3 |
 | 1.6 | Актуализация current-state по Этапу 1 | medium | XS | Done | 1.2–1.5 |
-| 2.1 | `SkillRegistry`: каталог `scripts/` | high | M | ToDo | — |
+| 2.1 | `SkillRegistry`: каталог `scripts/` | high | M | Progress | — |
 | 2.2 | Tool `run_skill_script` | high | L | ToDo | 2.1 |
 | 2.3 | Контракт скиллов в документации | medium | S | ToDo | 2.2 |
 | 2.4 | Скилл со скриптом `mail-digest` | medium | S | ToDo | 1.3, 2.2 |
