@@ -25,6 +25,8 @@ CHANNEL="${CHANNEL:-telegram}"         # telegram | max | console
 
 # Функция graceful shutdown
 shutdown() {
+    # Снимаем trap, чтобы не поймать собственный kill -- -$$
+    trap - SIGINT SIGTERM
     echo "Получен сигнал завершения, останавливаю все процессы..."
     # Убиваем всю группу процессов (включая ollama serve, если запущен)
     kill -- -$$ 2>/dev/null || true

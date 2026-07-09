@@ -11,6 +11,7 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError
 
 from app.adapters.telegram.handlers import messages as messages_module
 from app.adapters.telegram.handlers.messages import (
@@ -303,3 +304,56 @@ async def test_no_reply_without_reply_to_message(patch_handle_user_task, event_b
     assert len(history) == 2
     assert "[В ответ на:" not in history[0]["content"]
     answer.assert_awaited_once_with("ответ", parse_mode=None)
+
+
+@pytest.mark.asyncio
+async def test_send_with_fallback_retries_on_network_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """При сетевой ошибке делаем retry до 3 попыток."""
+    from app.adapters.telegram.handlers.messages import _send_with_fallback
+
+    message = MagicMock()
+    message.answer = AsyncMock(
+        side_effect=TelegramNetworkError(method=MagicMock(), message="Cannot connect")
+    )
+    monkeypatch.setattr(messages_module.asyncio, "sleep", AsyncMock())
+
+    with pytest.raises(TelegramNetworkError):
+        await _send_with_fallback(message, "test", parse_mode=None)
+
+    assert message.answer.await_count == 3
+
+
+@pytest.mark.asyncio
+async def test_send_with_fallback_recovers_after_retry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Первая попытка падает с сетевой ошибкой, вторая — успешна."""
+    from app.adapters.telegram.handlers.messages import _send_with_fallback
+
+    message = MagicMock()
+    message.answer = AsyncMock(
+        side_effect=[TelegramNetworkError(method=MagicMock(), message="network"), None]
+    )
+    monkeypatch.setattr(messages_module.asyncio, "sleep", AsyncMock())
+
+    await _send_with_fallback(message, "test", parse_mode=None)
+
+    assert message.answer.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_send_with_fallback_falls_back_on_bad_request() -> None:
+    """При TelegramBadRequest (ошибка парсинга) — fallback на ParseMode.NONE."""
+    from app.adapters.telegram.handlers.messages import _send_with_fallback
+
+    message = MagicMock()
+    message.answer = AsyncMock(
+        side_effect=[TelegramBadRequest(method=MagicMock(), message="bad request"), None]
+    )
+
+    await _send_with_fallback(message, "test", parse_mode="HTML")
+
+    assert message.answer.await_count == 2
+    assert message.answer.await_args_list[1].kwargs["parse_mode"] is None

@@ -18,12 +18,14 @@
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import logging
 from typing import TYPE_CHECKING, Awaitable, Callable
 
+import aiohttp
 from aiogram import Router
-from aiogram.exceptions import TelegramBadRequest
+from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError
 from aiogram.types import Message
 
 from app.adapters.telegram.files import FileTooLargeError, download_telegram_file
@@ -57,12 +59,31 @@ TELEGRAM_MAX_MESSAGE_LENGTH = 4096
 
 
 async def _send_with_fallback(message: Message, text: str, parse_mode) -> None:
-    """Отправить сообщение с fallback на ParseMode.NONE при ошибке парсинга."""
-    try:
-        await message.answer(text, parse_mode=parse_mode)
-    except TelegramBadRequest:
-        logger.warning("Ошибка парсинга Telegram, fallback на ParseMode.NONE")
-        await message.answer(text, parse_mode=None)
+    """Отправить сообщение с fallback на ParseMode.NONE при ошибке парсинга.
+
+    При сетевой ошибке (TelegramNetworkError / aiohttp.ClientError) —
+    retry до 3 попыток с задержкой 2с. Если все попытки провалились —
+    логируем ошибку и пробрасываем исключение (error handler aiogram
+    покажет пользователю «Что-то пошло не так»).
+    """
+    for attempt in range(3):
+        try:
+            await message.answer(text, parse_mode=parse_mode)
+            return
+        except TelegramBadRequest:
+            logger.warning("Ошибка парсинга Telegram, fallback на ParseMode.NONE")
+            await message.answer(text, parse_mode=None)
+            return
+        except (aiohttp.ClientError, OSError, TelegramNetworkError) as exc:
+            if attempt < 2:
+                logger.warning(
+                    "send: сетевая ошибка (попытка %d/3): %s",
+                    attempt + 1, exc,
+                )
+                await asyncio.sleep(2)
+            else:
+                logger.error("send: не удалось отправить после 3 попыток: %s", exc)
+                raise
 
 NON_TEXT_REPLY = "В MVP я понимаю только текст."
 TOO_LONG_INPUT_REPLY = "Слишком длинный запрос, сократите формулировку."

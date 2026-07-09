@@ -17,6 +17,7 @@ from pathlib import Path
 
 import aiohttp
 from aiogram import Bot, Dispatcher
+from aiogram.exceptions import TelegramNetworkError
 from aiogram.types import BotCommand
 
 from app.adapters.telegram.handlers.commands import build_commands_router
@@ -347,8 +348,29 @@ async def _start_polling(bot: Bot, dispatcher: Dispatcher) -> None:
 
     Вынесено отдельной функцией, чтобы smoke-тест мог замокать всю
     сетевую часть одной точкой.
+
+    ``set_my_commands`` — некритичная операция (регистрация меню команд в
+    Telegram). При сетевом сбое делаем retry, затем логируем предупреждение
+    и запускаем polling без перерегистрации команд — меню останется
+    предыдущим, но бот будет работать.
     """
-    await bot.set_my_commands(_BOT_COMMANDS)
+    for attempt in range(3):
+        try:
+            await bot.set_my_commands(_BOT_COMMANDS)
+            break
+        except (aiohttp.ClientError, OSError, TelegramNetworkError) as exc:
+            if attempt < 2:
+                logger.warning(
+                    "set_my_commands: сетевая ошибка (попытка %d/3): %s",
+                    attempt + 1, exc,
+                )
+                await asyncio.sleep(2)
+            else:
+                logger.warning(
+                    "set_my_commands: не удалось после 3 попыток (%s) — "
+                    "запускаем polling без перерегистрации команд",
+                    exc,
+                )
     await dispatcher.start_polling(bot)
 
 
