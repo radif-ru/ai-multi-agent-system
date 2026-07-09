@@ -443,7 +443,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 ### Задача 5.4. Пополнение библиотеки материалов ассистента (`.agents/`)
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -460,13 +460,13 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 #### Definition of Done
 
-- [ ] `.agents/skills/debugging-discipline/SKILL.md` и `.agents/skills/skill-authoring/SKILL.md` по формату `_docs/skills.md` §3 (frontmatter `name`/`description` ≤ 200 символов, «Когда использовать / Алгоритм / Чего избегать»).
-- [ ] `.agents/prompts/review-loop.prompt.md` создан; таблицы и контракт скриптов в `.agents/README.md` дополнены.
-- [ ] Скрипты работают из корня репозитория: `bash .agents/skills/git-discipline/scripts/preflight.sh` и `python3 .agents/skills/skill-authoring/scripts/check_agents_sync.py` зелёные; `check_agents_sync.py` ловит рассинхрон (проверено на искусственной поломке).
-- [ ] `AGENTS.md` синхронизирован (раздел Skills + рекомендуемый порядок загрузки); symlink'и `.claude/skills/debugging-discipline` и `.claude/skills/skill-authoring` созданы.
-- [ ] **Документация обновлена**: сами материалы + `.agents/README.md` + `AGENTS.md`; ссылки относительные.
-- [ ] **Тесты добавлены / обновлены**: n/a (контент-задача, код `app/` не меняется).
-- [ ] `git status` чист, артефакты не закоммичены.
+- [x] `.agents/skills/debugging-discipline/SKILL.md` и `.agents/skills/skill-authoring/SKILL.md` по формату `_docs/skills.md` §3 (frontmatter `name`/`description` ≤ 200 символов, «Когда использовать / Алгоритм / Чего избегать»).
+- [x] `.agents/prompts/review-loop.prompt.md` создан; таблицы и контракт скриптов в `.agents/README.md` дополнены.
+- [x] Скрипты работают из корня репозитория: `bash .agents/skills/git-discipline/scripts/preflight.sh` и `python3 .agents/skills/skill-authoring/scripts/check_agents_sync.py` зелёные; `check_agents_sync.py` ловит рассинхрон (проверено на искусственной поломке: 8 находок, exit 1). Гейт добавлен в CI (`.github/workflows/test.yml`).
+- [x] `AGENTS.md` синхронизирован (раздел Skills + рекомендуемый порядок загрузки); symlink'и `.claude/skills/debugging-discipline` и `.claude/skills/skill-authoring` созданы.
+- [x] **Документация обновлена**: сами материалы + `.agents/README.md` + `AGENTS.md` + корневой `README.md` (скрипты в скиллах, новый CI-гейт); ссылки относительные.
+- [x] **Тесты добавлены / обновлены**: n/a (контент-задача, код `app/` не меняется).
+- [x] `git status` чист, артефакты не закоммичены.
 
 ## 9. Риски и смягчение
 
@@ -500,7 +500,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | 5.1 | Spike-тип задач в process.md | medium | S | ToDo | — |
 | 5.2 | Актуализация README.md | medium | S | ToDo | 1.3, 1.4, 2.2, 3.1, 3.2 |
 | 5.3 | Синхронизация roadmap и сверка доков | medium | XS | ToDo | 3.1–4.3 |
-| 5.4 | Библиотека материалов ассистента (`.agents/`) | medium | S | Progress | — |
+| 5.4 | Библиотека материалов ассистента (`.agents/`) | medium | S | Done | — |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
@@ -517,3 +517,4 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 - **2026-07-09** — закрыта задача 2.2: tool `run_skill_script` — sandbox-раннер скриптов скиллов (без shell, таймаут + kill, secure by default).
 - **2026-07-09** — добавлена задача 5.4 (пополнение `.agents/`: скилл `debugging-discipline`, промпт `review-loop`); выполняется вне очереди по запросу пользователя.
 - **2026-07-09** — задача 5.4 расширена по запросу пользователя: скрипты в скиллах ассистента (`preflight.sh` в `git-discipline`, новый скилл `skill-authoring` с `check_agents_sync.py`).
+- **2026-07-09** — закрыта задача 5.4: скиллы `debugging-discipline` и `skill-authoring`, промпт `review-loop`, скрипты в скиллах (`preflight.sh`, `check_agents_sync.py` + CI-гейт).
