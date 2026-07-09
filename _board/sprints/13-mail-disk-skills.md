@@ -223,7 +223,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 ### Задача 2.3. Обновление контракта скиллов в документации
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** Задача 2.2
@@ -496,7 +496,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | 1.6 | Актуализация current-state по Этапу 1 | medium | XS | Done | 1.2–1.5 |
 | 2.1 | `SkillRegistry`: каталог `scripts/` | high | M | Done | — |
 | 2.2 | Tool `run_skill_script` | high | L | Done | 2.1 |
-| 2.3 | Контракт скиллов в документации | medium | S | ToDo | 2.2 |
+| 2.3 | Контракт скиллов в документации | medium | S | Progress | 2.2 |
 | 2.4 | Скилл со скриптом `mail-digest` | medium | S | ToDo | 1.3, 2.2 |
 | 3.1 | Скилл `humanizer` | medium | S | ToDo | — |
 | 3.2 | Скилл `code-review` | medium | S | ToDo | — |
