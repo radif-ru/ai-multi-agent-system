@@ -163,6 +163,20 @@ CON-4 запрещает webhook в MVP, но это кандидат на от�
 - [ ] Видео (frame-extraction → vision → описание).
 - [ ] Geolocation-сообщения.
 
+## Этап 15. Интерактивное исследование длинного контекста
+
+**Статус:** Backlog. **Источник:** ADR-1 (`_docs/decisions.md`).
+
+Tool `context_explore` поверх существующего `Summarizer` — операции `peek`, `grep`, `summarize` по чанкам длинного контекста (почтовые ящики, документы, логи).
+
+- [ ] Tool `context_explore` с операциями `peek` / `grep` / `summarize`.
+- [ ] Переиспользование `Summarizer` (чанкинг + map-reduce).
+- [ ] Опасный tool → `_DANGEROUS_TOOLS` с allowlist.
+
+## Отказанные этапы
+
+- **n8n как оркестратор** — отказ (ADR-2, `_docs/decisions.md`). n8n избыточен для single-user local-first: дублирует `EventBus`, orchestrator, tools; добавляет Docker-зависимость и поверхность атаки. Cron — APScheduler внутри процесса; webhook — FastAPI-адаптер (Этап 6). Пересмотр — при многопользовательности.
+
 ---
 
 ## Принципы планирования
