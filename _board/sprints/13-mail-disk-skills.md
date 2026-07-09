@@ -200,7 +200,7 @@ Async-обёртка над stdlib `imaplib`/`email` (через `asyncio.to_thr
 
 ### Задача 2.2. Tool `run_skill_script` (sandbox-раннер)
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** L
 - **Зависит от:** Задача 2.1
@@ -213,13 +213,13 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 #### Definition of Done
 
-- [ ] Скрипт скилла исполняется с аргументами, stdout возвращается как observation (тест).
-- [ ] Path traversal (`../`), абсолютные пути, несуществующие скилл/скрипт → `ToolError` (тесты).
-- [ ] Таймаут убивает процесс, orphan-процессов нет (тест).
-- [ ] Без `run_skill_script` в allowlist tool заблокирован (тест).
-- [ ] **Документация обновлена**: `_docs/tools.md` (новый tool), `_docs/security.md` (модель угроз скриптов).
-- [ ] **Тесты добавлены / обновлены**: `pytest tests/tools/test_run_skill_script.py -q` зелёный.
-- [ ] `git status` чист, артефакты не закоммичены.
+- [x] Скрипт скилла исполняется с аргументами, stdout возвращается как observation (тесты `test_run_skill_script_returns_stdout`, `test_run_skill_script_passes_args`).
+- [x] Path traversal (`../`), абсолютные пути, несуществующие скилл/скрипт → `ToolError` (тесты).
+- [x] Таймаут убивает процесс, orphan-процессов нет (тест `test_run_skill_script_timeout_kills_process`).
+- [x] Без `run_skill_script` в allowlist tool заблокирован (в `_DANGEROUS_TOOLS`, generic-механизм покрыт `tests/tools/test_registry.py`; тест `test_run_skill_script_is_dangerous_tool`).
+- [x] **Документация обновлена**: `_docs/tools.md` §4.15, `_docs/security.md` §4.3 (модель угроз скриптов).
+- [x] **Тесты добавлены / обновлены**: `pytest tests/tools/test_run_skill_script.py -q` зелёный (9 тестов), общий порог 87%.
+- [x] `git status` чист, артефакты не закоммичены.
 
 ### Задача 2.3. Обновление контракта скиллов в документации
 
@@ -462,7 +462,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | 1.5 | Скилл `email-assistant` | medium | S | Done | 1.3 |
 | 1.6 | Актуализация current-state по Этапу 1 | medium | XS | Done | 1.2–1.5 |
 | 2.1 | `SkillRegistry`: каталог `scripts/` | high | M | Done | — |
-| 2.2 | Tool `run_skill_script` | high | L | Progress | 2.1 |
+| 2.2 | Tool `run_skill_script` | high | L | Done | 2.1 |
 | 2.3 | Контракт скиллов в документации | medium | S | ToDo | 2.2 |
 | 2.4 | Скилл со скриптом `mail-digest` | medium | S | ToDo | 1.3, 2.2 |
 | 3.1 | Скилл `humanizer` | medium | S | ToDo | — |
@@ -486,3 +486,4 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 - **2026-07-08** — закрыта задача 1.5: скилл `email-assistant` (разбор почты из чата, тело письма — недоверенные данные).
 - **2026-07-08** — закрыта задача 1.6: Этап 1 зафиксирован в `_docs/current-state.md` §1.9. Этап 1 закрыт.
 - **2026-07-08** — закрыта задача 2.1: `SkillRegistry.list_scripts` / `resolve_script` (обнаружение скриптов скилла, защита от traversal).
+- **2026-07-09** — закрыта задача 2.2: tool `run_skill_script` — sandbox-раннер скриптов скиллов (без shell, таймаут + kill, secure by default).
