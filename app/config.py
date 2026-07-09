@@ -174,6 +174,10 @@ class Settings(BaseSettings):
     # Усечение тела письма в observation (символы).
     mail_body_max_chars: int = 4000
 
+    # --- Скиллы со скриптами ---
+    # Таймаут выполнения скрипта скилла через run_skill_script, секунды.
+    skill_script_timeout: float = 30.0
+
     # --- Observability / error tracking (Sentry/GlitchTip) ---
     # DSN self-hosted GlitchTip или Sentry. Пустая строка / None = выключено.
     sentry_dsn: str | None = None
@@ -330,6 +334,13 @@ class Settings(BaseSettings):
     def _check_mail_imap_timeout(cls, v: float) -> float:
         if v <= 0:
             raise ValueError("MAIL_IMAP_TIMEOUT must be > 0")
+        return v
+
+    @field_validator("skill_script_timeout")
+    @classmethod
+    def _check_skill_script_timeout(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("SKILL_SCRIPT_TIMEOUT must be > 0")
         return v
 
     @field_validator("mail_max_messages")

@@ -53,6 +53,7 @@ from app.tools.disk_list import DiskListTool
 from app.tools.email_list import EmailListTool
 from app.tools.email_read import EmailReadTool
 from app.tools.registry import ToolRegistry
+from app.tools.run_skill_script import RunSkillScriptTool
 from app.tools.web_search import WebSearchTool
 from app.tools.weather import WeatherTool
 from app.users.repository import UserRepository
@@ -199,6 +200,7 @@ async def _build_components(
             EmailReadTool(max_output_chars=settings.max_tool_output_chars),
             DiskListTool(max_output_chars=settings.max_tool_output_chars),
             DiskDownloadTool(max_output_chars=settings.max_tool_output_chars),
+            RunSkillScriptTool(max_output_chars=settings.max_tool_output_chars),
         ],
         max_output_chars=settings.max_tool_output_chars
     )

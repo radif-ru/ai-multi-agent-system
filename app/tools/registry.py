@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # Список опасных tools, требующих явного разрешения через allowlist
 # read_document исключён после внедрения FileIdMapper (пути заменяются на временные идентификаторы)
-_DANGEROUS_TOOLS = {"http_request", "read_file"}
+_DANGEROUS_TOOLS = {"http_request", "read_file", "run_skill_script"}
 
 
 _PY_TYPES: dict[str, tuple[type, ...]] = {
