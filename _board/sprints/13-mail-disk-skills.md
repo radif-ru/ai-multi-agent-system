@@ -243,7 +243,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 ### Задача 2.4. Первый скилл со скриптом: `mail-digest`
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** Задачи 1.3, 2.2
@@ -497,7 +497,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | 2.1 | `SkillRegistry`: каталог `scripts/` | high | M | Done | — |
 | 2.2 | Tool `run_skill_script` | high | L | Done | 2.1 |
 | 2.3 | Контракт скиллов в документации | medium | S | Done | 2.2 |
-| 2.4 | Скилл со скриптом `mail-digest` | medium | S | ToDo | 1.3, 2.2 |
+| 2.4 | Скилл со скриптом `mail-digest` | medium | S | Progress | 1.3, 2.2 |
 | 3.1 | Скилл `humanizer` | medium | S | ToDo | — |
 | 3.2 | Скилл `code-review` | medium | S | ToDo | — |
 | 4.1 | Spike: RLM-подход | medium | S | ToDo | — |
