@@ -243,7 +243,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 ### Задача 2.4. Первый скилл со скриптом: `mail-digest`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** Задачи 1.3, 2.2
@@ -256,11 +256,11 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 #### Definition of Done
 
-- [ ] Скрипт работает автономно (`python stats.py < sample.json`), выдаёт JSON-сводку.
+- [x] Скрипт работает автономно (`python stats.py < sample.json`), выдаёт JSON-сводку.
 - [ ] Smoke: агент по запросу «сводка по почте» проходит цепочку скилл → tools (ручная проверка).
-- [ ] **Документация обновлена**: `_docs/skills.md` §8 — скилл в списке.
-- [ ] **Тесты добавлены / обновлены**: unit-тест скрипта (запуск subprocess'ом на фикстуре).
-- [ ] `git status` чист, артефакты не закоммичены.
+- [x] **Документация обновлена**: `_docs/skills.md` §8 — скилл в списке.
+- [x] **Тесты добавлены / обновлены**: unit-тест скрипта (5 тестов, subprocess на фикстуре).
+- [x] `git status` чист, артефакты не закоммичены.
 
 ## 6. Этап 3. Пополнение библиотеки скиллов
 
@@ -497,7 +497,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | 2.1 | `SkillRegistry`: каталог `scripts/` | high | M | Done | — |
 | 2.2 | Tool `run_skill_script` | high | L | Done | 2.1 |
 | 2.3 | Контракт скиллов в документации | medium | S | Done | 2.2 |
-| 2.4 | Скилл со скриптом `mail-digest` | medium | S | Progress | 1.3, 2.2 |
+| 2.4 | Скилл со скриптом `mail-digest` | medium | S | Done | 1.3, 2.2 |
 | 3.1 | Скилл `humanizer` | medium | S | ToDo | — |
 | 3.2 | Скилл `code-review` | medium | S | ToDo | — |
 | 4.1 | Spike: RLM-подход | medium | S | ToDo | — |
@@ -526,3 +526,4 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 - **2026-07-09** — закрыта задача 5.4: скиллы `debugging-discipline` и `skill-authoring`, промпт `review-loop`, скрипты в скиллах (`preflight.sh`, `check_agents_sync.py` + CI-гейт).
 - **2026-07-09** — закрыта задача 5.1: spike-задачи (§1.5) и автоматизация проверок (§7.10, `preflight.sh`, таблица скриптов-гейтов) в `process.md`.
 - **2026-07-09** — закрыта задача 2.3: контракт скриптов в `_docs/skills.md` (§3.6, §7) и `app/skills/README.md` — снят запрет на код, описаны конвенции (`scripts/`, `run_skill_script`, stdout/stderr, шебанг, `set -e`).
+- **2026-07-09** — закрыта задача 2.4: скилл `mail-digest` со скриптом `stats.py` (сводка по почте: всего/непрочитанных, топ отправителей, по датам) + 5 unit-тестов.
