@@ -173,6 +173,17 @@ Tool `context_explore` поверх существующего `Summarizer` — 
 - [ ] Переиспользование `Summarizer` (чанкинг + map-reduce).
 - [ ] Опасный tool → `_DANGEROUS_TOOLS` с allowlist.
 
+## Этап 16. Интеграции почты и диска — добор
+
+**Статус:** Backlog. **Источник:** спринт 13 (read-only реализован, отложенное — сюда).
+
+Текущее состояние: read-only IMAP (`email_list` / `email_read`) и download с Яндекс.Диска (`disk_list` / `disk_download`). Отложенные фичи:
+
+- [ ] Отправка писем (`email_send` — SMTP, Яндекс + Gmail).
+- [ ] Черновики писем (`email_draft` — скилл для генерации черновика по контексту).
+- [ ] Upload на Яндекс.Диск (`disk_upload`).
+- [ ] Google Диск (OAuth, `gdrive_list` / `gdrive_download` / `gdrive_upload`).
+
 ## Отказанные этапы
 
 - **n8n как оркестратор** — отказ (ADR-2, `_docs/decisions.md`). n8n избыточен для single-user local-first: дублирует `EventBus`, orchestrator, tools; добавляет Docker-зависимость и поверхность атаки. Cron — APScheduler внутри процесса; webhook — FastAPI-адаптер (Этап 6). Пересмотр — при многопользовательности.
