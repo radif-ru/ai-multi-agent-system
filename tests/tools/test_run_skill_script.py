@@ -11,6 +11,7 @@ import pytest
 
 from app.services.skills import SkillRegistry
 from app.tools.errors import ToolError
+from app.tools.registry import _DANGEROUS_TOOLS
 from app.tools.run_skill_script import RunSkillScriptTool
 
 
@@ -137,3 +138,8 @@ async def test_run_skill_script_requires_skill_and_script(tmp_path: Path) -> Non
     reg.load()
     with pytest.raises(ToolError, match="обязательны"):
         await RunSkillScriptTool().run({"skill": " ", "script": ""}, _ctx(tmp_path, reg))
+
+
+def test_run_skill_script_is_dangerous_tool() -> None:
+    """Без run_skill_script в allowlist tool блокируется реестром (secure by default)."""
+    assert RunSkillScriptTool.name in _DANGEROUS_TOOLS
