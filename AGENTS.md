@@ -107,6 +107,8 @@
 - `.agents/skills/pull-request-discipline/SKILL.md` — подготовка PR/MR: ветка, тело, зелёные проверки, merge только пользователем.
 - `.agents/skills/pr-review-discipline/SKILL.md` — ревью PR/MR: чек-лист, исходы approve/reject, запрет апрува при красном CI.
 - `.agents/skills/automation-discipline/SKILL.md` — детерминированное автоматизируй скриптом/CI-гейтом, а не ИИ; ИИ — для суждений.
+- `.agents/skills/debugging-discipline/SKILL.md` — дисциплина отладки: стоп-линия, воспроизводящий тест, первопричина, минимальный фикс.
+- `.agents/skills/skill-authoring/SKILL.md` — как добавлять скиллы/промпты ассистента: формат, скрипты, зеркала, проверка `check_agents_sync.py`.
 
 ## Рекомендуемый порядок загрузки
 
@@ -115,3 +117,4 @@
 - Новая точка входа пользовательского текста или tool с ФС/сетью: `prompt-injection-defense`.
 - Задача про документацию: `documentation-discipline`. Задача про коммит/ветку: `git-discipline`. Задача про PR/MR: `pull-request-discipline` → `pr-review-discipline`.
 - Задача про повторяющиеся проверки, скрипты или CI-гейты: `automation-discipline`.
+- Отладка сбоя / баг-репорт: `debugging-discipline` → `testing-discipline`. Правка самих скиллов/промптов ассистента: `skill-authoring`.

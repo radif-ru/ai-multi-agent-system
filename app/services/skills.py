@@ -18,6 +18,7 @@ from pathlib import Path
 import yaml
 
 _DESCRIPTION_PREFIX = "Description:"
+_SCRIPT_SUFFIXES = (".py", ".sh")
 
 
 class SkillRegistry:
@@ -25,11 +26,13 @@ class SkillRegistry:
         self._skills_dir = Path(skills_dir)
         self._descriptions: dict[str, str] = {}
         self._bodies: dict[str, str] = {}
+        self._dirs: dict[str, Path] = {}
 
     def load(self) -> None:
         """Просканировать каталог скиллов. Падает на некорректном `SKILL.md`."""
         self._descriptions.clear()
         self._bodies.clear()
+        self._dirs.clear()
         if not self._skills_dir.is_dir():
             return
         for entry in sorted(self._skills_dir.iterdir()):
@@ -47,6 +50,7 @@ class SkillRegistry:
 
             self._descriptions[entry.name] = description
             self._bodies[entry.name] = body
+            self._dirs[entry.name] = entry
 
     def _parse_skill(self, text: str, skill_md: Path) -> tuple[str, str]:
         """Парсит SKILL.md, поддерживает YAML frontmatter и legacy формат.
@@ -97,3 +101,38 @@ class SkillRegistry:
     def get_body(self, name: str) -> str:
         """Тело скилла без первой `Description:`-строки. `KeyError` если нет."""
         return self._bodies[name]
+
+    def list_scripts(self, name: str) -> list[str]:
+        """Имена скриптов скилла из `scripts/` (`*.py`/`*.sh`), отсортированы.
+
+        Пустой список, если у скилла нет каталога `scripts/`. `KeyError` —
+        если скилл неизвестен.
+        """
+        skill_dir = self._dirs[name]
+        scripts_dir = skill_dir / "scripts"
+        if not scripts_dir.is_dir():
+            return []
+        return sorted(
+            entry.name
+            for entry in scripts_dir.iterdir()
+            if entry.is_file() and entry.suffix in _SCRIPT_SUFFIXES
+        )
+
+    def resolve_script(self, name: str, script: str) -> Path:
+        """Абсолютный путь к скрипту скилла внутри `scripts/`.
+
+        Защита от traversal: возвращаемый путь гарантированно лежит в
+        `scripts/`. `KeyError` — неизвестный скилл; `FileNotFoundError` — нет
+        такого скрипта; `ValueError` — попытка выйти за пределы `scripts/`.
+        """
+        scripts_dir = (self._dirs[name] / "scripts").resolve()
+        candidate = (scripts_dir / script).resolve()
+        if candidate.parent != scripts_dir:
+            raise ValueError(
+                f"Скрипт вне каталога scripts/ скилла {name!r}: {script!r}"
+            )
+        if not candidate.is_file():
+            raise FileNotFoundError(
+                f"Скрипт {script!r} не найден в скилле {name!r}"
+            )
+        return candidate

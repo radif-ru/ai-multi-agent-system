@@ -13,6 +13,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from aiogram.exceptions import TelegramNetworkError
 
 from app import console_main as console_main_module
 from app import main as main_module
@@ -211,3 +212,46 @@ def test_run_passes_keyboard_interrupt_without_logging(
         module.run()
 
     assert not [r for r in caplog.records if r.levelno == logging.ERROR]
+
+
+@pytest.mark.asyncio
+async def test_start_polling_retries_set_my_commands_on_network_error(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """set_my_commands падает 3 раза — polling всё равно запускается."""
+    bot = MagicMock()
+    bot.set_my_commands = AsyncMock(
+        side_effect=TelegramNetworkError(method=MagicMock(), message="Cannot connect to host api.telegram.org:443")
+    )
+    dispatcher = MagicMock()
+    dispatcher.start_polling = AsyncMock()
+
+    # Ускоряем retry — убираем sleep.
+    monkeypatch.setattr(main_module.asyncio, "sleep", AsyncMock())
+
+    caplog.set_level(logging.WARNING, logger="app.main")
+    await main_module._start_polling(bot, dispatcher)
+
+    assert bot.set_my_commands.await_count == 3
+    dispatcher.start_polling.assert_awaited_once()
+    assert any("не удалось после 3 попыток" in r.message for r in caplog.records)
+
+
+@pytest.mark.asyncio
+async def test_start_polling_recovers_after_retry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """set_my_commands падает 1 раз, затем успешно — polling запускается."""
+    bot = MagicMock()
+    bot.set_my_commands = AsyncMock(
+        side_effect=[TelegramNetworkError(method=MagicMock(), message="network error"), None]
+    )
+    dispatcher = MagicMock()
+    dispatcher.start_polling = AsyncMock()
+
+    monkeypatch.setattr(main_module.asyncio, "sleep", AsyncMock())
+    await main_module._start_polling(bot, dispatcher)
+
+    assert bot.set_my_commands.await_count == 2
+    dispatcher.start_polling.assert_awaited_once()

@@ -39,6 +39,7 @@
 - [`security.md`](./security.md) — `InputSanitizer`, `FileIdMapper`, `ResponseSanitizer`, allowlist для опасных tools.
 - [`stack.md`](./stack.md) — стек, версии, зависимости, переменные окружения, локальные требования.
 - [`project-structure.md`](./project-structure.md) — структура репозитория, назначение модулей, правила размещения файлов.
+- [`decisions.md`](./decisions.md) — журнал архитектурных решений (ADR): контекст, варианты, решение, последствия.
 
 ### Как этим пользоваться и как разрабатывать
 

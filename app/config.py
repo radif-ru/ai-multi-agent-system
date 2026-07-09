@@ -159,6 +159,25 @@ class Settings(BaseSettings):
         default_factory=lambda: ["duckduckgo"]
     )
 
+    # --- Mail (IMAP: Яндекс, Gmail) и Яндекс.Диск ---
+    # Креды опциональны: пустые значения = интеграция не подключена, tools
+    # отвечают человекочитаемым предупреждением (см. _docs/tools.md).
+    yandex_mail_user: str | None = None
+    yandex_mail_app_password: str | None = None
+    gmail_user: str | None = None
+    gmail_app_password: str | None = None
+    yandex_disk_token: str | None = None
+    # Таймаут IMAP-операций, секунды (защита цикла агента от зависания).
+    mail_imap_timeout: float = 15.0
+    # Верхняя граница выборки писем за один вызов email_list.
+    mail_max_messages: int = 10
+    # Усечение тела письма в observation (символы).
+    mail_body_max_chars: int = 4000
+
+    # --- Скиллы со скриптами ---
+    # Таймаут выполнения скрипта скилла через run_skill_script, секунды.
+    skill_script_timeout: float = 30.0
+
     # --- Observability / error tracking (Sentry/GlitchTip) ---
     # DSN self-hosted GlitchTip или Sentry. Пустая строка / None = выключено.
     sentry_dsn: str | None = None
@@ -308,6 +327,34 @@ class Settings(BaseSettings):
     def _check_read_file_max_bytes(cls, v: int) -> int:
         if v <= 0:
             raise ValueError("READ_FILE_MAX_BYTES must be > 0")
+        return v
+
+    @field_validator("mail_imap_timeout")
+    @classmethod
+    def _check_mail_imap_timeout(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("MAIL_IMAP_TIMEOUT must be > 0")
+        return v
+
+    @field_validator("skill_script_timeout")
+    @classmethod
+    def _check_skill_script_timeout(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("SKILL_SCRIPT_TIMEOUT must be > 0")
+        return v
+
+    @field_validator("mail_max_messages")
+    @classmethod
+    def _check_mail_max_messages(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("MAIL_MAX_MESSAGES must be > 0")
+        return v
+
+    @field_validator("mail_body_max_chars")
+    @classmethod
+    def _check_mail_body_max_chars(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("MAIL_BODY_MAX_CHARS must be > 0")
         return v
 
     @model_validator(mode="after")

@@ -36,6 +36,7 @@ description: "Git-дисциплина проекта: ветки feature/<NN>-<
    - `pytest -q` (кроме `chore(plan): ...`-коммитов);
    - `flake8 app tests` (нарушения в изменённых файлах — починить).
    Если что-то красное (даже не относящееся к задаче) — сначала чинится.
+   Весь ритуал одной командой (flake8, pytest и все скрипты-гейты): `bash .agents/skills/git-discipline/scripts/preflight.sh`.
 5. **`.gitignore`** обязан содержать: `.env`, `.venv/`, `__pycache__/`, `*.pyc`, `logs/`, `data/`, `*.db`, `.pytest_cache/`, `.idea/`, `.vscode/`.
 
 ## Чего избегать

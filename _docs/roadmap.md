@@ -101,8 +101,8 @@ CON-4 запрещает webhook в MVP, но это кандидат на от�
 После того, как `app/skills/` инфраструктура работает, наполняем библиотеку.
 
 - [ ] `web_research` — пошаговый рисёрч с гибридной стратегией (поиск → отбор источников → извлечение → синтез).
-- [ ] `code_review` — обзор кода с критериями.
-- [ ] `russian_style` — корректировка под deliberate-стиль (без воды, конкретно).
+- [x] `code_review` — обзор кода с критериями (скилл `code-review`, спринт 13).
+- [x] `russian_style` — корректировка под deliberate-стиль (без воды, конкретно) (скилл `humanizer`, спринт 13).
 - [ ] `email_draft`, `summary_long_text`, `tutorial_step_by_step` и пр.
 
 ## Этап 9. Docker / docker-compose
@@ -162,6 +162,31 @@ CON-4 запрещает webhook в MVP, но это кандидат на от�
 
 - [ ] Видео (frame-extraction → vision → описание).
 - [ ] Geolocation-сообщения.
+
+## Этап 15. Интерактивное исследование длинного контекста
+
+**Статус:** Backlog. **Источник:** ADR-1 (`_docs/decisions.md`).
+
+Tool `context_explore` поверх существующего `Summarizer` — операции `peek`, `grep`, `summarize` по чанкам длинного контекста (почтовые ящики, документы, логи).
+
+- [ ] Tool `context_explore` с операциями `peek` / `grep` / `summarize`.
+- [ ] Переиспользование `Summarizer` (чанкинг + map-reduce).
+- [ ] Опасный tool → `_DANGEROUS_TOOLS` с allowlist.
+
+## Этап 16. Интеграции почты и диска — добор
+
+**Статус:** Backlog. **Источник:** спринт 13 (read-only реализован, отложенное — сюда).
+
+Текущее состояние: read-only IMAP (`email_list` / `email_read`) и download с Яндекс.Диска (`disk_list` / `disk_download`). Отложенные фичи:
+
+- [ ] Отправка писем (`email_send` — SMTP, Яндекс + Gmail).
+- [ ] Черновики писем (`email_draft` — скилл для генерации черновика по контексту).
+- [ ] Upload на Яндекс.Диск (`disk_upload`).
+- [ ] Google Диск (OAuth, `gdrive_list` / `gdrive_download` / `gdrive_upload`).
+
+## Отказанные этапы
+
+- **n8n как оркестратор** — отказ (ADR-2, `_docs/decisions.md`). n8n избыточен для single-user local-first: дублирует `EventBus`, orchestrator, tools; добавляет Docker-зависимость и поверхность атаки. Cron — APScheduler внутри процесса; webhook — FastAPI-адаптер (Этап 6). Пересмотр — при многопользовательности.
 
 ---
 

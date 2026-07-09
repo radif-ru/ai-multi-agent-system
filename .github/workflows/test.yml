@@ -49,6 +49,9 @@ jobs:
       - name: Doc links (relative links in markdown)
         run: python -m scripts.check_doc_links
 
+      - name: Agents sync (skills/prompts format and mirrors)
+        run: python .agents/skills/skill-authoring/scripts/check_agents_sync.py
+
       - name: Tests + coverage gate (pytest)
         env:
           TELEGRAM_BOT_TOKEN: dummy-token-for-ci

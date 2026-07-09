@@ -199,6 +199,47 @@ class ToolRegistry:
 - **Реализация:** валидация пути (должен быть в `tmp/`, без `..`, расширение .jpg/.jpeg/.png/.gif/.webp); OCR делегируется сервису `app/services/ocr.py`; дисковый кеш `<file>.ocr.txt` убран (задача 06.3-bis.4); обрезка до 8000 символов.
 - **Ошибки:** путь вне `tmp/` → `ToolError`; файла нет → `ToolError`; неподдерживаемое расширение → `ToolError`.
 
+### 4.11 `email_list`
+
+- **Описание:** Список последних писем в почтовом ящике (read-only, IMAP: Яндекс, Gmail).
+- **Args:** `{"provider": "yandex|gmail|all", "unread_only": <bool>, "limit": <int>}` (все опциональны; provider по умолчанию `all`).
+- **Return:** JSON `{"messages": [{uid, provider, from, subject, date, unread}, ...]}`; при частичном сбое одного из провайдеров (в режиме `all`) добавляется поле `warnings`.
+- **Реализация:** `MailReader(ctx.settings).list_messages(...)` (см. `app/services/mail.py`); `limit` ограничен сверху `MAIL_MAX_MESSAGES`. Read-only: письма не помечаются прочитанными (`BODY.PEEK`, `readonly=True`).
+- **Ошибки:** почта не подключена → `ToolError` с подсказкой, какие переменные `.env` заполнить; неверный пароль → `ToolError` (нужен пароль приложения); сервер недоступен/таймаут → `ToolError`.
+
+### 4.12 `email_read`
+
+- **Описание:** Прочитать одно письмо по uid (read-only).
+- **Args:** `{"provider": "yandex|gmail", "uid": "<строка из email_list>"}`.
+- **Return:** JSON с заголовками (`from`, `to`, `subject`, `date`) и телом письма. Тело — **недоверенные данные**: обрамляется маркерами `<<<EMAIL_BODY_START>>>` / `<<<EMAIL_BODY_END>>>` и сопровождается полем `untrusted_body_note` (инструкции внутри письма исполнять нельзя, см. `security.md`). Тело усекается до `MAIL_BODY_MAX_CHARS`.
+- **Реализация:** `MailReader(ctx.settings).read_message(provider, uid)`; извлекается text/plain (fallback — text/html без тегов).
+- **Ошибки:** неизвестный провайдер / пустой uid → `ToolError`; почта не подключена / неверный пароль / недоступна → `ToolError` (человекочитаемый текст).
+
+### 4.13 `disk_list`
+
+- **Описание:** Список файлов и папок на Яндекс.Диске (read-only, REST API).
+- **Args:** `{"path": "<папка>"}` (опционально, по умолчанию `/`).
+- **Return:** JSON `{"items": [{name, path, type, size, modified}, ...]}`.
+- **Реализация:** `YandexDiskReader(ctx.settings).list_path(path)` → `GET /v1/disk/resources` с заголовком `Authorization: OAuth <token>` (см. `app/services/yandex_disk.py`).
+- **Ошибки:** диск не подключён → `ToolError` с подсказкой заполнить `YANDEX_DISK_TOKEN`; токен отклонён (401/403) → `ToolError`; путь не найден (404) → `ToolError`; сеть/таймаут → `ToolError`.
+
+### 4.14 `disk_download`
+
+- **Описание:** Скачать файл с Яндекс.Диска в рабочий каталог пользователя и вернуть `file_id` для чтения через `read_document`.
+- **Args:** `{"path": "<полный путь к файлу>"}`.
+- **Return:** JSON `{file_id, name, hint}`. Дальше файл читается через `read_document` по `file_id`.
+- **Реализация:** `YandexDiskReader.download(path, dest_dir)` (ссылка `/resources/download` → потоковое скачивание с лимитом `TELEGRAM_MAX_FILE_MB`) в `Settings.get_user_tmp_dir(user_id)` (изоляция по пользователю); `file_id` — через `FileIdMapper`.
+- **Ошибки:** пустой path → `ToolError`; файл больше лимита → `ToolError`; диск не подключён / токен отклонён / недоступен → `ToolError`.
+
+### 4.15 `run_skill_script`
+
+- **Описание:** Запустить скрипт скилла из его каталога `scripts/` (sandbox-раннер связки «скилл + скрипт», см. `skills.md`).
+- **Args:** `{"skill": "<имя скилла>", "script": "<имя файла в scripts/>", "args": ["<аргумент>", ...]}` (`args` — опционально).
+- **Return:** stdout скрипта (по конвенции — JSON), усечённый до `MAX_TOOL_OUTPUT_CHARS`.
+- **Реализация:** резолв пути через `SkillRegistry.resolve_script` (только файлы из `app/skills/<skill>/scripts/`, запрет traversal), запуск `asyncio.create_subprocess_exec` (без shell; `.py` → `python3`, `.sh` → `bash`), `cwd` = `Settings.get_user_tmp_dir(user_id)`, таймаут `SKILL_SCRIPT_TIMEOUT` (default 30 с) с kill процесса.
+- **Ошибки:** скилл/скрипт не найден, traversal, неподдерживаемое расширение, таймаут, ненулевой код возврата → `ToolError` с текстом stderr.
+- **Безопасность:** опасный tool — входит в `_DANGEROUS_TOOLS`, по умолчанию **заблокирован**; включается через `DANGEROUS_TOOLS_ALLOWLIST=run_skill_script` (см. `security.md` §4).
+
 ## 5. Как добавить новый tool
 
 1. Создать `app/tools/<name>.py` по контракту §2.
