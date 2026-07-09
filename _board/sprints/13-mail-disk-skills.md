@@ -448,7 +448,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 - **Объём:** S
 - **Зависит от:** —
 - **Связанные документы:** `.agents/README.md`; `AGENTS.md`; `_docs/skills.md` §3 (формат `SKILL.md`).
-- **Затрагиваемые файлы:** `.agents/skills/debugging-discipline/SKILL.md`, `.agents/prompts/review-loop.prompt.md` (новые), `.agents/README.md`, `AGENTS.md`, `.claude/skills/debugging-discipline` (symlink).
+- **Затрагиваемые файлы:** `.agents/skills/debugging-discipline/SKILL.md`, `.agents/prompts/review-loop.prompt.md`, `.agents/skills/skill-authoring/SKILL.md` + `scripts/check_agents_sync.py`, `.agents/skills/git-discipline/scripts/preflight.sh` (новые), `.agents/README.md`, `AGENTS.md`, symlink'и `.claude/skills/`.
 
 #### Описание
 
@@ -456,11 +456,14 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 Архитектура каталога сохраняется (`prompts/` + `skills/`, зеркалирование по `.agents/README.md`). Осознанно **не** заводим новые слои: «роли агентов» (нет инструментальной поддержки конфигурируемых субагентов в используемых инструментах) и «справочники-чек-листы» (чек-листы уже живут внутри скиллов и `_docs/`; отдельный слой ради пары файлов — переусложнение).
 
+Расширение (по запросу пользователя): скиллы ассистента получают каталог `scripts/` — по аналогии с контрактом скиллов бота (этап 2), но без sandbox-раннера: скрипты запускаются напрямую из корня репозитория (доверенная среда разработки). Состав: `git-discipline/scripts/preflight.sh` (весь ритуал проверок перед коммитом одной командой) и новый скилл `skill-authoring` со скриптом `check_agents_sync.py` (детерминированная проверка формата скиллов/промптов и зеркал: symlink'и `.claude/skills/`, упоминания в `AGENTS.md` и таблицах README) — раньше эта сверка делалась глазами (нарушение принципа `automation-discipline`).
+
 #### Definition of Done
 
-- [ ] `.agents/skills/debugging-discipline/SKILL.md` по формату `_docs/skills.md` §3 (frontmatter `name`/`description` ≤ 200 символов, «Когда использовать / Алгоритм / Чего избегать»).
-- [ ] `.agents/prompts/review-loop.prompt.md` создан; таблицы `.agents/README.md` дополнены.
-- [ ] `AGENTS.md` синхронизирован (раздел Skills + рекомендуемый порядок загрузки); symlink `.claude/skills/debugging-discipline` создан.
+- [ ] `.agents/skills/debugging-discipline/SKILL.md` и `.agents/skills/skill-authoring/SKILL.md` по формату `_docs/skills.md` §3 (frontmatter `name`/`description` ≤ 200 символов, «Когда использовать / Алгоритм / Чего избегать»).
+- [ ] `.agents/prompts/review-loop.prompt.md` создан; таблицы и контракт скриптов в `.agents/README.md` дополнены.
+- [ ] Скрипты работают из корня репозитория: `bash .agents/skills/git-discipline/scripts/preflight.sh` и `python3 .agents/skills/skill-authoring/scripts/check_agents_sync.py` зелёные; `check_agents_sync.py` ловит рассинхрон (проверено на искусственной поломке).
+- [ ] `AGENTS.md` синхронизирован (раздел Skills + рекомендуемый порядок загрузки); symlink'и `.claude/skills/debugging-discipline` и `.claude/skills/skill-authoring` созданы.
 - [ ] **Документация обновлена**: сами материалы + `.agents/README.md` + `AGENTS.md`; ссылки относительные.
 - [ ] **Тесты добавлены / обновлены**: n/a (контент-задача, код `app/` не меняется).
 - [ ] `git status` чист, артефакты не закоммичены.
@@ -513,3 +516,4 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 - **2026-07-08** — закрыта задача 2.1: `SkillRegistry.list_scripts` / `resolve_script` (обнаружение скриптов скилла, защита от traversal).
 - **2026-07-09** — закрыта задача 2.2: tool `run_skill_script` — sandbox-раннер скриптов скиллов (без shell, таймаут + kill, secure by default).
 - **2026-07-09** — добавлена задача 5.4 (пополнение `.agents/`: скилл `debugging-discipline`, промпт `review-loop`); выполняется вне очереди по запросу пользователя.
+- **2026-07-09** — задача 5.4 расширена по запросу пользователя: скрипты в скиллах ассистента (`preflight.sh` в `git-discipline`, новый скилл `skill-authoring` с `check_agents_sync.py`).
