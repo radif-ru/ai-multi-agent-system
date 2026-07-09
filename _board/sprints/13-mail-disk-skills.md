@@ -268,7 +268,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 ### Задача 3.1. Скилл `humanizer` (естественный русский текст)
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -289,7 +289,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 ### Задача 3.2. Скилл `code-review`
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -498,8 +498,8 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | 2.2 | Tool `run_skill_script` | high | L | Done | 2.1 |
 | 2.3 | Контракт скиллов в документации | medium | S | Done | 2.2 |
 | 2.4 | Скилл со скриптом `mail-digest` | medium | S | Done | 1.3, 2.2 |
-| 3.1 | Скилл `humanizer` | medium | S | ToDo | — |
-| 3.2 | Скилл `code-review` | medium | S | ToDo | — |
+| 3.1 | Скилл `humanizer` | medium | S | Progress | — |
+| 3.2 | Скилл `code-review` | medium | S | Progress | — |
 | 4.1 | Spike: RLM-подход | medium | S | ToDo | — |
 | 4.2 | Spike: n8n | medium | S | ToDo | — |
 | 4.3 | Spike: микросервисы | medium | S | ToDo | — |
