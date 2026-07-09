@@ -223,7 +223,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 ### Задача 2.3. Обновление контракта скиллов в документации
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** Задача 2.2
@@ -236,10 +236,10 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 #### Definition of Done
 
-- [ ] `_docs/skills.md` §2/§3/§7 отражают новый контракт; `app/skills/README.md` синхронизирован.
-- [ ] **Документация обновлена**: синхронизация ссылок пройдена (`grep` по упоминаниям запрета кода).
-- [ ] **Тесты добавлены / обновлены**: n/a (документационная задача).
-- [ ] `git status` чист, артефакты не закоммичены.
+- [x] `_docs/skills.md` §2/§3/§7 отражают новый контракт; `app/skills/README.md` синхронизирован.
+- [x] **Документация обновлена**: синхронизация ссылок пройдена (`grep` по упоминаниям запрета кода).
+- [x] **Тесты добавлены / обновлены**: n/a (документационная задача).
+- [x] `git status` чист, артефакты не закоммичены.
 
 ### Задача 2.4. Первый скилл со скриптом: `mail-digest`
 
@@ -496,7 +496,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | 1.6 | Актуализация current-state по Этапу 1 | medium | XS | Done | 1.2–1.5 |
 | 2.1 | `SkillRegistry`: каталог `scripts/` | high | M | Done | — |
 | 2.2 | Tool `run_skill_script` | high | L | Done | 2.1 |
-| 2.3 | Контракт скиллов в документации | medium | S | Progress | 2.2 |
+| 2.3 | Контракт скиллов в документации | medium | S | Done | 2.2 |
 | 2.4 | Скилл со скриптом `mail-digest` | medium | S | ToDo | 1.3, 2.2 |
 | 3.1 | Скилл `humanizer` | medium | S | ToDo | — |
 | 3.2 | Скилл `code-review` | medium | S | ToDo | — |
@@ -525,3 +525,4 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 - **2026-07-09** — задача 5.4 расширена по запросу пользователя: скрипты в скиллах ассистента (`preflight.sh` в `git-discipline`, новый скилл `skill-authoring` с `check_agents_sync.py`).
 - **2026-07-09** — закрыта задача 5.4: скиллы `debugging-discipline` и `skill-authoring`, промпт `review-loop`, скрипты в скиллах (`preflight.sh`, `check_agents_sync.py` + CI-гейт).
 - **2026-07-09** — закрыта задача 5.1: spike-задачи (§1.5) и автоматизация проверок (§7.10, `preflight.sh`, таблица скриптов-гейтов) в `process.md`.
+- **2026-07-09** — закрыта задача 2.3: контракт скриптов в `_docs/skills.md` (§3.6, §7) и `app/skills/README.md` — снят запрет на код, описаны конвенции (`scripts/`, `run_skill_script`, stdout/stderr, шебанг, `set -e`).
