@@ -231,6 +231,15 @@ class ToolRegistry:
 - **Реализация:** `YandexDiskReader.download(path, dest_dir)` (ссылка `/resources/download` → потоковое скачивание с лимитом `TELEGRAM_MAX_FILE_MB`) в `Settings.get_user_tmp_dir(user_id)` (изоляция по пользователю); `file_id` — через `FileIdMapper`.
 - **Ошибки:** пустой path → `ToolError`; файл больше лимита → `ToolError`; диск не подключён / токен отклонён / недоступен → `ToolError`.
 
+### 4.15 `run_skill_script`
+
+- **Описание:** Запустить скрипт скилла из его каталога `scripts/` (sandbox-раннер связки «скилл + скрипт», см. `skills.md`).
+- **Args:** `{"skill": "<имя скилла>", "script": "<имя файла в scripts/>", "args": ["<аргумент>", ...]}` (`args` — опционально).
+- **Return:** stdout скрипта (по конвенции — JSON), усечённый до `MAX_TOOL_OUTPUT_CHARS`.
+- **Реализация:** резолв пути через `SkillRegistry.resolve_script` (только файлы из `app/skills/<skill>/scripts/`, запрет traversal), запуск `asyncio.create_subprocess_exec` (без shell; `.py` → `python3`, `.sh` → `bash`), `cwd` = `Settings.get_user_tmp_dir(user_id)`, таймаут `SKILL_SCRIPT_TIMEOUT` (default 30 с) с kill процесса.
+- **Ошибки:** скилл/скрипт не найден, traversal, неподдерживаемое расширение, таймаут, ненулевой код возврата → `ToolError` с текстом stderr.
+- **Безопасность:** опасный tool — входит в `_DANGEROUS_TOOLS`, по умолчанию **заблокирован**; включается через `DANGEROUS_TOOLS_ALLOWLIST=run_skill_script` (см. `security.md` §4).
+
 ## 5. Как добавить новый tool
 
 1. Создать `app/tools/<name>.py` по контракту §2.

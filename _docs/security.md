@@ -161,7 +161,7 @@ def sanitize_response(text: str) -> str
 
 ### 4.1 Allowlist для опасных tools
 
-Опасные tools (`http_request`, `read_file`) имеют дополнительную валидацию через allowlist в конфигурации.
+Опасные tools (`http_request`, `read_file`, `run_skill_script`) имеют дополнительную валидацию через allowlist в конфигурации.
 
 **Параметр конфигурации:**
 ```python
@@ -169,7 +169,7 @@ dangerous_tools_allowlist: list[str]  # список явно разрешённ
 ```
 
 **Реализация (secure by default, спринт 08):**
-- Список опасных tools определён в `app/tools/registry.py` как `_DANGEROUS_TOOLS = {"http_request", "read_file"}`. `read_document` исключён после внедрения `FileIdMapper` (пути заменяются временными ID).
+- Список опасных tools определён в `app/tools/registry.py` как `_DANGEROUS_TOOLS = {"http_request", "read_file", "run_skill_script"}`. `read_document` исключён после внедрения `FileIdMapper` (пути заменяются временными ID).
 - В `ToolRegistry.execute` после получения tool проверяется: если tool в `_DANGEROUS_TOOLS` и не в `ctx.settings.dangerous_tools_allowlist` — логируется `WARNING` и возвращается `ToolError("Tool '{name}' не разрешён в настройках безопасности")`.
 - **По умолчанию `dangerous_tools_allowlist` пуст — все опасные tools запрещены.** Чтобы разрешить, нужно явно перечислить их в `.env` (`DANGEROUS_TOOLS_ALLOWLIST=http_request,read_file`).
 - При старте `app/main.py` / `app/console_main.py`, если allowlist пуст, печатается `INFO`-подсказка с готовой строкой для миграции.
@@ -198,6 +198,17 @@ dangerous_tools_allowlist: list[str]  # список явно разрешённ
 Решение принимается на сборке (`app/main.py:_build_components(read_file_user_scoped=...)`): Telegram/MAX передают `True`, консоль — `settings.console_file_scope == "user"`. **Будущие адаптеры (Web/API из `_docs/roadmap.md` этап 5) обязаны наследовать ту же per-user модель** — передавать `read_file_user_scoped=True` и использовать `Settings.get_user_tmp_dir(user_id)` как корень видимости файлов.
 
 См. задачу 6.2 спринта 05 и задачу 5.1 спринта 12.
+
+### 4.3 Модель угроз скриптов скиллов (`run_skill_script`)
+
+Tool `run_skill_script` исполняет код, поэтому его модель угроз зафиксирована отдельно (спринт 13):
+
+- **Только скрипты из репозитория.** Исполняются исключительно файлы из `app/skills/<skill>/scripts/` (`SkillRegistry.resolve_script`: резолв имени внутри каталога, `resolve()` + проверка родителя → запрет `../` и абсолютных путей). Агент не создаёт и не изменяет скрипты — они попадают в репозиторий только через ревью человеком.
+- **Без shell.** Запуск через `asyncio.create_subprocess_exec` (`python3` / `bash` по расширению) — аргументы передаются списком, shell-инъекции через `args` невозможны.
+- **Таймаут + kill.** `SKILL_SCRIPT_TIMEOUT` (default 30 с); при таймауте и отмене процесс убивается (`kill` + `wait`) — orphan-процессов не остаётся.
+- **Рабочий каталог — tmp пользователя.** `cwd` = `Settings.get_user_tmp_dir(user_id)`: относительные пути скрипта не выходят в код проекта. Жёсткой изоляции ФС/сети нет — это осознанный компромисс MVP, компенсируется предыдущими пунктами и ревью скриптов.
+- **Secure by default.** Tool входит в `_DANGEROUS_TOOLS` и заблокирован, пока не указан в `DANGEROUS_TOOLS_ALLOWLIST` (§4.1).
+- **Усечение вывода.** stdout ограничен `MAX_TOOL_OUTPUT_CHARS` — защита от переполнения контекста.
 
 ## 5. Усиление System Prompt
 
