@@ -101,8 +101,8 @@ CON-4 запрещает webhook в MVP, но это кандидат на от�
 После того, как `app/skills/` инфраструктура работает, наполняем библиотеку.
 
 - [ ] `web_research` — пошаговый рисёрч с гибридной стратегией (поиск → отбор источников → извлечение → синтез).
-- [ ] `code_review` — обзор кода с критериями.
-- [ ] `russian_style` — корректировка под deliberate-стиль (без воды, конкретно).
+- [x] `code_review` — обзор кода с критериями (скилл `code-review`, спринт 13).
+- [x] `russian_style` — корректировка под deliberate-стиль (без воды, конкретно) (скилл `humanizer`, спринт 13).
 - [ ] `email_draft`, `summary_long_text`, `tutorial_step_by_step` и пр.
 
 ## Этап 9. Docker / docker-compose
