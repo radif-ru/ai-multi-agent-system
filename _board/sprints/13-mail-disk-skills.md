@@ -314,7 +314,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 ### Задача 4.1. Spike: RLM-подход к сверхдлинным контекстам
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -335,7 +335,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 ### Задача 4.2. Spike: n8n
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -356,7 +356,7 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 
 ### Задача 4.3. Spike: микросервисы vs модульный монолит
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -500,9 +500,9 @@ Tool `run_skill_script` (args: `skill`, `script`, `args` — массив стр
 | 2.4 | Скилл со скриптом `mail-digest` | medium | S | Done | 1.3, 2.2 |
 | 3.1 | Скилл `humanizer` | medium | S | Done | — |
 | 3.2 | Скилл `code-review` | medium | S | Done | — |
-| 4.1 | Spike: RLM-подход | medium | S | ToDo | — |
-| 4.2 | Spike: n8n | medium | S | ToDo | — |
-| 4.3 | Spike: микросервисы | medium | S | ToDo | — |
+| 4.1 | Spike: RLM-подход | medium | S | Progress | — |
+| 4.2 | Spike: n8n | medium | S | Progress | — |
+| 4.3 | Spike: микросервисы | medium | S | Progress | — |
 | 5.1 | Spike-тип задач и скрипты в process.md | medium | S | Done | — |
 | 5.2 | Актуализация README.md | medium | S | ToDo | 1.3, 1.4, 2.2, 3.1, 3.2 |
 | 5.3 | Синхронизация roadmap и сверка доков | medium | XS | ToDo | 3.1–4.3 |
