@@ -52,8 +52,8 @@
 - **Telegram bot token** от [@BotFather](https://t.me/BotFather) — для Telegram-канала.
 - **MAX bot token** (`MAX_BOT_TOKEN`) — для MAX-канала; получается на [business.max.ru](https://business.max.ru/self) (Чат-боты → Интеграция → Получить токен). Опционален: при пустом значении MAX-канал не запускается.
 - **tesseract-ocr** (опционально, для OCR в PDF): `sudo apt-get install tesseract-ocr tesseract-ocr-rus`
-- **Почта** (опционально): пароли приложений для IMAP — Яндекс (`YANDEX_MAIL_USER` + `YANDEX_MAIL_PASSWORD`, [пароль приложения](https://id.yandex.ru/security/app-passwords)) и/или Gmail (`GMAIL_USER` + `GMAIL_PASSWORD`, [пароль приложения](https://myaccount.google.com/apppasswords)). При пустых кредах почтовые tools возвращают подсказку.
-- **Яндекс.Диск** (опционально): OAuth-токен (`YANDEX_DISK_TOKEN`, [получить на OAuth-странице](https://oauth.yandex.ru/authorize?response_type=token&client_id=23d0aa1727fc4d7e8e44f3c5e6bca70e)). При пустом токене disk-tools возвращают подсказку.
+- **Почта** (опционально): пароли приложений для IMAP — Яндекс (`YANDEX_MAIL_USER` + `YANDEX_MAIL_APP_PASSWORD`, [пароль приложения](https://id.yandex.ru/security/app-passwords)) и/или Gmail (`GMAIL_USER` + `GMAIL_APP_PASSWORD`, [пароль приложения](https://myaccount.google.com/apppasswords)). При пустых кредах почтовые tools возвращают подсказку.
+- **Яндекс.Диск** (опционально): OAuth-токен (`YANDEX_DISK_TOKEN`) — создайте своё приложение на [oauth.yandex.ru](https://oauth.yandex.ru/) с правами `cloud_api:disk.read` и получите токен по [инструкции](https://yandex.ru/dev/disk/api/concepts/quickstart.html). При пустом токене disk-tools возвращают подсказку.
 - ОС: Linux / WSL2 / macOS. Windows нативно — не приоритет.
 
 ## Целевая система и тюнинг под неё
@@ -240,7 +240,7 @@ graphify hook install             # установить git-хук (авто-о
 - **Правила и процесс спринтов** — [`_board/`](./_board): [`process.md`](./_board/process.md) (жизненный цикл спринта/задачи, ветки `feature/<NN>-...`, DoD, целесообразный порядок задач, маршрутизация находок), [`plan.md`](./_board/plan.md) (индекс спринтов), файлы спринтов в [`_board/sprints/`](./_board/sprints). Правила разработки (git, стиль, async, ошибки, секреты, тесты, документация) — [`_docs/instructions.md`](./_docs/instructions.md).
 - **Проектная документация** — [`_docs/`](./_docs): архитектура, агентный цикл, память, tools, безопасность, observability и др. (индекс — [`_docs/README.md`](./_docs/README.md)).
 - **Скиллы и промпты для AI-ассистента разработки** — [`.agents/`](./.agents): переиспользуемые промпты ([`.agents/prompts/`](./.agents/prompts)) и скиллы-дисциплины ([`.agents/skills/`](./.agents/skills)) — архитектура, async, тесты, обработка ошибок, защита от prompt injection, документация, git, автоматизация, отладка, **подготовка и ревью pull request (MR)**.
-- **Скрипты в скиллах** — детерминированная часть скилла выполняется кодом, а не ИИ: у бота — `app/skills/<name>/scripts/` через sandbox-tool `run_skill_script` ([`_docs/skills.md`](./_docs/skills.md)), у ассистента — `.agents/skills/<name>/scripts/` (например, `preflight.sh` — весь ритуал проверок перед коммитом одной командой). Так автоматизация остаётся надёжной и воспроизводимой, а токены LLM тратятся на суждения, а не на механику.
+- **Скрипты в скиллах** — детерминированная часть скилла выполняется кодом, а не ИИ: у бота — `app/skills/<name>/scripts/` через sandbox-tool `run_skill_script` ([`_docs/skills.md`](./_docs/skills.md)), у ассистента — `.agents/skills/<name>/scripts/` (например, [`preflight.sh`](./.agents/skills/git-discipline/scripts/preflight.sh) — весь ритуал проверок перед коммитом одной командой). Так автоматизация остаётся надёжной и воспроизводимой, а токены LLM тратятся на суждения, а не на механику.
 - **Единые правила для всех AI-инструментов** — единственный источник истины [`AGENTS.md`](./AGENTS.md) зеркалится относительными симлинками ([`CLAUDE.md`](./CLAUDE.md), [`GEMINI.md`](./GEMINI.md), [`QWEN.md`](./QWEN.md), `.github/copilot-instructions.md`); Cursor (`.cursor/rules/`) и Windsurf/Devin (`.devin/rules/`) — через файл-указатель; скиллы — в `.claude/skills/`. Подробнее — [`.agents/README.md`](./.agents/README.md).
 - **Автоматический контроль качества (в CI, без ИИ)** — `flake8`, `pytest` с порогом покрытия `--cov-fail-under=80` и скрипты-гейты [`scripts/`](./scripts): `check_env_sync` (нет конфигов мимо `.env`), `check_doc_links` (нет битых/абсолютных ссылок в markdown), `check_sprint_sync` (`plan.md` не расходится с файлами спринтов), `check_agents_sync` (формат и зеркала скиллов/промптов ассистента, живёт в `.agents/skills/skill-authoring/scripts/`).
 - **Безопасность по умолчанию** — sanitize на входе / bastion на выходе, per-user область видимости файлов, allowlist опасных tools, маскирование секретов в логах — [`_docs/security.md`](./_docs/security.md).
@@ -259,8 +259,8 @@ graphify hook install             # установить git-хук (авто-о
 - 🛠️ [`_docs/instructions.md`](./_docs/instructions.md) — правила разработки (включая обязательные тесты перед коммитом).
 - 🧪 [`_docs/testing.md`](./_docs/testing.md) — стратегия и категории тестов, моки, покрытие.
 - 🔭 [`_docs/observability.md`](./_docs/observability.md) — структурные JSON-логи, `trace_id`, маскирование секретов, error tracking (GlitchTip).
-- � [`_docs/security.md`](./_docs/security.md) — sanitize/bastion, per-user область видимости файлов, allowlist tools, маскирование секретов.
-- �� [`_board/README.md`](./_board/README.md) — процесс спринтов и задач.
+- 🔐 [`_docs/security.md`](./_docs/security.md) — sanitize/bastion, per-user область видимости файлов, allowlist tools, маскирование секретов.
+- 🗂️ [`_board/README.md`](./_board/README.md) — процесс спринтов и задач.
 - 📌 [`_docs/current-state.md`](./_docs/current-state.md) — фактическое состояние кода (читать перед правками).
 - 🗺️ [`_docs/roadmap.md`](./_docs/roadmap.md) — этапы развития (capability graph, внешние онлайн-LLM, web-адаптер, MAX-webhook и др.).
 - 📋 [`_docs/decisions.md`](./_docs/decisions.md) — журнал архитектурных решений (ADR): контекст, варианты, решение, последствия.
