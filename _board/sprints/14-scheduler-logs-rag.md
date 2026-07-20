@@ -278,7 +278,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 ### Задача 2.6. Документ `_docs/scheduler.md` + ссылки
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** Задачи 2.1–2.5
@@ -293,9 +293,9 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 #### Definition of Done
 
-- [ ] `_docs/scheduler.md` создан, добавлен в `_docs/README.md` и упомянут в `architecture.md`.
-- [ ] `check_doc_links` зелёный (только относительные, не битые ссылки).
-- [ ] Тесты — `n/a` (docs). `git status` чист.
+- [x] `_docs/scheduler.md` создан, добавлен в `_docs/README.md` и упомянут в `architecture.md`.
+- [x] `check_doc_links` зелёный (только относительные, не битые ссылки).
+- [x] Тесты — `n/a` (docs). `git status` чист.
 
 ---
 
@@ -444,7 +444,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | Done | 2.2 |
 | 2.4 | Tools: schedule/list/cancel scheduled task | high | M | Done | 2.3 |
 | 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | Done | 2.4 |
-| 2.6 | Документ `_docs/scheduler.md` + ссылки | medium | S | Progress | 2.1–2.5 |
+| 2.6 | Документ `_docs/scheduler.md` + ссылки | medium | S | Done | 2.1–2.5 |
 | 3.1 | Spike: аудит RAG-пайплайна + ADR | high | M | ToDo | — |
 | 3.2 | Task-префиксы эмбеддингов (`nomic`) | medium | M | ToDo | 3.1 |
 | 4.1 | Актуализация `_docs/*` и roadmap | medium | M | ToDo | 1.1, 2.1–2.6, 3.1–3.2 |
@@ -461,3 +461,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - **2026-07-20** — задача 2.3 закрыта: `run_scheduled_task` (orchestrator без событий шины, trace_id/user_id binding, sanitize, mark_run ok/error), `make_telegram_notifier` (bot.send_message, split_long_message, html.escape), 5 тестов в `tests/services/test_scheduler_runner.py`.
 - **2026-07-20** — задача 2.4 закрыта: tools `schedule_task`/`list_scheduled_tasks`/`cancel_scheduled_task` (ToolContext + scheduler, Executor прокидывает scheduler), `SchedulerService.store` property, 11 тестов в `tests/tools/test_schedule_task.py`. `_docs/tools.md` будет обновлён в задаче 2.6.
 - **2026-07-20** — задача 2.5 закрыта: скилл `scheduler` (`app/skills/scheduler/SKILL.md`) — таблица маппинга времени в cron, порядок действий, безопасность. SkillRegistry подхватывает.
+- **2026-07-20** — задача 2.6 закрыта: `_docs/scheduler.md` (архитектура, поток, безопасность, конфиг, tools, скилл, ADR-2, ограничения MVP), ссылки в `_docs/README.md` и `_docs/architecture.md`. `check_doc_links` зелёный.
