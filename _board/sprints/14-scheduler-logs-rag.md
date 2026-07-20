@@ -305,7 +305,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 ### Задача 3.1. Spike: аудит RAG-пайплайна + ADR
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** —
@@ -330,10 +330,10 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 #### Definition of Done
 
-- [ ] ADR добавлен в `_docs/decisions.md` (контекст/варианты/решение/последствия), решение по архитектуре БД и метрике зафиксировано.
-- [ ] `_docs/roadmap.md` синхронизирован (отложенные улучшения RAG добавлены с обоснованием).
-- [ ] `_docs/memory.md` уточнён по фактическим находкам (при расхождении с кодом — приоритет коду).
-- [ ] Тесты — `n/a` (spike). `git status` чист; `check_doc_links` зелёный.
+- [x] ADR добавлен в `_docs/decisions.md` (контекст/варианты/решение/последствия), решение по архитектуре БД и метрике зафиксировано.
+- [x] `_docs/roadmap.md` синхронизирован (отложенные улучшения RAG добавлены с обоснованием).
+- [x] `_docs/memory.md` уточнён по фактическим находкам (при расхождении с кодом — приоритет коду).
+- [x] Тесты — `n/a` (spike). `git status` чист; `check_doc_links` зелёный.
 
 ### Задача 3.2. Task-префиксы эмбеддингов (`search_document:` / `search_query:`)
 
@@ -445,7 +445,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | 2.4 | Tools: schedule/list/cancel scheduled task | high | M | Done | 2.3 |
 | 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | Done | 2.4 |
 | 2.6 | Документ `_docs/scheduler.md` + ссылки | medium | S | Done | 2.1–2.5 |
-| 3.1 | Spike: аудит RAG-пайплайна + ADR | high | M | Progress | — |
+| 3.1 | Spike: аудит RAG-пайплайна + ADR | high | M | Done | — |
 | 3.2 | Task-префиксы эмбеддингов (`nomic`) | medium | M | ToDo | 3.1 |
 | 4.1 | Актуализация `_docs/*` и roadmap | medium | M | ToDo | 1.1, 2.1–2.6, 3.1–3.2 |
 | 4.2 | Презентабельность `README.md` + сверка гейтов | medium | M | ToDo | 4.1 |
@@ -462,3 +462,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - **2026-07-20** — задача 2.4 закрыта: tools `schedule_task`/`list_scheduled_tasks`/`cancel_scheduled_task` (ToolContext + scheduler, Executor прокидывает scheduler), `SchedulerService.store` property, 11 тестов в `tests/tools/test_schedule_task.py`. `_docs/tools.md` будет обновлён в задаче 2.6.
 - **2026-07-20** — задача 2.5 закрыта: скилл `scheduler` (`app/skills/scheduler/SKILL.md`) — таблица маппинга времени в cron, порядок действий, безопасность. SkillRegistry подхватывает.
 - **2026-07-20** — задача 2.6 закрыта: `_docs/scheduler.md` (архитектура, поток, безопасность, конфиг, tools, скилл, ADR-2, ограничения MVP), ссылки в `_docs/README.md` и `_docs/architecture.md`. `check_doc_links` зелёный.
+- **2026-07-20** — задача 3.1 закрыта: ADR-4 (аудит RAG: task-префиксы внедрить (3.2), L2 оставить, TTL → roadmap Этап 17, sqlite-vec подтверждён), `_docs/roadmap.md` (Этап 17 + отказ cosine), `_docs/memory.md` §3.2 (заметки о префиксах и метрике).
