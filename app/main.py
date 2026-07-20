@@ -44,8 +44,10 @@ from app.services.scheduler import SchedulerService
 from app.services.skills import SkillRegistry
 from app.services.summarizer import Summarizer
 from app.tools.calculator import CalculatorTool
+from app.tools.cancel_scheduled_task import CancelScheduledTaskTool
 from app.tools.describe_image import DescribeImageTool
 from app.tools.http_request import HttpRequestTool
+from app.tools.list_scheduled_tasks import ListScheduledTasksTool
 from app.tools.load_skill import LoadSkillTool
 from app.tools.memory_search import MemorySearchTool
 from app.tools.ocr_image import OcrImageTool
@@ -57,6 +59,7 @@ from app.tools.email_list import EmailListTool
 from app.tools.email_read import EmailReadTool
 from app.tools.registry import ToolRegistry
 from app.tools.run_skill_script import RunSkillScriptTool
+from app.tools.schedule_task import ScheduleTaskTool
 from app.tools.web_search import WebSearchTool
 from app.tools.weather import WeatherTool
 from app.users.repository import UserRepository
@@ -178,6 +181,23 @@ async def _build_components(
         default_search_engine=settings.search_engine_default,
     )
 
+    # Scheduler (APScheduler) — scheduled tasks store + service
+    scheduled_task_store: ScheduledTaskStore | None = ScheduledTaskStore(
+        db_path=settings.memory_db_path
+    )
+    try:
+        await scheduled_task_store.init()
+    except Exception as exc:  # noqa: BLE001
+        logger.error("scheduled_task_store: инициализация не удалась: %s", exc)
+        scheduled_task_store = None
+
+    scheduler: SchedulerService | None = None
+    if scheduled_task_store is not None:
+        scheduler = SchedulerService(
+            store=scheduled_task_store,
+            timezone=settings.scheduler_timezone,
+        )
+
     tools = ToolRegistry(
         [
             CalculatorTool(),
@@ -206,6 +226,9 @@ async def _build_components(
             DiskListTool(max_output_chars=settings.max_tool_output_chars),
             DiskDownloadTool(max_output_chars=settings.max_tool_output_chars),
             RunSkillScriptTool(max_output_chars=settings.max_tool_output_chars),
+            ScheduleTaskTool(),
+            ListScheduledTasksTool(),
+            CancelScheduledTaskTool(),
         ],
         max_output_chars=settings.max_tool_output_chars
     )
@@ -218,6 +241,7 @@ async def _build_components(
         semantic_memory=semantic_memory,
         user_settings=user_settings,
         summarizer=summarizer,
+        scheduler=scheduler,
     )
     planner = PlannerAgent(llm=llm, prompts=prompts, settings=settings)
     critic = CriticAgent(llm=llm, prompts=prompts, settings=settings)
@@ -281,23 +305,6 @@ async def _build_components(
         ConversationArchived,
         partial(on_conversation_archived_cleanup, tmp_dir=Path(settings.tmp_base_dir)),
     )
-
-    # Scheduler (APScheduler) — scheduled tasks store + service
-    scheduled_task_store: ScheduledTaskStore | None = ScheduledTaskStore(
-        db_path=settings.memory_db_path
-    )
-    try:
-        await scheduled_task_store.init()
-    except Exception as exc:  # noqa: BLE001
-        logger.error("scheduled_task_store: инициализация не удалась: %s", exc)
-        scheduled_task_store = None
-
-    scheduler: SchedulerService | None = None
-    if scheduled_task_store is not None:
-        scheduler = SchedulerService(
-            store=scheduled_task_store,
-            timezone=settings.scheduler_timezone,
-        )
 
     return _Components(
         settings=settings,

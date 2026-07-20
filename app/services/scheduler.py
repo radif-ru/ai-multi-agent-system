@@ -54,6 +54,11 @@ class SchedulerService:
             job_defaults={"misfire_grace_time": 3600, "coalesce": True},
         )
 
+    @property
+    def store(self) -> ScheduledTaskStore:
+        """Доступ к хранилищу задач (для tools)."""
+        return self._store
+
     def set_run_task(self, run_task: RunTaskFn) -> None:
         """Внедрить раннер (вызывается из 2.3 после сборки компонентов)."""
         self._run_task = run_task

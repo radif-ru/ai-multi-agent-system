@@ -43,6 +43,7 @@ class _ToolContext:
     semantic_memory: Any
     skills: Any
     user_settings: Any
+    scheduler: Any = None
 
 
 class Executor:
@@ -59,6 +60,7 @@ class Executor:
         semantic_memory: Any = None,
         user_settings: Any = None,
         summarizer: Any = None,
+        scheduler: Any = None,
     ) -> None:
         self._settings = settings
         self._llm = llm
@@ -68,6 +70,7 @@ class Executor:
         self._semantic_memory = semantic_memory
         self._user_settings = user_settings
         self._summarizer = summarizer
+        self._scheduler = scheduler
 
     async def run(
         self,
@@ -96,6 +99,7 @@ class Executor:
             semantic_memory=self._semantic_memory,
             skills=self._skills,
             user_settings=self._user_settings,
+            scheduler=self._scheduler,
         )
 
         history_msgs = list(history or [])
