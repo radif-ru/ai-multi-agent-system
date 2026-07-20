@@ -480,8 +480,27 @@ async def main() -> None:
     components = await _build_components(settings)
     bot, dispatcher = _wire_telegram(components)
 
-    # Scheduler: стартуем если включён в конфиге
+    # Scheduler: внедряем раннер и стартуем если включён в конфиге
     if settings.scheduler_enabled and components.scheduler is not None:
+        from app.services.scheduler_runner import RunnerDeps, make_telegram_notifier, run_scheduled_task
+
+        runner_deps = RunnerDeps(
+            conversations=components.conversations,
+            executor=components.executor,
+            settings=settings,
+            llm=components.llm,
+            semantic_memory=components.semantic_memory,
+            planner=components.planner,
+            critic=components.critic,
+            user_settings=components.user_settings,
+            store=components.scheduled_task_store,
+        )
+        notifier = make_telegram_notifier(bot)
+
+        async def _run_task(task):
+            await run_scheduled_task(task, deps=runner_deps, notifier=notifier)
+
+        components.scheduler.set_run_task(_run_task)
         await components.scheduler.start()
 
     # Фоновое восстановление «висящих» сессий из dialog_journal.
