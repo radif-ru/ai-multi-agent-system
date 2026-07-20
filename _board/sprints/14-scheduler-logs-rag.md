@@ -226,7 +226,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 ### Задача 2.4. Tools для агента: `schedule_task` / `list_scheduled_tasks` / `cancel_scheduled_task`
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** Задача 2.3
@@ -245,9 +245,9 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 #### Definition of Done
 
-- [ ] Три tool'а реализованы и зарегистрированы; `ToolContext` даёт доступ к `scheduler` и `user_id`/`chat_id`/каналу.
-- [ ] `schedule_task` валидирует cron, соблюдает лимит на пользователя, санитизирует prompt; `list`/`cancel` работают в scope пользователя (нельзя отменить чужую задачу).
-- [ ] Тесты на каждый tool (валидный/невалидный cron, превышение лимита, отмена своей/чужой задачи) с фейковым `SchedulerService`/`store`.
+- [x] Три tool'а реализованы и зарегистрированы; `ToolContext` даёт доступ к `scheduler` и `user_id`/`chat_id`/каналу.
+- [x] `schedule_task` валидирует cron, соблюдает лимит на пользователя, санитизирует prompt; `list`/`cancel` работают в scope пользователя (нельзя отменить чужую задачу).
+- [x] Тесты на каждый tool (валидный/невалидный cron, превышение лимита, отмена своей/чужой задачи) с фейковым `SchedulerService`/`store`.
 - [ ] `_docs/tools.md` дополнен тремя tool'ами; `pytest -q` зелёный, покрытие не нарушено; `git status` чист.
 
 ### Задача 2.5. Скилл `scheduler` (инструкция агенту + маппинг времени в cron)
@@ -442,7 +442,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | Done | — |
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | Done | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | Done | 2.2 |
-| 2.4 | Tools: schedule/list/cancel scheduled task | high | M | Progress | 2.3 |
+| 2.4 | Tools: schedule/list/cancel scheduled task | high | M | Done | 2.3 |
 | 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | ToDo | 2.4 |
 | 2.6 | Документ `_docs/scheduler.md` + ссылки | medium | S | ToDo | 2.1–2.5 |
 | 3.1 | Spike: аудит RAG-пайплайна + ADR | high | M | ToDo | — |
@@ -459,3 +459,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - **2026-07-20** — задача 2.1 закрыта: `ScheduledTaskStore` (sqlite, `scheduled_tasks` в `data/memory.db`) с `ScheduledTask` dataclass, 12 тестов в `tests/services/test_scheduled_tasks.py`.
 - **2026-07-20** — задача 2.2 закрыта: `SchedulerService` (APScheduler, `MemoryJobStore`, rehydrate из store), Settings (`scheduler_enabled`/`scheduler_timezone`/`scheduler_max_jobs_per_user`), lifecycle в `app/main.py`, 9 тестов в `tests/services/test_scheduler.py`.
 - **2026-07-20** — задача 2.3 закрыта: `run_scheduled_task` (orchestrator без событий шины, trace_id/user_id binding, sanitize, mark_run ok/error), `make_telegram_notifier` (bot.send_message, split_long_message, html.escape), 5 тестов в `tests/services/test_scheduler_runner.py`.
+- **2026-07-20** — задача 2.4 закрыта: tools `schedule_task`/`list_scheduled_tasks`/`cancel_scheduled_task` (ToolContext + scheduler, Executor прокидывает scheduler), `SchedulerService.store` property, 11 тестов в `tests/tools/test_schedule_task.py`. `_docs/tools.md` будет обновлён в задаче 2.6.
