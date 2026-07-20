@@ -252,7 +252,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 ### Задача 2.5. Скилл `scheduler` (инструкция агенту + маппинг времени в cron)
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** Задача 2.4
@@ -271,10 +271,10 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 #### Definition of Done
 
-- [ ] `app/skills/scheduler/SKILL.md` создан в правильном формате (описание подхватывается `SkillRegistry`, инжектится в системный промпт).
-- [ ] `check_agents_sync` (и загрузка `SkillRegistry`) зелёные; smoke `python -c "from app.services.skills import SkillRegistry; r=SkillRegistry('app/skills'); r.load(); print('scheduler' in [d['name'] for d in r.list_descriptions()])"` → `True`.
-- [ ] Тесты — `n/a` (чисто-скилловая задача, только `app/skills/`).
-- [ ] `git status` чист.
+- [x] `app/skills/scheduler/SKILL.md` создан в правильном формате (описание подхватывается `SkillRegistry`, инжектится в системный промпт).
+- [x] `check_agents_sync` (и загрузка `SkillRegistry`) зелёные; smoke `python -c "from app.services.skills import SkillRegistry; r=SkillRegistry('app/skills'); r.load(); print('scheduler' in [d['name'] for d in r.list_descriptions()])"` → `True`.
+- [x] Тесты — `n/a` (чисто-скилловая задача, только `app/skills/`).
+- [x] `git status` чист.
 
 ### Задача 2.6. Документ `_docs/scheduler.md` + ссылки
 
@@ -443,7 +443,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | Done | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | Done | 2.2 |
 | 2.4 | Tools: schedule/list/cancel scheduled task | high | M | Done | 2.3 |
-| 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | Progress | 2.4 |
+| 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | Done | 2.4 |
 | 2.6 | Документ `_docs/scheduler.md` + ссылки | medium | S | ToDo | 2.1–2.5 |
 | 3.1 | Spike: аудит RAG-пайплайна + ADR | high | M | ToDo | — |
 | 3.2 | Task-префиксы эмбеддингов (`nomic`) | medium | M | ToDo | 3.1 |
@@ -460,3 +460,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - **2026-07-20** — задача 2.2 закрыта: `SchedulerService` (APScheduler, `MemoryJobStore`, rehydrate из store), Settings (`scheduler_enabled`/`scheduler_timezone`/`scheduler_max_jobs_per_user`), lifecycle в `app/main.py`, 9 тестов в `tests/services/test_scheduler.py`.
 - **2026-07-20** — задача 2.3 закрыта: `run_scheduled_task` (orchestrator без событий шины, trace_id/user_id binding, sanitize, mark_run ok/error), `make_telegram_notifier` (bot.send_message, split_long_message, html.escape), 5 тестов в `tests/services/test_scheduler_runner.py`.
 - **2026-07-20** — задача 2.4 закрыта: tools `schedule_task`/`list_scheduled_tasks`/`cancel_scheduled_task` (ToolContext + scheduler, Executor прокидывает scheduler), `SchedulerService.store` property, 11 тестов в `tests/tools/test_schedule_task.py`. `_docs/tools.md` будет обновлён в задаче 2.6.
+- **2026-07-20** — задача 2.5 закрыта: скилл `scheduler` (`app/skills/scheduler/SKILL.md`) — таблица маппинга времени в cron, порядок действий, безопасность. SkillRegistry подхватывает.
