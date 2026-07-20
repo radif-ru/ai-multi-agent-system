@@ -138,6 +138,7 @@ async def _run_inner(
             planner=deps.planner,
             critic=deps.critic,
             user_settings=deps.user_settings,
+            history=[],
         )
     except LLMTimeout:
         logger.warning("scheduler.run status=error task=%s reason=llm_timeout", task.id)

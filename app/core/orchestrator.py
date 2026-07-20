@@ -47,6 +47,7 @@ async def handle_user_task(
     planner: "PlannerAgent | None" = None,
     critic: "CriticAgent | None" = None,
     user_settings: "UserSettingsRegistry | None" = None,
+    history: list[dict[str, str]] | None = None,
 ) -> str:
     """Запустить агентный цикл и вернуть финальный текст для пользователя.
 
@@ -63,10 +64,14 @@ async def handle_user_task(
         planner: `PlannerAgent`; обязателен для NORMAL/DEEP, иначе режим даунгрейдится в OFF.
         critic: `CriticAgent`; обязателен для NORMAL/DEEP, иначе режим даунгрейдится в OFF.
         user_settings: `UserSettingsRegistry` для per-user override режима рефлексии.
+        history: готовая история диалога; `None` → читать из ``conversations``.
+            Передаётся из ``run_scheduled_task`` (пустой список) для изоляции
+            от живой сессии пользователя.
     """
 
     conversation_id = conversations.current_conversation_id(user_id)
-    history = conversations.get_history(user_id)
+    if history is None:
+        history = conversations.get_history(user_id)
     if len(history) == 1 and settings is not None:
         bootstrap = await build_bootstrap_message(
             query=text,

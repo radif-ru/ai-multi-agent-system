@@ -268,3 +268,24 @@ def test_cron_checkin_does_not_raise_when_sentry_unavailable() -> None:
     with patch("app.services.scheduler_runner.sentry_sdk") as mock_sentry:
         mock_sentry.crons.capture_checkin.side_effect = Exception("no sentry")
         _cron_checkin("test-task-id", "ok", duration=1.5)
+
+
+async def test_scheduled_task_uses_empty_history(
+    store: ScheduledTaskStore,
+) -> None:
+    """run_scheduled_task передаёт history=[] в handle_user_task для изоляции
+    от живой сессии пользователя (не читает историю текущего диалога)."""
+    task = _make_task()
+    await store.add(task)
+
+    deps = _make_deps(store)
+    notifier = AsyncMock()
+
+    with patch(
+        "app.services.scheduler_runner.handle_user_task",
+        new=AsyncMock(return_value="Готово"),
+    ) as mock_handle:
+        await run_scheduled_task(task, deps=deps, notifier=notifier)
+
+    _, kwargs = mock_handle.call_args
+    assert kwargs.get("history") == []
