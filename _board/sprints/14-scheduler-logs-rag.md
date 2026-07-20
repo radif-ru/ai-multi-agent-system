@@ -226,7 +226,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 ### Задача 2.4. Tools для агента: `schedule_task` / `list_scheduled_tasks` / `cancel_scheduled_task`
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** Задача 2.3
@@ -442,7 +442,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | Done | — |
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | Done | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | Done | 2.2 |
-| 2.4 | Tools: schedule/list/cancel scheduled task | high | M | ToDo | 2.3 |
+| 2.4 | Tools: schedule/list/cancel scheduled task | high | M | Progress | 2.3 |
 | 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | ToDo | 2.4 |
 | 2.6 | Документ `_docs/scheduler.md` + ссылки | medium | S | ToDo | 2.1–2.5 |
 | 3.1 | Spike: аудит RAG-пайплайна + ADR | high | M | ToDo | — |
