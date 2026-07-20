@@ -337,7 +337,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 ### Задача 3.2. Task-префиксы эмбеддингов (`search_document:` / `search_query:`)
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** M
 - **Зависит от:** Задача 3.1 (внедряем только если spike подтвердил)
@@ -446,7 +446,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | Done | 2.4 |
 | 2.6 | Документ `_docs/scheduler.md` + ссылки | medium | S | Done | 2.1–2.5 |
 | 3.1 | Spike: аудит RAG-пайплайна + ADR | high | M | Done | — |
-| 3.2 | Task-префиксы эмбеддингов (`nomic`) | medium | M | ToDo | 3.1 |
+| 3.2 | Task-префиксы эмбеддингов (`nomic`) | medium | M | Progress | 3.1 |
 | 4.1 | Актуализация `_docs/*` и roadmap | medium | M | ToDo | 1.1, 2.1–2.6, 3.1–3.2 |
 | 4.2 | Презентабельность `README.md` + сверка гейтов | medium | M | ToDo | 4.1 |
 
