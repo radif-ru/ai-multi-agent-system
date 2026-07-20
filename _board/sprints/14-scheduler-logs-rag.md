@@ -46,7 +46,7 @@
 
 ### Задача 1.1. Настраиваемый порог событий Sentry/GlitchTip
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** —
@@ -438,7 +438,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 | #   | Задача | Приоритет | Объём | Статус | Зависит от |
 |-----|--------|:---------:|:-----:|:------:|:----------:|
-| 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | ToDo | — |
+| 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | Progress | — |
 | 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | ToDo | — |
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | ToDo | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | ToDo | 2.2 |
