@@ -178,6 +178,14 @@ class Settings(BaseSettings):
     # Таймаут выполнения скрипта скилла через run_skill_script, секунды.
     skill_script_timeout: float = 30.0
 
+    # --- Scheduler (APScheduler) ---
+    # Выключатель планировщика: при False scheduler не стартует.
+    scheduler_enabled: bool = True
+    # IANA-таймзона по умолчанию для cron-выражений.
+    scheduler_timezone: str = "Europe/Moscow"
+    # Лимит задач на пользователя (валидатор > 0).
+    scheduler_max_jobs_per_user: int = 20
+
     # --- Observability / error tracking (Sentry/GlitchTip) ---
     # DSN self-hosted GlitchTip или Sentry. Пустая строка / None = выключено.
     sentry_dsn: str | None = None
@@ -191,6 +199,21 @@ class Settings(BaseSettings):
     dangerous_tools_allowlist: Annotated[list[str], NoDecode] = Field(
         default_factory=list
     )
+
+    @field_validator("scheduler_max_jobs_per_user", mode="before")
+    @classmethod
+    def _validate_max_jobs(cls, v):
+        try:
+            v = int(v)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"SCHEDULER_MAX_JOBS_PER_USER must be an integer, got '{v}'"
+            ) from exc
+        if v <= 0:
+            raise ValueError(
+                f"SCHEDULER_MAX_JOBS_PER_USER must be > 0, got {v}"
+            )
+        return v
 
     @field_validator("sentry_event_level", mode="before")
     @classmethod

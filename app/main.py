@@ -39,6 +39,8 @@ from app.services.llm import OllamaClient
 from app.services.memory import MemoryUnavailable, SemanticMemory
 from app.services.model_registry import UserSettingsRegistry
 from app.services.prompts import PromptLoader
+from app.services.scheduled_tasks import ScheduledTaskStore
+from app.services.scheduler import SchedulerService
 from app.services.skills import SkillRegistry
 from app.services.summarizer import Summarizer
 from app.tools.calculator import CalculatorTool
@@ -116,6 +118,8 @@ class _Components:
     critic: CriticAgent
     users: UserRepository
     event_bus: EventBus
+    scheduled_task_store: ScheduledTaskStore | None
+    scheduler: SchedulerService | None
 
 
 async def _build_components(
@@ -278,6 +282,23 @@ async def _build_components(
         partial(on_conversation_archived_cleanup, tmp_dir=Path(settings.tmp_base_dir)),
     )
 
+    # Scheduler (APScheduler) — scheduled tasks store + service
+    scheduled_task_store: ScheduledTaskStore | None = ScheduledTaskStore(
+        db_path=settings.memory_db_path
+    )
+    try:
+        await scheduled_task_store.init()
+    except Exception as exc:  # noqa: BLE001
+        logger.error("scheduled_task_store: инициализация не удалась: %s", exc)
+        scheduled_task_store = None
+
+    scheduler: SchedulerService | None = None
+    if scheduled_task_store is not None:
+        scheduler = SchedulerService(
+            store=scheduled_task_store,
+            timezone=settings.scheduler_timezone,
+        )
+
     return _Components(
         settings=settings,
         llm=llm,
@@ -295,6 +316,8 @@ async def _build_components(
         critic=critic,
         users=users,
         event_bus=event_bus,
+        scheduled_task_store=scheduled_task_store,
+        scheduler=scheduler,
     )
 
 
@@ -399,6 +422,16 @@ async def _shutdown_components(components: _Components) -> None:
         await components.users.close()
     except Exception:  # noqa: BLE001
         logger.exception("ошибка при закрытии UserRepository")
+    if components.scheduler is not None:
+        try:
+            await components.scheduler.shutdown()
+        except Exception:  # noqa: BLE001
+            logger.exception("ошибка при остановке scheduler")
+    if components.scheduled_task_store is not None:
+        try:
+            await components.scheduled_task_store.close()
+        except Exception:  # noqa: BLE001
+            logger.exception("ошибка при закрытии scheduled_task_store")
     try:
         from app.security import get_global_mapper
         get_global_mapper().close()
@@ -446,6 +479,10 @@ async def main() -> None:
 
     components = await _build_components(settings)
     bot, dispatcher = _wire_telegram(components)
+
+    # Scheduler: стартуем если включён в конфиге
+    if settings.scheduler_enabled and components.scheduler is not None:
+        await components.scheduler.start()
 
     # Фоновое восстановление «висящих» сессий из dialog_journal.
     # Запускаем параллельно с polling, чтобы не блокировать старт бота

@@ -58,6 +58,7 @@ def env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> pytest.MonkeyPatch:
     monkeypatch.setenv("MEMORY_DB_PATH", str(tmp_path / "memory.db"))
     monkeypatch.setenv("LOG_FILE", str(tmp_path / "agent.log"))
     monkeypatch.setenv("SENTRY_DSN", "")  # офлайн: не дёргаем GlitchTip
+    monkeypatch.setenv("SCHEDULER_ENABLED", "false")  # не стартуем scheduler в smoke
     return monkeypatch
 
 
@@ -123,6 +124,8 @@ def _components_with_closeables(*, semantic_memory: bool, dialog_journal: bool) 
     components.users.close = AsyncMock()
     components.semantic_memory = MagicMock(close=AsyncMock()) if semantic_memory else None
     components.dialog_journal = MagicMock(close=AsyncMock()) if dialog_journal else None
+    components.scheduler = None
+    components.scheduled_task_store = None
     return components
 
 
