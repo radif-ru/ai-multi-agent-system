@@ -93,7 +93,7 @@
 
 ### Задача 2.1. Хранилище расписаний `ScheduledTaskStore` (sqlite)
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** —
@@ -439,7 +439,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | #   | Задача | Приоритет | Объём | Статус | Зависит от |
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | Done | — |
-| 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | ToDo | — |
+| 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | Progress | — |
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | ToDo | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | ToDo | 2.2 |
 | 2.4 | Tools: schedule/list/cancel scheduled task | high | M | ToDo | 2.3 |
