@@ -194,7 +194,7 @@ Lifecycle (`app/main.py`):
 
 ### Задача 2.3. Исполнение задания и доставка результата в Telegram
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** Задача 2.2
@@ -218,11 +218,11 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 #### Definition of Done
 
-- [ ] Раннер вызывает `handle_user_task` с теми же зависимостями, что Telegram-хендлер; события шины не публикуются; `trace_id`/`user_id` биндятся и сбрасываются.
-- [ ] Результат доставляется в Telegram (`bot.send_message`, `split_long_message`, `html.escape`); длинный ответ не роняет доставку.
-- [ ] Ошибки задания не валят scheduler/процесс; `mark_run` фиксирует статус.
-- [ ] Тесты `tests/services/test_scheduler_runner.py`: успешный прогон вызывает notifier и `mark_run(ok)`; исключение `handle_user_task` → `mark_run(error)` и человекочитаемый текст (notifier с фейком); `handle_user_task` замокан, сеть не дёргается.
-- [ ] `pytest -q` зелёный, покрытие не нарушено; `git status` чист.
+- [x] Раннер вызывает `handle_user_task` с теми же зависимостями, что Telegram-хендлер; события шины не публикуются; `trace_id`/`user_id` биндятся и сбрасываются.
+- [x] Результат доставляется в Telegram (`bot.send_message`, `split_long_message`, `html.escape`); длинный ответ не роняет доставку.
+- [x] Ошибки задания не валят scheduler/процесс; `mark_run` фиксирует статус.
+- [x] Тесты `tests/services/test_scheduler_runner.py`: успешный прогон вызывает notifier и `mark_run(ok)`; исключение `handle_user_task` → `mark_run(error)` и человекочитаемый текст (notifier с фейком); `handle_user_task` замокан, сеть не дёргается.
+- [x] `pytest -q` зелёный, покрытие не нарушено; `git status` чист.
 
 ### Задача 2.4. Tools для агента: `schedule_task` / `list_scheduled_tasks` / `cancel_scheduled_task`
 
@@ -441,7 +441,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | Done | — |
 | 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | Done | — |
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | Done | 2.1 |
-| 2.3 | Исполнение задания и доставка в Telegram | high | M | Progress | 2.2 |
+| 2.3 | Исполнение задания и доставка в Telegram | high | M | Done | 2.2 |
 | 2.4 | Tools: schedule/list/cancel scheduled task | high | M | ToDo | 2.3 |
 | 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | ToDo | 2.4 |
 | 2.6 | Документ `_docs/scheduler.md` + ссылки | medium | S | ToDo | 2.1–2.5 |
@@ -458,3 +458,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - **2026-07-20** — задача 1.1 закрыта: `SENTRY_EVENT_LEVEL` (default `INFO`) добавлен в `Settings` с валидатором, `setup_sentry` использует настраиваемый `event_level`, `.env.example` обновлён, тесты в `tests/observability/test_event_level.py`, доки в `observability.md` §5 и `current-state.md` §1.7.
 - **2026-07-20** — задача 2.1 закрыта: `ScheduledTaskStore` (sqlite, `scheduled_tasks` в `data/memory.db`) с `ScheduledTask` dataclass, 12 тестов в `tests/services/test_scheduled_tasks.py`.
 - **2026-07-20** — задача 2.2 закрыта: `SchedulerService` (APScheduler, `MemoryJobStore`, rehydrate из store), Settings (`scheduler_enabled`/`scheduler_timezone`/`scheduler_max_jobs_per_user`), lifecycle в `app/main.py`, 9 тестов в `tests/services/test_scheduler.py`.
+- **2026-07-20** — задача 2.3 закрыта: `run_scheduled_task` (orchestrator без событий шины, trace_id/user_id binding, sanitize, mark_run ok/error), `make_telegram_notifier` (bot.send_message, split_long_message, html.escape), 5 тестов в `tests/services/test_scheduler_runner.py`.
