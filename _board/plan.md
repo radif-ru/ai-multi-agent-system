@@ -57,7 +57,7 @@
 | 11. Производительность и эффективность LLM | Closed | 0 / 0 / 20 | `sprints/11-performance.md` |
 | 12. Качество, безопасность и процессы | Closed | 0 / 0 / 14 | `sprints/12-quality-security-process.md` |
 | 13. Интеграции почты и диска, скиллы со скриптами | Closed | 0 / 0 / 20 | `sprints/13-mail-disk-skills.md` |
-| 14. Планировщик задач, логи в GlitchTip и качество RAG | Active | 2 / 0 / 10 | `sprints/14-scheduler-logs-rag.md` |
+| 14. Планировщик задач, логи в GlitchTip и качество RAG | Active | 2 / 1 / 10 | `sprints/14-scheduler-logs-rag.md` |
 
 > Таблицу обновлять одновременно с переходами статусов в файлах спринтов (см. `process.md` §7.3 и §7.9).
 

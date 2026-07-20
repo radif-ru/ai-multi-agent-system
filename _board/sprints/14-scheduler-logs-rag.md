@@ -110,6 +110,35 @@
 - [x] Тесты добавлены/обновлены; `pytest -q` зелёный, порог покрытия не нарушен.
 - [x] `git status` чист.
 
+### Задача 1.3. Performance-трассировки и Crons в GlitchTip
+
+- **Статус:** Progress
+- **Приоритет:** medium
+- **Объём:** S
+- **Зависит от:** 1.1
+- **Связанные документы:** `_docs/observability.md` §5; `_docs/scheduler.md`.
+- **Затрагиваемые файлы:** `app/observability/__init__.py`, `app/services/scheduler_runner.py`, `app/config.py`, `.env.example`, `tests/observability/test_event_level.py`, `tests/services/test_scheduler_runner.py`, `_docs/observability.md`.
+
+#### Описание
+
+GlitchTip имеет вкладки **Performance** (трассировки запросов) и **Crons** (мониторинг cron-задач). Сейчас `SENTRY_TRACES_SAMPLE_RATE=0.0` — трассировки выключены. Crons не используются.
+
+Внедрить:
+
+1. **Performance**: поднять дефолт `SENTRY_TRACES_SAMPLE_RATE` с `0.0` до `0.1` (10% запросов — баланс между видимостью и нагрузкой). Настройка уже есть в `Settings` и `.env.example` — обновить дефолт и комментарий.
+2. **Crons**: использовать `sentry_sdk.crons.capture_check_in()` в `run_scheduled_task` для отправки heartbeat в GlitchTip при запуске/успехе/ошибке cron-задачи. Monitor ID — `task_id` (или его хэш). Это позволит видеть пропуски и задержки в вкладке Crons.
+3. В `.env.example` обновить комментарий к `SENTRY_TRACES_SAMPLE_RATE` (теперь дефолт `0.1`).
+4. Обновить `_docs/observability.md` §5: описать Performance и Crons.
+5. Тесты: проверить что `sentry_sdk.crons.capture_check_in` вызывается при запуске/успехе/ошибке задачи (мок `sentry_sdk.crons`); проверить что `SENTRY_TRACES_SAMPLE_RATE` передаётся в `sentry_sdk.init`.
+
+#### Definition of Done
+
+- [ ] `SENTRY_TRACES_SAMPLE_RATE` дефолт `0.1` в `Settings` и `.env.example`; `check_env_sync` зелёный.
+- [ ] `sentry_sdk.crons.capture_check_in` вызывается в `run_scheduled_task` (check_in, success/failure).
+- [ ] `_docs/observability.md` §5 обновлён (Performance, Crons).
+- [ ] Тесты добавлены; `pytest -q` зелёный, порог покрытия не нарушен.
+- [ ] `git status` чист.
+
 ---
 
 ## 5. Этап 2. Планировщик задач (APScheduler)
@@ -473,6 +502,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | Done | — |
 | 1.2 | Логи в GlitchTip Logs (не Issues) | high | S | Done | 1.1 |
+| 1.3 | Performance-трассировки и Crons в GlitchTip | medium | S | Progress | 1.1 |
 | 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | Done | — |
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | Done | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | Done | 2.2 |
