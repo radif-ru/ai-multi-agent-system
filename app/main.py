@@ -258,6 +258,7 @@ async def _build_components(
         chunk_overlap=settings.memory_chunk_overlap,
         concurrency_limit=settings.embedding_concurrency,
         event_bus=event_bus,
+        embedding_document_prefix=settings.embedding_document_prefix,
     )
 
     # Регистрируем подписчиков для записи в ConversationStore

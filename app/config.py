@@ -62,6 +62,8 @@ class Settings(BaseSettings):
     embedding_model: str = "nomic-embed-text"
     embedding_dimensions: int = 768
     embedding_concurrency: int = 5
+    embedding_document_prefix: str = "search_document: "
+    embedding_query_prefix: str = "search_query: "
 
     # --- LLM gate (сериализация доступа к Ollama) ---
     # Верхняя граница одновременных вызовов к Ollama (chat + embed) на весь

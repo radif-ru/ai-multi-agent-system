@@ -19,6 +19,7 @@ class _Settings:
     embedding_model: str = "nomic-embed-text"
     session_bootstrap_enabled: bool = True
     session_bootstrap_top_k: int = 3
+    embedding_query_prefix: str = "search_query: "
 
 
 class _FakeLLM:
@@ -63,6 +64,7 @@ async def test_returns_system_message_with_chunks() -> None:
     assert "- факт 1" in msg["content"]
     assert "- факт 2" in msg["content"]
     assert llm.calls[0]["model"] == "nomic-embed-text"
+    assert llm.calls[0]["text"] == "search_query: как меня зовут?"
     assert memory.calls[0]["top_k"] == 3
     assert memory.calls[0]["scope_user_id"] == 42
 
