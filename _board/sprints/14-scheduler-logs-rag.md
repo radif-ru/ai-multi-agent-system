@@ -112,7 +112,7 @@
 
 ### Задача 1.3. Performance-трассировки и Crons в GlitchTip
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** 1.1
@@ -133,11 +133,11 @@ GlitchTip имеет вкладки **Performance** (трассировки за
 
 #### Definition of Done
 
-- [ ] `SENTRY_TRACES_SAMPLE_RATE` дефолт `0.1` в `Settings` и `.env.example`; `check_env_sync` зелёный.
-- [ ] `sentry_sdk.crons.capture_check_in` вызывается в `run_scheduled_task` (check_in, success/failure).
-- [ ] `_docs/observability.md` §5 обновлён (Performance, Crons).
-- [ ] Тесты добавлены; `pytest -q` зелёный, порог покрытия не нарушен.
-- [ ] `git status` чист.
+- [x] `SENTRY_TRACES_SAMPLE_RATE` дефолт `0.1` в `Settings` и `.env.example`; `check_env_sync` зелёный.
+- [x] `sentry_sdk.crons.capture_checkin` вызывается в `run_scheduled_task` (in_progress, ok/error).
+- [x] `_docs/observability.md` §5 обновлён (Performance, Crons).
+- [x] Тесты добавлены; `pytest -q` зелёный, порог покрытия не нарушен.
+- [x] `git status` чист.
 
 ---
 
@@ -502,7 +502,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | Done | — |
 | 1.2 | Логи в GlitchTip Logs (не Issues) | high | S | Done | 1.1 |
-| 1.3 | Performance-трассировки и Crons в GlitchTip | medium | S | Progress | 1.1 |
+| 1.3 | Performance-трассировки и Crons в GlitchTip | medium | S | Done | 1.1 |
 | 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | Done | — |
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | Done | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | Done | 2.2 |
@@ -529,3 +529,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - **2026-07-20** — задача 3.1 закрыта: ADR-4 (аудит RAG: task-префиксы внедрить (3.2), L2 оставить, TTL → roadmap Этап 17, sqlite-vec подтверждён), `_docs/roadmap.md` (Этап 17 + отказ cosine), `_docs/memory.md` §3.2 (заметки о префиксах и метрике).
 - **2026-07-20** — задача 3.2 закрыта: `embedding_document_prefix` / `embedding_query_prefix` в Settings + `.env.example`, Archiver применяет document-префикс, memory_search и session_bootstrap — query-префикс, текст чанка в БД без префикса, 2 новых теста в test_archiver.py, обновлены test_memory_search.py и test_session_bootstrap.py, `_docs/memory.md` §3.2 обновлён.
 - **2026-07-20** — задача 1.2 закрыта: `enable_logs=True` + `auto_session_tracking=False` в `sentry_sdk.init`, `SENTRY_EVENT_LEVEL` дефолт изменён на `ERROR`, добавлены `SENTRY_LOG_LEVEL` (дефолт `INFO`, настраиваемый порог для Logs/breadcrumbs) и `SENTRY_ENABLE_LOGS` в Settings + `.env.example`, `_docs/observability.md` §5 обновлён (разделение Logs vs Issues), 5 новых тестов в test_event_level.py, обновлены test_setup_sentry.py и test_error_capture.py.
+- **2026-07-20** — задача 1.3 закрыта: `SENTRY_TRACES_SAMPLE_RATE` дефолт поднят до `0.1` (Performance), `_cron_checkin` в `scheduler_runner.py` отправляет heartbeat в GlitchTip Crons (`in_progress`/`ok`/`error`), 4 новых теста в test_scheduler_runner.py, `_docs/observability.md` §5 обновлён (Performance, Crons).
