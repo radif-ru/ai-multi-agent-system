@@ -252,7 +252,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 ### Задача 2.5. Скилл `scheduler` (инструкция агенту + маппинг времени в cron)
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** Задача 2.4
@@ -443,7 +443,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | Done | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | Done | 2.2 |
 | 2.4 | Tools: schedule/list/cancel scheduled task | high | M | Done | 2.3 |
-| 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | ToDo | 2.4 |
+| 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | Progress | 2.4 |
 | 2.6 | Документ `_docs/scheduler.md` + ссылки | medium | S | ToDo | 2.1–2.5 |
 | 3.1 | Spike: аудит RAG-пайплайна + ADR | high | M | ToDo | — |
 | 3.2 | Task-префиксы эмбеддингов (`nomic`) | medium | M | ToDo | 3.1 |
