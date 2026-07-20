@@ -79,7 +79,7 @@
 
 ### Задача 1.2. Логи в GlitchTip Logs (не Issues)
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** 1.1
@@ -471,7 +471,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | #   | Задача | Приоритет | Объём | Статус | Зависит от |
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | Done | — |
-| 1.2 | Логи в GlitchTip Logs (не Issues) | high | S | ToDo | 1.1 |
+| 1.2 | Логи в GlitchTip Logs (не Issues) | high | S | Progress | 1.1 |
 | 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | Done | — |
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | Done | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | Done | 2.2 |
