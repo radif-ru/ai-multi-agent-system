@@ -46,7 +46,7 @@
 
 ### Задача 1.1. Настраиваемый порог событий Sentry/GlitchTip
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** —
@@ -71,11 +71,11 @@
 
 #### Definition of Done
 
-- [ ] `SENTRY_EVENT_LEVEL` есть в `Settings` (с валидатором) и в `.env.example`; `check_env_sync` зелёный.
-- [ ] `setup_sentry` использует `SENTRY_EVENT_LEVEL` для `event_level`; при `INFO` INFO-логи уезжают событием, `DEBUG` — нет; при пустом `SENTRY_DSN` ничего не инициализируется (поведение не изменилось).
-- [ ] Документация обновлена (`observability.md` §5, `current-state.md` §1.7, `stack.md` §9 если там перечислены env).
-- [ ] Тесты добавлены; `pytest -q` зелёный, порог покрытия не нарушен.
-- [ ] `git status` чист, артефакты не закоммичены.
+- [x] `SENTRY_EVENT_LEVEL` есть в `Settings` (с валидатором) и в `.env.example`; `check_env_sync` зелёный.
+- [x] `setup_sentry` использует `SENTRY_EVENT_LEVEL` для `event_level`; при `INFO` INFO-логи уезжают событием, `DEBUG` — нет; при пустом `SENTRY_DSN` ничего не инициализируется (поведение не изменилось).
+- [x] Документация обновлена (`observability.md` §5, `current-state.md` §1.7, `stack.md` §9 если там перечислены env).
+- [x] Тесты добавлены; `pytest -q` зелёный, порог покрытия не нарушен.
+- [x] `git status` чист, артефакты не закоммичены.
 
 ---
 
@@ -438,7 +438,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 | #   | Задача | Приоритет | Объём | Статус | Зависит от |
 |-----|--------|:---------:|:-----:|:------:|:----------:|
-| 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | Progress | — |
+| 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | Done | — |
 | 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | ToDo | — |
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | ToDo | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | ToDo | 2.2 |
@@ -455,3 +455,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 ## 10. История изменений спринта
 
 - **2026-07-10** — спринт открыт, ветка `feature/14-scheduler-logs-rag` создана от `main`. Ключевые решения согласованы с пользователем: планировщик = APScheduler (не Celery, ADR-2); логи INFO+ в существующий GlitchTip (не ELK); векторная БД остаётся `sqlite-vec` (ADR-3), только улучшения качества RAG.
+- **2026-07-20** — задача 1.1 закрыта: `SENTRY_EVENT_LEVEL` (default `INFO`) добавлен в `Settings` с валидатором, `setup_sentry` использует настраиваемый `event_level`, `.env.example` обновлён, тесты в `tests/observability/test_event_level.py`, доки в `observability.md` §5 и `current-state.md` §1.7.
