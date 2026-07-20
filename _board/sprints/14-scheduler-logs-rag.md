@@ -31,7 +31,7 @@
 
 ## 3. Acceptance Criteria спринта
 
-- [ ] При заданном `SENTRY_DSN` логи уровня `SENTRY_EVENT_LEVEL` (default `INFO`) и выше доходят в GlitchTip как события; `DEBUG` не отправляется ни событием, ни breadcrumb; при пустом `SENTRY_DSN` поведение прежнее (ничего не инициализируется).
+- [ ] При заданном `SENTRY_DSN` логи уровня `INFO+` доходят в GlitchTip во вкладку **Logs**; ошибки уровня `SENTRY_EVENT_LEVEL` (default `ERROR`) и выше — в **Issues**; `DEBUG` не отправляется ни событием, ни логом, ни breadcrumb; при пустом `SENTRY_DSN` поведение прежнее (ничего не инициализируется).
 - [ ] Пользователь из Telegram естественным языком («проверяй почту каждый день в 9:00») ставит повторяющуюся задачу; она сохраняется в `data/memory.db`, **переживает рестарт** процесса и запускается по расписанию; результат приходит сообщением в Telegram.
 - [ ] Пользователь может посмотреть свои задачи и отменить любую (через агента/tools).
 - [ ] RAG-пайплайн `sqlite-vec` задокументирован и аудитирован (spike), решение по архитектуре БД и метрике зафиксировано в `_docs/decisions.md`; внедрены безопасные улучшения качества (task-префиксы `nomic`).
@@ -40,9 +40,9 @@
 
 ---
 
-## 4. Этап 1. Логи в GlitchTip (настраиваемый уровень событий)
+## 4. Этап 1. Логи в GlitchTip (настраиваемый уровень событий и Logs API)
 
-Цель: отправлять в существующий GlitchTip логи с уровня `INFO` (настраивается), не заводя ELK. Малый изолированный этап — делаем первым.
+Цель: отправлять в существующий GlitchTip логи с уровня `INFO` (настраивается), не заводя ELK. Малый изолированный этап — делаем первым. Задача 1.2 добавлена по факту: INFO-логи попадали в Issues (шум), нужно разделить — ошибки в Issues, информационные логи в Logs.
 
 ### Задача 1.1. Настраиваемый порог событий Sentry/GlitchTip
 
@@ -76,6 +76,38 @@
 - [x] Документация обновлена (`observability.md` §5, `current-state.md` §1.7, `stack.md` §9 если там перечислены env).
 - [x] Тесты добавлены; `pytest -q` зелёный, порог покрытия не нарушен.
 - [x] `git status` чист, артефакты не закоммичены.
+
+### Задача 1.2. Логи в GlitchTip Logs (не Issues)
+
+- **Статус:** ToDo
+- **Приоритет:** high
+- **Объём:** S
+- **Зависит от:** 1.1
+- **Связанные документы:** `_docs/observability.md` §5; `_docs/current-state.md` §1.7.
+- **Затрагиваемые файлы:** `app/observability/__init__.py`, `app/config.py`, `.env.example`, `tests/observability/test_event_level.py`, `_docs/observability.md`.
+
+#### Описание
+
+Задача 1.1 настроила `LoggingIntegration` с `event_level=INFO` — все INFO+ логи уезжают в GlitchTip как **события (Issues)**. GlitchTip поддерживает Sentry Logs API: при `enable_logs=True` в `sentry_sdk.init()` логи направляются во вкладку **Logs**, а не в Issues.
+
+Внедрить разделение (Вариант 2 из обсуждения с пользователем):
+
+1. В `sentry_sdk.init()` добавить `enable_logs=True` и `auto_session_tracking=False` (GlitchTip не поддерживает sessions).
+2. `LoggingIntegration` оставить только для `event_level=ERROR` (ошибки и исключения → Issues). `level` (breadcrumbs) оставить `INFO`.
+3. `SENTRY_EVENT_LEVEL` теперь контролирует только порог **событий (Issues)**, а не логов. Дефолт изменить на `ERROR` (было `INFO`) — INFO-логи не должны засорять Issues.
+4. Добавить `sentry_enable_logs: bool = True` в `Settings` (возможность отключить логи в Logs при необходимости).
+5. В `.env.example` обновить комментарий к `SENTRY_EVENT_LEVEL` (теперь порог для Issues, не для логов) и добавить `SENTRY_ENABLE_LOGS=true`.
+6. Обновить `_docs/observability.md` §5: описать разделение Logs vs Issues, `enable_logs`, `auto_session_tracking=False`.
+7. Тесты: проверить что `sentry_sdk.init` вызывается с `enable_logs=True` и `auto_session_tracking=False`; `LoggingIntegration` имеет `event_level=ERROR` (дефолт); `SENTRY_EVENT_LEVEL=WARNING` меняет `event_level` в `LoggingIntegration`.
+
+#### Definition of Done
+
+- [ ] `sentry_sdk.init()` вызывается с `enable_logs=True`, `auto_session_tracking=False`.
+- [ ] `LoggingIntegration` использует `event_level` из `SENTRY_EVENT_LEVEL` (дефолт `ERROR`); INFO-логи идут в Logs, ERROR+ — в Issues.
+- [ ] `SENTRY_ENABLE_LOGS` в `Settings` и `.env.example`; `check_env_sync` зелёный.
+- [ ] `_docs/observability.md` §5 обновлён (разделение Logs vs Issues).
+- [ ] Тесты добавлены/обновлены; `pytest -q` зелёный, порог покрытия не нарушен.
+- [ ] `git status` чист.
 
 ---
 
@@ -439,6 +471,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | #   | Задача | Приоритет | Объём | Статус | Зависит от |
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | Done | — |
+| 1.2 | Логи в GlitchTip Logs (не Issues) | high | S | ToDo | 1.1 |
 | 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | Done | — |
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | Done | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | Done | 2.2 |
