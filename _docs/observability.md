@@ -107,6 +107,7 @@ finally:
 | `SENTRY_DSN` | *(пусто)* | DSN self-hosted GlitchTip (Sentry-совместимый). Пустое значение = error tracking выключен. |
 | `SENTRY_ENVIRONMENT` | `dev` | Тег `event.environment`: `dev` / `staging` / `prod`. |
 | `SENTRY_TRACES_SAMPLE_RATE` | `0.0` | Доля запросов с performance-трассировкой. По умолчанию только ошибки, без performance. |
+| `SENTRY_EVENT_LEVEL` | `INFO` | Минимальный уровень логов, которые уезжают в GlitchTip как события (`DEBUG` \| `INFO` \| `WARNING` \| `ERROR` \| `CRITICAL`). `DEBUG` не отправляется никогда. Рекомендуется `WARNING` для снижения шума — GlitchTip трекер ошибок, а не лог-хранилище: каждое уникальное сообщение уровня события становится «issue». |
 
 Глобальные флаги `send_default_pii=False` и хук `before_send` (см. ниже) — зашиты в коде, не конфигурируются.
 
@@ -121,7 +122,9 @@ finally:
 
 ### Интеграции
 
-`LoggingIntegration(level=INFO, event_level=ERROR)` — все `logger.error(...)` и `logger.exception(...)` автоматически уезжают в GlitchTip как события; уровни `INFO/WARNING` идут в breadcrumbs и доезжают вместе со следующим event.
+`LoggingIntegration(level=INFO, event_level=SENTRY_EVENT_LEVEL)` — логи уровня `SENTRY_EVENT_LEVEL` (по умолчанию `INFO`) и выше автоматически уезжают в GlitchTip как события; уровни ниже порога идут в breadcrumbs и доезжают вместе со следующим event. `DEBUG` не отправляется ни событием, ни breadcrumb (уровень breadcrumbs зафиксирован на `INFO`).
+
+> **Важно:** GlitchTip — трекер ошибок, а не лог-хранилище. Каждое уникальное сообщение уровня события становится «issue». При `SENTRY_EVENT_LEVEL=INFO` (дефолт) каждое INFO-сообщение создаёт issue — это может зашумить трекер. Рекомендуется `WARNING` для production-окружения, если не требуется детальный лог-поток в GlitchTip.
 
 ### Self-hosted GlitchTip: локальный запуск
 

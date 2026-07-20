@@ -74,7 +74,12 @@ def setup_sentry(settings: Settings) -> bool:
             send_default_pii=False,
             before_send=_before_send,
             integrations=[
-                LoggingIntegration(level=logging.INFO, event_level=logging.ERROR),
+                LoggingIntegration(
+                    level=logging.INFO,
+                    event_level=logging.getLevelName(
+                        settings.sentry_event_level
+                    ),
+                ),
             ],
         )
     except Exception as exc:  # noqa: BLE001

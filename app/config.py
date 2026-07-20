@@ -183,11 +183,26 @@ class Settings(BaseSettings):
     sentry_dsn: str | None = None
     sentry_environment: str = "dev"
     sentry_traces_sample_rate: float = 0.0
+    # Минимальный уровень логов, которые уезжают в GlitchTip как события
+    # (DEBUG не отправляется никогда). См. _docs/observability.md §5.
+    sentry_event_level: str = "INFO"
 
     # --- Security ---
     dangerous_tools_allowlist: Annotated[list[str], NoDecode] = Field(
         default_factory=list
     )
+
+    @field_validator("sentry_event_level", mode="before")
+    @classmethod
+    def _normalize_sentry_event_level(cls, v):
+        if isinstance(v, str):
+            v = v.strip().upper()
+        allowed = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+        if v not in allowed:
+            raise ValueError(
+                f"SENTRY_EVENT_LEVEL must be one of {sorted(allowed)}, got '{v}'"
+            )
+        return v
 
     @field_validator("ollama_available_models", mode="before")
     @classmethod

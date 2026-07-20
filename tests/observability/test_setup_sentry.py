@@ -29,6 +29,7 @@ def _make_settings(**overrides):
         sentry_dsn=None,
         sentry_environment="dev",
         sentry_traces_sample_rate=0.0,
+        sentry_event_level="ERROR",
     )
     base.update(overrides)
     return SimpleNamespace(**base)

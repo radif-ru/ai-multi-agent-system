@@ -45,6 +45,7 @@ def _make_settings(dsn: str = "https://pub@glitchtip.test/1") -> SimpleNamespace
         sentry_dsn=dsn,
         sentry_environment="test",
         sentry_traces_sample_rate=0.0,
+        sentry_event_level="ERROR",
     )
 
 
