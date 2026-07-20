@@ -146,7 +146,7 @@ API (async, синхронная суть через `asyncio.to_thread`, дос
 
 ### Задача 2.2. `SchedulerService` (обёртка APScheduler) + lifecycle
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** Задача 2.1
@@ -440,7 +440,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | Done | — |
 | 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | Done | — |
-| 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | ToDo | 2.1 |
+| 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | Progress | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | ToDo | 2.2 |
 | 2.4 | Tools: schedule/list/cancel scheduled task | high | M | ToDo | 2.3 |
 | 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | ToDo | 2.4 |
