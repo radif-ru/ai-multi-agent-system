@@ -146,7 +146,7 @@ API (async, синхронная суть через `asyncio.to_thread`, дос
 
 ### Задача 2.2. `SchedulerService` (обёртка APScheduler) + lifecycle
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** Задача 2.1
@@ -186,11 +186,11 @@ Lifecycle (`app/main.py`):
 
 #### Definition of Done
 
-- [ ] `APScheduler` в `requirements.txt`; `SchedulerService` создаётся/стартует/останавливается в lifecycle `app/main.py`; при `SCHEDULER_ENABLED=false` не стартует.
-- [ ] Новые поля `Settings` (`scheduler_enabled`, `scheduler_timezone`, `scheduler_max_jobs_per_user`) есть в `.env.example`; `check_env_sync` зелёный.
-- [ ] Задачи восстанавливаются из `store.list_enabled()` при `start()` (тест на rehydrate с фейковым/реальным `AsyncIOScheduler` и мгновенным триггером или проверкой `get_jobs()`).
-- [ ] Тесты `tests/services/test_scheduler.py`: add_task регистрирует job; remove_task удаляет из store и scheduler; невалидный cron отклоняется; rehydrate добавляет enabled-задачи. Сеть/реальное время не используются (либо `DateTrigger`/immediate, либо инспекция `get_jobs()`).
-- [ ] `pytest -q` зелёный, покрытие не нарушено; `git status` чист.
+- [x] `APScheduler` в `requirements.txt`; `SchedulerService` создаётся/стартует/останавливается в lifecycle `app/main.py`; при `SCHEDULER_ENABLED=false` не стартует.
+- [x] Новые поля `Settings` (`scheduler_enabled`, `scheduler_timezone`, `scheduler_max_jobs_per_user`) есть в `.env.example`; `check_env_sync` зелёный.
+- [x] Задачи восстанавливаются из `store.list_enabled()` при `start()` (тест на rehydrate с фейковым/реальным `AsyncIOScheduler` и мгновенным триггером или проверкой `get_jobs()`).
+- [x] Тесты `tests/services/test_scheduler.py`: add_task регистрирует job; remove_task удаляет из store и scheduler; невалидный cron отклоняется; rehydrate добавляет enabled-задачи. Сеть/реальное время не используются (либо `DateTrigger`/immediate, либо инспекция `get_jobs()`).
+- [x] `pytest -q` зелёный, покрытие не нарушено; `git status` чист.
 
 ### Задача 2.3. Исполнение задания и доставка результата в Telegram
 
@@ -440,7 +440,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | Done | — |
 | 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | Done | — |
-| 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | Progress | 2.1 |
+| 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | Done | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | ToDo | 2.2 |
 | 2.4 | Tools: schedule/list/cancel scheduled task | high | M | ToDo | 2.3 |
 | 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | ToDo | 2.4 |
@@ -457,3 +457,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - **2026-07-10** — спринт открыт, ветка `feature/14-scheduler-logs-rag` создана от `main`. Ключевые решения согласованы с пользователем: планировщик = APScheduler (не Celery, ADR-2); логи INFO+ в существующий GlitchTip (не ELK); векторная БД остаётся `sqlite-vec` (ADR-3), только улучшения качества RAG.
 - **2026-07-20** — задача 1.1 закрыта: `SENTRY_EVENT_LEVEL` (default `INFO`) добавлен в `Settings` с валидатором, `setup_sentry` использует настраиваемый `event_level`, `.env.example` обновлён, тесты в `tests/observability/test_event_level.py`, доки в `observability.md` §5 и `current-state.md` §1.7.
 - **2026-07-20** — задача 2.1 закрыта: `ScheduledTaskStore` (sqlite, `scheduled_tasks` в `data/memory.db`) с `ScheduledTask` dataclass, 12 тестов в `tests/services/test_scheduled_tasks.py`.
+- **2026-07-20** — задача 2.2 закрыта: `SchedulerService` (APScheduler, `MemoryJobStore`, rehydrate из store), Settings (`scheduler_enabled`/`scheduler_timezone`/`scheduler_max_jobs_per_user`), lifecycle в `app/main.py`, 9 тестов в `tests/services/test_scheduler.py`.
