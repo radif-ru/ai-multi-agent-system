@@ -31,7 +31,7 @@
 
 ## 3. Acceptance Criteria спринта
 
-- [ ] При заданном `SENTRY_DSN` логи уровня `INFO+` доходят в GlitchTip во вкладку **Logs**; ошибки уровня `SENTRY_EVENT_LEVEL` (default `ERROR`) и выше — в **Issues**; `DEBUG` не отправляется ни событием, ни логом, ни breadcrumb; при пустом `SENTRY_DSN` поведение прежнее (ничего не инициализируется).
+- [ ] При заданном `SENTRY_DSN` логи уровня `SENTRY_LOG_LEVEL` (default `INFO`) и выше доходят в GlitchTip во вкладку **Logs**; ошибки уровня `SENTRY_EVENT_LEVEL` (default `ERROR`) и выше — в **Issues**; `DEBUG` можно включить через `SENTRY_LOG_LEVEL=DEBUG`; при пустом `SENTRY_DSN` поведение прежнее (ничего не инициализируется).
 - [ ] Пользователь из Telegram естественным языком («проверяй почту каждый день в 9:00») ставит повторяющуюся задачу; она сохраняется в `data/memory.db`, **переживает рестарт** процесса и запускается по расписанию; результат приходит сообщением в Telegram.
 - [ ] Пользователь может посмотреть свои задачи и отменить любую (через агента/tools).
 - [ ] RAG-пайплайн `sqlite-vec` задокументирован и аудитирован (spike), решение по архитектуре БД и метрике зафиксировано в `_docs/decisions.md`; внедрены безопасные улучшения качества (task-префиксы `nomic`).
@@ -79,7 +79,7 @@
 
 ### Задача 1.2. Логи в GlitchTip Logs (не Issues)
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** 1.1
@@ -90,24 +90,25 @@
 
 Задача 1.1 настроила `LoggingIntegration` с `event_level=INFO` — все INFO+ логи уезжают в GlitchTip как **события (Issues)**. GlitchTip поддерживает Sentry Logs API: при `enable_logs=True` в `sentry_sdk.init()` логи направляются во вкладку **Logs**, а не в Issues.
 
-Внедрить разделение (Вариант 2 из обсуждения с пользователем):
+Внедрить разделение (Вариант 2 из обсуждения с пользователем) + настраиваемый уровень логов:
 
 1. В `sentry_sdk.init()` добавить `enable_logs=True` и `auto_session_tracking=False` (GlitchTip не поддерживает sessions).
-2. `LoggingIntegration` оставить только для `event_level=ERROR` (ошибки и исключения → Issues). `level` (breadcrumbs) оставить `INFO`.
-3. `SENTRY_EVENT_LEVEL` теперь контролирует только порог **событий (Issues)**, а не логов. Дефолт изменить на `ERROR` (было `INFO`) — INFO-логи не должны засорять Issues.
+2. `LoggingIntegration` использует `event_level` из `SENTRY_EVENT_LEVEL` (дефолт `ERROR` — ошибки и исключения → Issues). `level` (breadcrumbs + Logs) берётся из новой настройки `SENTRY_LOG_LEVEL` (дефолт `INFO`).
+3. `SENTRY_EVENT_LEVEL` (дефолт `ERROR`) контролирует только порог **событий (Issues)**. `SENTRY_LOG_LEVEL` (дефолт `INFO`) контролирует порог **логов в Logs и breadcrumbs**. `DEBUG` можно включить через `SENTRY_LOG_LEVEL=DEBUG`.
 4. Добавить `sentry_enable_logs: bool = True` в `Settings` (возможность отключить логи в Logs при необходимости).
-5. В `.env.example` обновить комментарий к `SENTRY_EVENT_LEVEL` (теперь порог для Issues, не для логов) и добавить `SENTRY_ENABLE_LOGS=true`.
-6. Обновить `_docs/observability.md` §5: описать разделение Logs vs Issues, `enable_logs`, `auto_session_tracking=False`.
-7. Тесты: проверить что `sentry_sdk.init` вызывается с `enable_logs=True` и `auto_session_tracking=False`; `LoggingIntegration` имеет `event_level=ERROR` (дефолт); `SENTRY_EVENT_LEVEL=WARNING` меняет `event_level` в `LoggingIntegration`.
+5. Добавить `sentry_log_level: str = "INFO"` в `Settings` с валидатором (аналог `sentry_event_level`).
+6. В `.env.example` обновить комментарии и добавить `SENTRY_ENABLE_LOGS=true`, `SENTRY_LOG_LEVEL=INFO`.
+7. Обновить `_docs/observability.md` §5: описать разделение Logs vs Issues, три параметра.
+8. Тесты: `enable_logs=True`, `auto_session_tracking=False`; `LoggingIntegration` имеет `event_level=ERROR` (дефолт) и `level=INFO` (дефолт); `SENTRY_LOG_LEVEL=DEBUG` меняет `level`; `SENTRY_EVENT_LEVEL=WARNING` меняет `event_level`.
 
 #### Definition of Done
 
-- [ ] `sentry_sdk.init()` вызывается с `enable_logs=True`, `auto_session_tracking=False`.
-- [ ] `LoggingIntegration` использует `event_level` из `SENTRY_EVENT_LEVEL` (дефолт `ERROR`); INFO-логи идут в Logs, ERROR+ — в Issues.
-- [ ] `SENTRY_ENABLE_LOGS` в `Settings` и `.env.example`; `check_env_sync` зелёный.
-- [ ] `_docs/observability.md` §5 обновлён (разделение Logs vs Issues).
-- [ ] Тесты добавлены/обновлены; `pytest -q` зелёный, порог покрытия не нарушен.
-- [ ] `git status` чист.
+- [x] `sentry_sdk.init()` вызывается с `enable_logs=True`, `auto_session_tracking=False`.
+- [x] `LoggingIntegration` использует `event_level` из `SENTRY_EVENT_LEVEL` (дефолт `ERROR`) и `level` из `SENTRY_LOG_LEVEL` (дефолт `INFO`); INFO-логи идут в Logs, ERROR+ — в Issues; `SENTRY_LOG_LEVEL=DEBUG` включает DEBUG в Logs.
+- [x] `SENTRY_ENABLE_LOGS` и `SENTRY_LOG_LEVEL` в `Settings` и `.env.example`; `check_env_sync` зелёный.
+- [x] `_docs/observability.md` §5 обновлён (разделение Logs vs Issues, три параметра).
+- [x] Тесты добавлены/обновлены; `pytest -q` зелёный, порог покрытия не нарушен.
+- [x] `git status` чист.
 
 ---
 
@@ -471,7 +472,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | #   | Задача | Приоритет | Объём | Статус | Зависит от |
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | Done | — |
-| 1.2 | Логи в GlitchTip Logs (не Issues) | high | S | Progress | 1.1 |
+| 1.2 | Логи в GlitchTip Logs (не Issues) | high | S | Done | 1.1 |
 | 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | Done | — |
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | Done | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | Done | 2.2 |
@@ -497,3 +498,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - **2026-07-20** — задача 2.6 закрыта: `_docs/scheduler.md` (архитектура, поток, безопасность, конфиг, tools, скилл, ADR-2, ограничения MVP), ссылки в `_docs/README.md` и `_docs/architecture.md`. `check_doc_links` зелёный.
 - **2026-07-20** — задача 3.1 закрыта: ADR-4 (аудит RAG: task-префиксы внедрить (3.2), L2 оставить, TTL → roadmap Этап 17, sqlite-vec подтверждён), `_docs/roadmap.md` (Этап 17 + отказ cosine), `_docs/memory.md` §3.2 (заметки о префиксах и метрике).
 - **2026-07-20** — задача 3.2 закрыта: `embedding_document_prefix` / `embedding_query_prefix` в Settings + `.env.example`, Archiver применяет document-префикс, memory_search и session_bootstrap — query-префикс, текст чанка в БД без префикса, 2 новых теста в test_archiver.py, обновлены test_memory_search.py и test_session_bootstrap.py, `_docs/memory.md` §3.2 обновлён.
+- **2026-07-20** — задача 1.2 закрыта: `enable_logs=True` + `auto_session_tracking=False` в `sentry_sdk.init`, `SENTRY_EVENT_LEVEL` дефолт изменён на `ERROR`, добавлены `SENTRY_LOG_LEVEL` (дефолт `INFO`, настраиваемый порог для Logs/breadcrumbs) и `SENTRY_ENABLE_LOGS` в Settings + `.env.example`, `_docs/observability.md` §5 обновлён (разделение Logs vs Issues), 5 новых тестов в test_event_level.py, обновлены test_setup_sentry.py и test_error_capture.py.

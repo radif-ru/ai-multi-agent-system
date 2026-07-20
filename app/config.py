@@ -193,9 +193,15 @@ class Settings(BaseSettings):
     sentry_dsn: str | None = None
     sentry_environment: str = "dev"
     sentry_traces_sample_rate: float = 0.0
-    # Минимальный уровень логов, которые уезжают в GlitchTip как события
-    # (DEBUG не отправляется никогда). См. _docs/observability.md §5.
-    sentry_event_level: str = "INFO"
+    # Минимальный уровень логов, которые уезжают в GlitchTip как события (Issues).
+    # См. _docs/observability.md §5.
+    sentry_event_level: str = "ERROR"
+    # Минимальный уровень логов для Logs API и breadcrumbs.
+    # DEBUG включает отладочные логи в Logs. См. _docs/observability.md §5.
+    sentry_log_level: str = "INFO"
+    # Отправлять логи в GlitchTip Logs (отдельная вкладка, не Issues).
+    # Требует sentry-sdk >= 2.0 и GlitchTip с поддержкой Logs API.
+    sentry_enable_logs: bool = True
 
     # --- Security ---
     dangerous_tools_allowlist: Annotated[list[str], NoDecode] = Field(
@@ -226,6 +232,18 @@ class Settings(BaseSettings):
         if v not in allowed:
             raise ValueError(
                 f"SENTRY_EVENT_LEVEL must be one of {sorted(allowed)}, got '{v}'"
+            )
+        return v
+
+    @field_validator("sentry_log_level", mode="before")
+    @classmethod
+    def _normalize_sentry_log_level(cls, v):
+        if isinstance(v, str):
+            v = v.strip().upper()
+        allowed = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+        if v not in allowed:
+            raise ValueError(
+                f"SENTRY_LOG_LEVEL must be one of {sorted(allowed)}, got '{v}'"
             )
         return v
 
