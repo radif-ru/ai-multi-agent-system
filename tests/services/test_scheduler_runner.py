@@ -289,3 +289,27 @@ async def test_scheduled_task_uses_empty_history(
 
     _, kwargs = mock_handle.call_args
     assert kwargs.get("history") == []
+
+
+async def test_scheduled_task_prompt_has_execution_context(
+    store: ScheduledTaskStore,
+) -> None:
+    """Промпт cron-задачи обёрнут контекстом «выполни сейчас», чтобы LLM
+    не создал новую задачу вместо выполнения."""
+    task = _make_task(prompt="Проверяй почту каждый день в 16:29")
+    await store.add(task)
+
+    deps = _make_deps(store)
+    notifier = AsyncMock()
+
+    with patch(
+        "app.services.scheduler_runner.handle_user_task",
+        new=AsyncMock(return_value="Готово"),
+    ) as mock_handle:
+        await run_scheduled_task(task, deps=deps, notifier=notifier)
+
+    args, _ = mock_handle.call_args
+    goal = args[0]
+    assert "выполни" in goal.lower()
+    assert "не создавай" in goal.lower()
+    assert "Проверяй почту" in goal

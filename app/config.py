@@ -72,7 +72,7 @@ class Settings(BaseSettings):
     llm_max_concurrency: int = 2
 
     # --- Agent loop ---
-    agent_max_steps: int = 15
+    agent_max_steps: int = 30
     agent_max_output_chars: int = 12000
     # Порог суммаризации контекста перед отправкой в LLM. 90000 символов
     # (~22.5k токенов) согласовано с num_ctx=32768: оставляет запас на

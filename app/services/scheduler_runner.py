@@ -121,12 +121,17 @@ async def _run_inner(
     notifier: NotifierFn,
 ) -> None:
     sanitized = sanitize_user_input(task.prompt, user_id=task.user_id, mode="warn")
+    goal = (
+        "Это автоматическое выполнение запланированной задачи. "
+        "Выполни задачу прямо сейчас, не создавай новую задачу. "
+        f"Задача: {sanitized}"
+    )
     model = deps.user_settings.get_model(task.user_id)
     start = time.monotonic()
     _cron_checkin(task.id, "in_progress")
     try:
         reply = await handle_user_task(
-            sanitized,
+            goal,
             user_id=task.user_id,
             chat_id=task.chat_id,
             conversations=deps.conversations,

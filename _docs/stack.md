@@ -83,7 +83,7 @@
 | `LLM_MAX_CONCURRENCY`      | Лимит одновременных вызовов к Ollama (`chat`+`embed`) на весь процесс (gate против пайл-апов). | `2`                       |
 | `SEARCH_ENGINE_DEFAULT`     | Поисковик по умолчанию.                                         | `duckduckgo`              |
 | `SEARCH_ENGINES_AVAILABLE`  | Список доступных поисковиков через запятую.                      | `duckduckgo`              |
-| `AGENT_MAX_STEPS`           | Лимит шагов агентного цикла.                                     | `10`                      |
+| `AGENT_MAX_STEPS`           | Лимит шагов агентного цикла.                                     | `30`                      |
 | `AGENT_MAX_OUTPUT_CHARS`    | Лимит размера ответа модели за один шаг (защита от мусора).     | `8000`                    |
 | `AGENT_MAX_REPAIR_ATTEMPTS` | Переспросов модели при срыве формата ответа перед `LLMBadResponse` (не даёт `thought` утечь вместо ответа, см. `_docs/agent-loop.md` §2.4). `0` — выключить. | `2`                       |
 | `AGENT_REFLECTION_MODE`     | Режим multi-agent рефлексии (`OFF\|NORMAL\|DEEP`), см. `_docs/multi-agent.md`. | `OFF`     |
