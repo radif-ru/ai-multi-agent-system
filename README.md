@@ -1,6 +1,11 @@
 # ai-multi-agent-system
 
 [![tests](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml/badge.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
+[![coverage 88%](https://img.shields.io/badge/coverage-88%25-brightgreen.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
+[![flake8](https://img.shields.io/badge/flake8-passing-brightgreen.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
+[![Python 3.14](https://img.shields.io/badge/python-3.14-blue.svg)](https://www.python.org/downloads/)
+[![Ollama](https://img.shields.io/badge/LLM-Ollama-black.svg)](https://ollama.com)
+[![sqlite-vec](https://img.shields.io/badge/vectors-sqlite--vec-blue.svg)](https://github.com/asg017/sqlite-vec)
 
 **Локальная мульти-агентная система** на self-hosted LLM через [Ollama](https://ollama.com). Принимает задачу от пользователя и **выполняет цикл `thought → action → observation`** до финального ответа: думает, выбирает инструмент, наблюдает результат, повторяет. Ответ модели в цикле — строго JSON (`{"thought", "action", "args"}` либо `{"final_answer"}`).
 
@@ -58,7 +63,7 @@
 
 ## Целевая система и тюнинг под неё
 
-Дефолты в `.env.example` (размер контекста, параллелизм, выбор моделей, `keep_alive`, бюджет VRAM) **подобраны под мощную локальную систему**, на которой ведётся разработка. Это отдельная машина под локальный ИИ: тяжёлые задачи (LLM, эмбеддинги, vision, дообучение) гоняются локально, без облака — данные не покидают устройство, нет внешних API-ключей и лимитов (подробнее о железе — [radif.ru](https://radif.ru/)):
+Дефолты в `.env.example` (размер контекста, параллелизм, выбор моделей, `keep_alive`, бюджет VRAM) **подобраны под мощную локальную систему**, на которой ведётся разработка. Это отдельная машина под локальный ИИ: тяжёлые задачи (LLM, эмбеддинги, vision, дообучение) гоняются локально, без облака — данные не покидают устройство, нет внешних API-ключей и лимитов (подробнее о железе — [radif.ru/#hardware](https://radif.ru/#hardware)):
 
 - **Ноутбук:** ASUS ROG Strix SCAR 18 — флагманская мобильная рабочая платформа (быстрая DDR5-память, NVMe SSD (PCIe 5.0 x4), производительное охлаждение).
 - **GPU:** NVIDIA GeForce RTX 5090 Laptop — **24 ГБ GDDR7 VRAM**. Это ключевой ресурс: вся LLM-нагрузка (chat, эмбеддинги, vision) идёт через GPU, а 24 ГБ позволяют держать модель резидентной (`OLLAMA_KEEP_ALIVE=30m`), большой контекст (`OLLAMA_NUM_CTX=32768`) и параллельные сессии (`LLM_MAX_CONCURRENCY=2`).
