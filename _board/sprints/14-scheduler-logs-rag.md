@@ -337,7 +337,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 ### Задача 3.2. Task-префиксы эмбеддингов (`search_document:` / `search_query:`)
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** M
 - **Зависит от:** Задача 3.1 (внедряем только если spike подтвердил)
@@ -354,11 +354,11 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 #### Definition of Done
 
-- [ ] Префиксы применяются при архивации (document) и при поиске/бутстрапе (query); `memory_chunks.text` — без префикса.
-- [ ] Новые поля `Settings` есть в `.env.example`; `check_env_sync` зелёный; пустой префикс отключает поведение.
-- [ ] Тесты: архивация вызывает `embed` с document-префиксом; `memory_search`/bootstrap — с query-префиксом (мок `llm.embed`, проверка аргумента); текст чанка сохранён без префикса.
-- [ ] `_docs/memory.md` §3.2–§3.4 обновлён (в т.ч. про несовместимость старого архива).
-- [ ] `pytest -q` зелёный, покрытие не нарушено; `git status` чист.
+- [x] Префиксы применяются при архивации (document) и при поиске/бутстрапе (query); `memory_chunks.text` — без префикса.
+- [x] Новые поля `Settings` есть в `.env.example`; `check_env_sync` зелёный; пустой префикс отключает поведение.
+- [x] Тесты: архивация вызывает `embed` с document-префиксом; `memory_search`/bootstrap — с query-префиксом (мок `llm.embed`, проверка аргумента); текст чанка сохранён без префикса.
+- [x] `_docs/memory.md` §3.2–§3.4 обновлён (в т.ч. про несовместимость старого архива).
+- [x] `pytest -q` зелёный, покрытие не нарушено; `git status` чист.
 
 ---
 
@@ -446,7 +446,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | Done | 2.4 |
 | 2.6 | Документ `_docs/scheduler.md` + ссылки | medium | S | Done | 2.1–2.5 |
 | 3.1 | Spike: аудит RAG-пайплайна + ADR | high | M | Done | — |
-| 3.2 | Task-префиксы эмбеддингов (`nomic`) | medium | M | Progress | 3.1 |
+| 3.2 | Task-префиксы эмбеддингов (`nomic`) | medium | M | Done | 3.1 |
 | 4.1 | Актуализация `_docs/*` и roadmap | medium | M | ToDo | 1.1, 2.1–2.6, 3.1–3.2 |
 | 4.2 | Презентабельность `README.md` + сверка гейтов | medium | M | ToDo | 4.1 |
 
@@ -463,3 +463,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - **2026-07-20** — задача 2.5 закрыта: скилл `scheduler` (`app/skills/scheduler/SKILL.md`) — таблица маппинга времени в cron, порядок действий, безопасность. SkillRegistry подхватывает.
 - **2026-07-20** — задача 2.6 закрыта: `_docs/scheduler.md` (архитектура, поток, безопасность, конфиг, tools, скилл, ADR-2, ограничения MVP), ссылки в `_docs/README.md` и `_docs/architecture.md`. `check_doc_links` зелёный.
 - **2026-07-20** — задача 3.1 закрыта: ADR-4 (аудит RAG: task-префиксы внедрить (3.2), L2 оставить, TTL → roadmap Этап 17, sqlite-vec подтверждён), `_docs/roadmap.md` (Этап 17 + отказ cosine), `_docs/memory.md` §3.2 (заметки о префиксах и метрике).
+- **2026-07-20** — задача 3.2 закрыта: `embedding_document_prefix` / `embedding_query_prefix` в Settings + `.env.example`, Archiver применяет document-префикс, memory_search и session_bootstrap — query-префикс, текст чанка в БД без префикса, 2 новых теста в test_archiver.py, обновлены test_memory_search.py и test_session_bootstrap.py, `_docs/memory.md` §3.2 обновлён.
