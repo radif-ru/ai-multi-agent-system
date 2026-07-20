@@ -93,7 +93,7 @@
 
 ### Задача 2.1. Хранилище расписаний `ScheduledTaskStore` (sqlite)
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** —
@@ -139,10 +139,10 @@ API (async, синхронная суть через `asyncio.to_thread`, дос
 
 #### Definition of Done
 
-- [ ] Модуль `app/services/scheduled_tasks.py` с `ScheduledTask` и `ScheduledTaskStore` реализован; доступ к соединению сериализован `Lock` (регресс sqlite-гонки, ср. §2.3 current-state).
-- [ ] Тесты `tests/services/test_scheduled_tasks.py` на `tmp_path`-БД: add/get/list_by_user/list_enabled/count/mark_run/delete (в т.ч. `delete` чужой задачи не удаляет), идемпотентность `init`.
-- [ ] Документация — записи для 2.1 попадут в `_docs/scheduler.md` (задача 2.6); здесь достаточно docstring'ов.
-- [ ] `pytest -q` зелёный, покрытие не нарушено; `git status` чист.
+- [x] Модуль `app/services/scheduled_tasks.py` с `ScheduledTask` и `ScheduledTaskStore` реализован; доступ к соединению сериализован `Lock` (регресс sqlite-гонки, ср. §2.3 current-state).
+- [x] Тесты `tests/services/test_scheduled_tasks.py` на `tmp_path`-БД: add/get/list_by_user/list_enabled/count/mark_run/delete (в т.ч. `delete` чужой задачи не удаляет), идемпотентность `init`.
+- [x] Документация — записи для 2.1 попадут в `_docs/scheduler.md` (задача 2.6); здесь достаточно docstring'ов.
+- [x] `pytest -q` зелёный, покрытие не нарушено; `git status` чист.
 
 ### Задача 2.2. `SchedulerService` (обёртка APScheduler) + lifecycle
 
@@ -439,7 +439,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | #   | Задача | Приоритет | Объём | Статус | Зависит от |
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Настраиваемый порог событий Sentry/GlitchTip | high | S | Done | — |
-| 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | Progress | — |
+| 2.1 | Хранилище расписаний `ScheduledTaskStore` (sqlite) | high | M | Done | — |
 | 2.2 | `SchedulerService` (APScheduler) + lifecycle | high | M | ToDo | 2.1 |
 | 2.3 | Исполнение задания и доставка в Telegram | high | M | ToDo | 2.2 |
 | 2.4 | Tools: schedule/list/cancel scheduled task | high | M | ToDo | 2.3 |
@@ -456,3 +456,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 - **2026-07-10** — спринт открыт, ветка `feature/14-scheduler-logs-rag` создана от `main`. Ключевые решения согласованы с пользователем: планировщик = APScheduler (не Celery, ADR-2); логи INFO+ в существующий GlitchTip (не ELK); векторная БД остаётся `sqlite-vec` (ADR-3), только улучшения качества RAG.
 - **2026-07-20** — задача 1.1 закрыта: `SENTRY_EVENT_LEVEL` (default `INFO`) добавлен в `Settings` с валидатором, `setup_sentry` использует настраиваемый `event_level`, `.env.example` обновлён, тесты в `tests/observability/test_event_level.py`, доки в `observability.md` §5 и `current-state.md` §1.7.
+- **2026-07-20** — задача 2.1 закрыта: `ScheduledTaskStore` (sqlite, `scheduled_tasks` в `data/memory.db`) с `ScheduledTask` dataclass, 12 тестов в `tests/services/test_scheduled_tasks.py`.
