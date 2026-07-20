@@ -106,7 +106,7 @@ finally:
 |---|---|---|
 | `SENTRY_DSN` | *(пусто)* | DSN self-hosted GlitchTip (Sentry-совместимый). Пустое значение = error tracking выключен. |
 | `SENTRY_ENVIRONMENT` | `dev` | Тег `event.environment`: `dev` / `staging` / `prod`. |
-| `SENTRY_TRACES_SAMPLE_RATE` | `0.0` | Доля запросов с performance-трассировкой. По умолчанию только ошибки, без performance. |
+| `SENTRY_TRACES_SAMPLE_RATE` | `0.1` | Доля запросов с performance-трассировкой (вкладка **Performance**). `0.0` = выключено, `1.0` = все запросы. По умолчанию `0.1` (10%) — баланс между видимостью и нагрузкой. |
 | `SENTRY_EVENT_LEVEL` | `ERROR` | Минимальный уровень логов, которые уезжают в GlitchTip как события **(Issues)** (`DEBUG` \| `INFO` \| `WARNING` \| `ERROR` \| `CRITICAL`). По умолчанию `ERROR` — только ошибки и исключения создают Issues. |
 | `SENTRY_LOG_LEVEL` | `INFO` | Минимальный уровень логов для **Logs API** и breadcrumbs (`DEBUG` \| `INFO` \| `WARNING` \| `ERROR` \| `CRITICAL`). `DEBUG` включает отладочные логи в Logs — удобно для troubleshooting. |
 | `SENTRY_ENABLE_LOGS` | `true` | Отправлять логи в GlitchTip **Logs** (отдельная вкладка, не Issues). Требует `sentry-sdk` >= 2.0 и GlitchTip с поддержкой Logs API. `false` = отключить (ошибки всё равно идут в Issues). |
@@ -131,6 +131,20 @@ finally:
 - `auto_session_tracking=False` — GlitchTip не поддерживает sessions.
 
 > **Важно:** Issues — для ошибок и исключений. Logs — для информационных логов. При дефолтных настройках (`SENTRY_EVENT_LEVEL=ERROR`, `SENTRY_LOG_LEVEL=INFO`, `SENTRY_ENABLE_LOGS=true`) INFO/WARNING идут в Logs, ERROR+ — в Issues. Если нужно видеть WARNING в Issues — поднять `SENTRY_EVENT_LEVEL=WARNING`.
+
+### Performance
+
+`SENTRY_TRACES_SAMPLE_RATE` (дефолт `0.1`) — доля запросов, для которых снимается performance-трассировка (вкладка **Performance** в GlitchTip). Трассировки показывают span'ы agent loop (LLM call → tools → response), что помогает диагностировать задержки. `0.0` = выключено, `1.0` = все запросы.
+
+### Crons
+
+`app/services/scheduler_runner.py::_cron_checkin` отправляет heartbeat в GlitchTip (вкладка **Crons**) через `sentry_sdk.crons.capture_checkin` при каждом запуске запланированной задачи:
+
+- `in_progress` — задача стартовала;
+- `ok` — задача завершена успешно (с duration);
+- `error` — задача завершилась с ошибкой (с duration).
+
+Monitor slug: `task-<task_id>`. Если Sentry не инициализирован (пустой `SENTRY_DSN`) — вызов no-op. Позволяет видеть пропуски и задержки cron-задач в GlitchTip UI.
 
 ### Self-hosted GlitchTip: локальный запуск
 

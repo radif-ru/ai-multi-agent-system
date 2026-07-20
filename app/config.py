@@ -192,7 +192,7 @@ class Settings(BaseSettings):
     # DSN self-hosted GlitchTip или Sentry. Пустая строка / None = выключено.
     sentry_dsn: str | None = None
     sentry_environment: str = "dev"
-    sentry_traces_sample_rate: float = 0.0
+    sentry_traces_sample_rate: float = 0.1
     # Минимальный уровень логов, которые уезжают в GlitchTip как события (Issues).
     # См. _docs/observability.md §5.
     sentry_event_level: str = "ERROR"
