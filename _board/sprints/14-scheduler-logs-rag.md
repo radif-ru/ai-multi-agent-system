@@ -3,7 +3,7 @@
 - **Источник:** ТЗ пользователя (планировщик cron-задач из Telegram, логи INFO+ в GlitchTip, аудит векторной памяти) + `_docs/decisions.md` ADR-2 (cron = APScheduler в процессе) + `_docs/current-state.md` §1.2/§1.7.
 - **Ветка:** `feature/14-scheduler-logs-rag` (от `main`; см. `_board/process.md` §2, п.2).
 - **Открыт:** 2026-07-10
-- **Закрыт:** —
+- **Закрыт:** 2026-07-21
 
 ## 1. Цель спринта
 
@@ -31,12 +31,12 @@
 
 ## 3. Acceptance Criteria спринта
 
-- [ ] При заданном `SENTRY_DSN` логи уровня `SENTRY_LOG_LEVEL` (default `INFO`) и выше доходят в GlitchTip во вкладку **Logs**; ошибки уровня `SENTRY_EVENT_LEVEL` (default `ERROR`) и выше — в **Issues**; `DEBUG` можно включить через `SENTRY_LOG_LEVEL=DEBUG`; при пустом `SENTRY_DSN` поведение прежнее (ничего не инициализируется).
-- [ ] Пользователь из Telegram естественным языком («проверяй почту каждый день в 9:00») ставит повторяющуюся задачу; она сохраняется в `data/memory.db`, **переживает рестарт** процесса и запускается по расписанию; результат приходит сообщением в Telegram.
-- [ ] Пользователь может посмотреть свои задачи и отменить любую (через агента/tools).
-- [ ] RAG-пайплайн `sqlite-vec` задокументирован и аудитирован (spike), решение по архитектуре БД и метрике зафиксировано в `_docs/decisions.md`; внедрены безопасные улучшения качества (task-префиксы `nomic`).
-- [ ] Документация актуализирована, `README.md` презентабелен; все CI-гейты зелёные: `flake8`, `pytest -q` c `--cov-fail-under=80`, `check_env_sync`, `check_sprint_sync`, `check_doc_links`, `check_agents_sync`.
-- [ ] Все задачи спринта — `Done`, сводная таблица актуальна.
+- [x] При заданном `SENTRY_DSN` логи уровня `SENTRY_LOG_LEVEL` (default `INFO`) и выше доходят в GlitchTip во вкладку **Logs**; ошибки уровня `SENTRY_EVENT_LEVEL` (default `ERROR`) и выше — в **Issues**; `DEBUG` можно включить через `SENTRY_LOG_LEVEL=DEBUG`; при пустом `SENTRY_DSN` поведение прежнее (ничего не инициализируется).
+- [x] Пользователь из Telegram естественным языком («проверяй почту каждый день в 9:00») ставит повторяющуюся задачу; она сохраняется в `data/memory.db`, **переживает рестарт** процесса и запускается по расписанию; результат приходит сообщением в Telegram.
+- [x] Пользователь может посмотреть свои задачи и отменить любую (через агента/tools).
+- [x] RAG-пайплайн `sqlite-vec` задокументирован и аудитирован (spike), решение по архитектуре БД и метрике зафиксировано в `_docs/decisions.md`; внедрены безопасные улучшения качества (task-префиксы `nomic`).
+- [x] Документация актуализирована, `README.md` презентабелен; все CI-гейты зелёные: `flake8`, `pytest -q` c `--cov-fail-under=80`, `check_env_sync`, `check_sprint_sync`, `check_doc_links`, `check_agents_sync`.
+- [x] Все задачи спринта — `Done`, сводная таблица актуальна.
 
 ---
 
@@ -310,7 +310,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - [x] Три tool'а реализованы и зарегистрированы; `ToolContext` даёт доступ к `scheduler` и `user_id`/`chat_id`/каналу.
 - [x] `schedule_task` валидирует cron, соблюдает лимит на пользователя, санитизирует prompt; `list`/`cancel` работают в scope пользователя (нельзя отменить чужую задачу).
 - [x] Тесты на каждый tool (валидный/невалидный cron, превышение лимита, отмена своей/чужой задачи) с фейковым `SchedulerService`/`store`.
-- [ ] `_docs/tools.md` дополнен тремя tool'ами; `pytest -q` зелёный, покрытие не нарушено; `git status` чист.
+- [x] `_docs/tools.md` дополнен тремя tool'ами (§4.16–4.18, задача 4.1); `pytest -q` зелёный, покрытие не нарушено; `git status` чист.
 
 ### Задача 2.5. Скилл `scheduler` (инструкция агенту + маппинг времени в cron)
 
@@ -559,3 +559,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - **2026-07-21** — задача 2.7 оформлена постфактум (Done): формализация двух фиксов cron-исполнения по итогам ручного тестирования — изоляция истории (`history` в `handle_user_task`, `run_scheduled_task` передаёт `history=[]`, commit `cbe02c07`) и контекст исполнения + `AGENT_MAX_STEPS` 15→30 (`scheduler_runner.py`, `config.py`, доки, commit `0cacd7ce`). Код и тесты уже в ветке; добавлена запись в доску (см. `process.md` §3 п.4).
 - **2026-07-21** — задача 4.1 закрыта: аудит и актуализация `_docs/*` — `current-state.md` §1.10 (планировщик), §1.2 (RAG task-префиксы), §1.7 (GlitchTip Logs/Issues, Performance/Crons); `stack.md` §9 (env `SENTRY_*`, `SCHEDULER_*`, `EMBEDDING_*_PREFIX`); `tools.md` §4.16–4.18 (tools планировщика); `architecture.md` §8.6 (notifier); `roadmap.md` Этап 18 (расширения планировщика); исправлен баг дефолта `SCHEDULER_MAX_JOBS_PER_USER` в `scheduler.md` (5 → 20). Гейты `check_doc_links`/`check_env_sync`/`check_sprint_sync` зелёные.
 - **2026-07-21** — задача 4.2 закрыта: `README.md` актуализирован (планировщик в «Возможности» и стеке, tools планировщика, task-префиксы RAG, разделение GlitchTip Logs/Issues + Crons, спринт 14 в списке, ссылка на `_docs/scheduler.md`); бейджи проверены (репозиторий `radif-ru/ai-multi-agent-system`, coverage 88% совпадает с фактом). `preflight.sh` полностью зелёный (flake8, pytest `--cov-fail-under=80` → 88.11%, все 6 гейтов).
+- **2026-07-21** — **спринт закрыт**: все 14 задач в `Done`, Acceptance Criteria закрыты, `preflight.sh` зелёный (flake8, pytest 88.11%, 6 гейтов). По итогам аудита работы предыдущей LLM: код этапов 1–3 качественный, внеспринтовые фиксы оформлены задачей 2.7, документация (`_docs/*`, `README.md`) синхронизирована с фактическим состоянием (задачи 4.1–4.2). Merge в `main` — за пользователем (см. `process.md` §2 п.8).

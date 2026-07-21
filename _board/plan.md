@@ -10,12 +10,13 @@
 
 | ID | Название | Файл | Ветка | Статус | Открыт | Закрыт |
 |:--:|----------|------|-------|:------:|:------:|:------:|
-| 14 | Планировщик задач, логи в GlitchTip и качество RAG | [`sprints/14-scheduler-logs-rag.md`](./sprints/14-scheduler-logs-rag.md) | `feature/14-scheduler-logs-rag` | Active | 2026-07-10 | — |
+| — | (нет активных спринтов) | — | — | — | — | — |
 
 ### Закрытые
 
 | ID | Название | Файл | Ветка | Статус | Открыт | Закрыт |
 |:--:|----------|------|-------|:------:|:------:|:------:|
+| 14 | Планировщик задач, логи в GlitchTip и качество RAG | [`sprints/14-scheduler-logs-rag.md`](./sprints/14-scheduler-logs-rag.md) | `feature/14-scheduler-logs-rag` | Closed | 2026-07-10 | 2026-07-21 |
 | 12 | Качество, безопасность и процессы | [`sprints/12-quality-security-process.md`](./sprints/12-quality-security-process.md) | `feature/12-quality-security-process` | Closed | 2026-06-29 | 2026-06-29 |
 | 13 | Интеграции почты и диска, скиллы со скриптами | [`sprints/13-mail-disk-skills.md`](./sprints/13-mail-disk-skills.md) | `feature/13-mail-disk-skills` | Closed | 2026-07-08 | 2026-07-09 |
 | 00 | Bootstrap | [`sprints/00-bootstrap.md`](./sprints/00-bootstrap.md) | `main` (инфраструктурный) | Closed | 2026-04-28 | 2026-04-28 |
@@ -57,7 +58,7 @@
 | 11. Производительность и эффективность LLM | Closed | 0 / 0 / 20 | `sprints/11-performance.md` |
 | 12. Качество, безопасность и процессы | Closed | 0 / 0 / 14 | `sprints/12-quality-security-process.md` |
 | 13. Интеграции почты и диска, скиллы со скриптами | Closed | 0 / 0 / 20 | `sprints/13-mail-disk-skills.md` |
-| 14. Планировщик задач, логи в GlitchTip и качество RAG | Active | 0 / 0 / 14 | `sprints/14-scheduler-logs-rag.md` |
+| 14. Планировщик задач, логи в GlitchTip и качество RAG | Closed | 0 / 0 / 14 | `sprints/14-scheduler-logs-rag.md` |
 
 > Таблицу обновлять одновременно с переходами статусов в файлах спринтов (см. `process.md` §7.3 и §7.9).
 
