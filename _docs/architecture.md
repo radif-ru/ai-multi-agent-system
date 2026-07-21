@@ -395,6 +395,10 @@ class Executor:
 
 Заменяется код запуска в `app/main.py` (вместо `start_polling` — `aiohttp` / `aiogram`-webhook сервер). Сервис-слой не страдает.
 
+### 8.6 Доставка планировщика в новый канал (notifier)
+
+Планировщик (`_docs/scheduler.md`) доставляет результат cron-задачи через **notifier** — callable `(chat_id, text) -> Awaitable[None]`, внедряемый в `main()`. Для MVP реализован только `make_telegram_notifier` (`app/services/scheduler_runner.py`). Чтобы доставлять в console/MAX: добавить notifier для канала и выбирать его по `ScheduledTask.channel`. Ядро (`run_scheduled_task`, `handle_user_task`) при этом **не меняется** — точка изоляции та же, что у адаптеров (§8.4). Отложено в `_docs/roadmap.md` Этап 18.
+
 ## 9. Конкурентность и производительность
 
 - aiogram + `asyncio` обрабатывает несколько апдейтов конкурентно.

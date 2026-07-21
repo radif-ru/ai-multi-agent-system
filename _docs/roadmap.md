@@ -194,6 +194,14 @@ Tool `context_explore` поверх существующего `Summarizer` — 
 - [ ] Фоновая задача (или при `/new`) удаляет чанки старше TTL из `memory_chunks` + `memory_vec`.
 - [ ] Логирование количества удалённых чанков.
 
+## Этап 18. Планировщик задач — расширения
+
+**Статус:** Backlog. **Источник:** спринт 14 (MVP планировщика реализован, non-goals — сюда).
+
+- [ ] Доставка результата планировщика в **console** и **MAX** (сейчас только Telegram): channel-notifier по образцу `make_telegram_notifier` (`app/services/scheduler_runner.py`), выбор по `ScheduledTask.channel`.
+- [ ] Bot-команды `/schedule` / `/schedules` как альтернатива/дополнение к natural-language tools.
+- [ ] Естественный парсер времени в коде (сейчас маппинг «каждый день в 9 утра» → cron делает LLM по скиллу `scheduler`).
+
 ## Отказанные этапы
 
 - **n8n как оркестратор** — отказ (ADR-2, `_docs/decisions.md`). n8n избыточен для single-user local-first: дублирует `EventBus`, orchestrator, tools; добавляет Docker-зависимость и поверхность атаки. Cron — APScheduler внутри процесса; webhook — FastAPI-адаптер (Этап 6). Пересмотр — при многопользовательности.

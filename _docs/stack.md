@@ -80,6 +80,8 @@
 | `EMBEDDING_MODEL`           | Модель эмбеддингов (Ollama).                                     | `nomic-embed-text`        |
 | `EMBEDDING_DIMENSIONS`      | Размерность вектора (зависит от модели).                         | `768`                     |
 | `EMBEDDING_CONCURRENCY`     | Параллелизм при вычислении embedding для чанков (оптимизация /new). | `5`                       |
+| `EMBEDDING_DOCUMENT_PREFIX` | Task-префикс `nomic` при индексации чанков (архивация). Пустая строка = без префикса. См. ADR-4. | `search_document: `       |
+| `EMBEDDING_QUERY_PREFIX`    | Task-префикс `nomic` при поиске (`memory_search`, авто-подгрузка). Пустая строка = без префикса. См. ADR-4. | `search_query: `          |
 | `LLM_MAX_CONCURRENCY`      | Лимит одновременных вызовов к Ollama (`chat`+`embed`) на весь процесс (gate против пайл-апов). | `2`                       |
 | `SEARCH_ENGINE_DEFAULT`     | Поисковик по умолчанию.                                         | `duckduckgo`              |
 | `SEARCH_ENGINES_AVAILABLE`  | Список доступных поисковиков через запятую.                      | `duckduckgo`              |
@@ -105,6 +107,15 @@
 | `LOG_LLM_CONTEXT`           | Логировать полный JSON контекста перед LLM-запросом.             | `true`                    |
 | `READ_FILE_MAX_BYTES`       | Лимит размера файла для tool `read_file`, байты (крупнее — `ToolError`). | `1048576` (1 MiB)         |
 | `CONSOLE_FILE_SCOPE`        | Область видимости `read_file` в консоли: `all` — весь `data/`; `user` — каталог пользователя. В Telegram/MAX всегда per-user. | `all`                     |
+| `SENTRY_DSN`                | DSN self-hosted GlitchTip / Sentry. Пусто = error tracking выключен. | —                         |
+| `SENTRY_ENVIRONMENT`        | Имя окружения в теге события (`dev`/`staging`/`prod`).            | `dev`                     |
+| `SENTRY_TRACES_SAMPLE_RATE` | Доля запросов с performance-трассировкой (`0.0` — выкл, `1.0` — все). | `0.1`                     |
+| `SENTRY_EVENT_LEVEL`        | Мин. уровень логов, уезжающих в GlitchTip как события (Issues). `DEBUG\|INFO\|WARNING\|ERROR\|CRITICAL`. См. `_docs/observability.md` §5. | `ERROR`                   |
+| `SENTRY_LOG_LEVEL`          | Мин. уровень логов для GlitchTip Logs и breadcrumbs. `DEBUG` включает отладочные логи в Logs. | `INFO`                    |
+| `SENTRY_ENABLE_LOGS`        | Отправлять логи во вкладку Logs (не Issues). Требует sentry-sdk ≥ 2.0 и GlitchTip с Logs API. | `true`                    |
+| `SCHEDULER_ENABLED`         | Выключатель планировщика (см. `_docs/scheduler.md`). При `false` не стартует. | `true`                    |
+| `SCHEDULER_TIMEZONE`        | IANA-таймзона по умолчанию для cron-выражений.                   | `Europe/Moscow`           |
+| `SCHEDULER_MAX_JOBS_PER_USER` | Лимит запланированных задач на пользователя (`> 0`).           | `20`                      |
 
 ## 10. Тестирование
 

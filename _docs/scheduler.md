@@ -49,7 +49,7 @@ CronTrigger срабатывает
 ## Безопасность
 
 - **Sanitize**: prompt задачи проходит `sanitize_user_input` (защита от prompt injection).
-- **Лимит**: `SCHEDULER_MAX_JOBS_PER_USER` (по умолчанию 5) — `schedule_task` tool проверяет `store.count_by_user` перед созданием.
+- **Лимит**: `SCHEDULER_MAX_JOBS_PER_USER` (по умолчанию 20) — `schedule_task` tool проверяет `store.count_by_user` перед созданием.
 - **Scope по user_id**: `list_scheduled_tasks` и `cancel_scheduled_task` работают только с задачами текущего пользователя; нельзя отменить чужую задачу.
 - **Не в `_DANGEROUS_TOOLS`**: tools планировщика не трогают ФС/сеть напрямую, работают только со своими задачами.
 
@@ -59,7 +59,7 @@ CronTrigger срабатывает
 |---|---|---|
 | `SCHEDULER_ENABLED` | `true` | Включить/выключить планировщик |
 | `SCHEDULER_TIMEZONE` | `Europe/Moscow` | Часовой пояс для jobs |
-| `SCHEDULER_MAX_JOBS_PER_USER` | `5` | Лимит задач на пользователя |
+| `SCHEDULER_MAX_JOBS_PER_USER` | `20` | Лимит задач на пользователя |
 
 ## Tools
 
