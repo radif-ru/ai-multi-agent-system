@@ -455,7 +455,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 ### Задача 4.1. Актуализация `_docs/*` и roadmap
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** M
 - **Зависит от:** Задачи 1.1, 2.1–2.6, 3.1–3.2
@@ -537,7 +537,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | 2.7 | Фиксы cron-исполнения (изоляция истории, контекст, `AGENT_MAX_STEPS=30`) | high | S | Done | 2.3 |
 | 3.1 | Spike: аудит RAG-пайплайна + ADR | high | M | Done | — |
 | 3.2 | Task-префиксы эмбеддингов (`nomic`) | medium | M | Done | 3.1 |
-| 4.1 | Актуализация `_docs/*` и roadmap | medium | M | ToDo | 1.1, 2.1–2.6, 3.1–3.2 |
+| 4.1 | Актуализация `_docs/*` и roadmap | medium | M | Progress | 1.1, 2.1–2.6, 3.1–3.2 |
 | 4.2 | Презентабельность `README.md` + сверка гейтов | medium | M | ToDo | 4.1 |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
