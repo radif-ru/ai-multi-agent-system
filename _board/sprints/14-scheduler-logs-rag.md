@@ -481,7 +481,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 ### Задача 4.2. Презентабельность `README.md` + финальная сверка гейтов
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** M
 - **Зависит от:** Задача 4.1
@@ -502,9 +502,9 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 #### Definition of Done
 
-- [ ] `README.md` актуален и презентабелен; ссылки относительные и рабочие.
-- [ ] `preflight.sh` зелёный (flake8, pytest c порогом покрытия, `check_env_sync`, `check_sprint_sync`, `check_doc_links`, `check_agents_sync`).
-- [ ] Тесты — `n/a` (docs, но общий `pytest` должен быть зелёным). `git status` чист.
+- [x] `README.md` актуален и презентабелен; ссылки относительные и рабочие.
+- [x] `preflight.sh` зелёный (flake8, pytest c порогом покрытия, `check_env_sync`, `check_sprint_sync`, `check_doc_links`, `check_agents_sync`).
+- [x] Тесты — `n/a` (docs, но общий `pytest` должен быть зелёным). `git status` чист.
 
 ---
 
@@ -538,7 +538,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | 3.1 | Spike: аудит RAG-пайплайна + ADR | high | M | Done | — |
 | 3.2 | Task-префиксы эмбеддингов (`nomic`) | medium | M | Done | 3.1 |
 | 4.1 | Актуализация `_docs/*` и roadmap | medium | M | Done | 1.1, 2.1–2.6, 3.1–3.2 |
-| 4.2 | Презентабельность `README.md` + сверка гейтов | medium | M | Progress | 4.1 |
+| 4.2 | Презентабельность `README.md` + сверка гейтов | medium | M | Done | 4.1 |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
@@ -558,3 +558,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - **2026-07-20** — задача 1.3 закрыта: `SENTRY_TRACES_SAMPLE_RATE` дефолт поднят до `0.1` (Performance), `_cron_checkin` в `scheduler_runner.py` отправляет heartbeat в GlitchTip Crons (`in_progress`/`ok`/`error`), 4 новых теста в test_scheduler_runner.py, `_docs/observability.md` §5 обновлён (Performance, Crons).
 - **2026-07-21** — задача 2.7 оформлена постфактум (Done): формализация двух фиксов cron-исполнения по итогам ручного тестирования — изоляция истории (`history` в `handle_user_task`, `run_scheduled_task` передаёт `history=[]`, commit `cbe02c07`) и контекст исполнения + `AGENT_MAX_STEPS` 15→30 (`scheduler_runner.py`, `config.py`, доки, commit `0cacd7ce`). Код и тесты уже в ветке; добавлена запись в доску (см. `process.md` §3 п.4).
 - **2026-07-21** — задача 4.1 закрыта: аудит и актуализация `_docs/*` — `current-state.md` §1.10 (планировщик), §1.2 (RAG task-префиксы), §1.7 (GlitchTip Logs/Issues, Performance/Crons); `stack.md` §9 (env `SENTRY_*`, `SCHEDULER_*`, `EMBEDDING_*_PREFIX`); `tools.md` §4.16–4.18 (tools планировщика); `architecture.md` §8.6 (notifier); `roadmap.md` Этап 18 (расширения планировщика); исправлен баг дефолта `SCHEDULER_MAX_JOBS_PER_USER` в `scheduler.md` (5 → 20). Гейты `check_doc_links`/`check_env_sync`/`check_sprint_sync` зелёные.
+- **2026-07-21** — задача 4.2 закрыта: `README.md` актуализирован (планировщик в «Возможности» и стеке, tools планировщика, task-префиксы RAG, разделение GlitchTip Logs/Issues + Crons, спринт 14 в списке, ссылка на `_docs/scheduler.md`); бейджи проверены (репозиторий `radif-ru/ai-multi-agent-system`, coverage 88% совпадает с фактом). `preflight.sh` полностью зелёный (flake8, pytest `--cov-fail-under=80` → 88.11%, все 6 гейтов).
