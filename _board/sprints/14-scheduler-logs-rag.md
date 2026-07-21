@@ -359,6 +359,31 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - [x] `check_doc_links` зелёный (только относительные, не битые ссылки).
 - [x] Тесты — `n/a` (docs). `git status` чист.
 
+### Задача 2.7. Фиксы cron-исполнения по итогам ручного тестирования
+
+- **Статус:** Done
+- **Приоритет:** high
+- **Объём:** S
+- **Зависит от:** Задача 2.3 (баг обнаружен при ручной проверке исполнения задания)
+- **Связанные документы:** `_docs/scheduler.md`; `_docs/agent-loop.md` §4; `_docs/architecture.md` §3.10.
+- **Затрагиваемые файлы:** `app/core/orchestrator.py`, `app/services/scheduler_runner.py`, `app/config.py`, `.env.example`, `_docs/agent-loop.md`, `_docs/requirements.md`, `_docs/stack.md`, `tests/services/test_scheduler_runner.py`, `tests/test_config.py`.
+
+#### Описание
+
+Оформление постфактум (см. `_board/process.md` §3 п.4 «Работа вне формальной задачи») двух фиксов, сделанных при ручном тестировании планировщика в Telegram. Симптом: cron-задача при срабатывании не выполнялась, а `qwen3.5:4b` вместо исполнения prompt повторял диалог о её создании и повторно вызывал `schedule_task` с неверным cron.
+
+Первопричины и фиксы:
+
+1. **Живая история протекала в cron-задание** (commit `cbe02c07`). `handle_user_task` читал историю из `ConversationStore`, поэтому модель видела предыдущий диалог «поставь задачу» и повторяла его. Фикс: в `handle_user_task` добавлен параметр `history: list[dict[str,str]] | None = None`; `run_scheduled_task` передаёт `history=[]` — полная изоляция от живой сессии.
+2. **Нет явного контекста исполнения + мало шагов** (commit `0cacd7ce`). Prompt задачи обёрнут явной инструкцией «это автоматическое выполнение запланированной задачи, выполни сейчас, не создавай новую задачу». `AGENT_MAX_STEPS` поднят с 15 до 30 (cron-prompt требует больше шагов: подгрузка скилла → tool → ответ). Обновлены `agent-loop.md` §4, `requirements.md` FR-13, `stack.md` §9, `.env.example`.
+
+#### Definition of Done
+
+- [x] `handle_user_task` принимает `history`; `run_scheduled_task` передаёт `history=[]` (изоляция).
+- [x] Prompt cron-задачи обёрнут контекстом исполнения; `AGENT_MAX_STEPS` дефолт `30` в `Settings`, `.env.example` и доках (`agent-loop.md`, `requirements.md`, `stack.md`) синхронно.
+- [x] Тесты в `tests/services/test_scheduler_runner.py` (изоляция истории, контекст исполнения) и `tests/test_config.py` обновлены; `pytest -q` зелёный, покрытие не нарушено.
+- [x] `git status` чист (фиксы уже в ветке: `cbe02c07`, `0cacd7ce`).
+
 ---
 
 ## 6. Этап 3. Качество долгосрочной памяти (RAG на `sqlite-vec`)
@@ -509,6 +534,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | 2.4 | Tools: schedule/list/cancel scheduled task | high | M | Done | 2.3 |
 | 2.5 | Скилл `scheduler` (маппинг времени в cron) | medium | S | Done | 2.4 |
 | 2.6 | Документ `_docs/scheduler.md` + ссылки | medium | S | Done | 2.1–2.5 |
+| 2.7 | Фиксы cron-исполнения (изоляция истории, контекст, `AGENT_MAX_STEPS=30`) | high | S | Done | 2.3 |
 | 3.1 | Spike: аудит RAG-пайплайна + ADR | high | M | Done | — |
 | 3.2 | Task-префиксы эмбеддингов (`nomic`) | medium | M | Done | 3.1 |
 | 4.1 | Актуализация `_docs/*` и roadmap | medium | M | ToDo | 1.1, 2.1–2.6, 3.1–3.2 |
@@ -530,3 +556,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - **2026-07-20** — задача 3.2 закрыта: `embedding_document_prefix` / `embedding_query_prefix` в Settings + `.env.example`, Archiver применяет document-префикс, memory_search и session_bootstrap — query-префикс, текст чанка в БД без префикса, 2 новых теста в test_archiver.py, обновлены test_memory_search.py и test_session_bootstrap.py, `_docs/memory.md` §3.2 обновлён.
 - **2026-07-20** — задача 1.2 закрыта: `enable_logs=True` + `auto_session_tracking=False` в `sentry_sdk.init`, `SENTRY_EVENT_LEVEL` дефолт изменён на `ERROR`, добавлены `SENTRY_LOG_LEVEL` (дефолт `INFO`, настраиваемый порог для Logs/breadcrumbs) и `SENTRY_ENABLE_LOGS` в Settings + `.env.example`, `_docs/observability.md` §5 обновлён (разделение Logs vs Issues), 5 новых тестов в test_event_level.py, обновлены test_setup_sentry.py и test_error_capture.py.
 - **2026-07-20** — задача 1.3 закрыта: `SENTRY_TRACES_SAMPLE_RATE` дефолт поднят до `0.1` (Performance), `_cron_checkin` в `scheduler_runner.py` отправляет heartbeat в GlitchTip Crons (`in_progress`/`ok`/`error`), 4 новых теста в test_scheduler_runner.py, `_docs/observability.md` §5 обновлён (Performance, Crons).
+- **2026-07-21** — задача 2.7 оформлена постфактум (Done): формализация двух фиксов cron-исполнения по итогам ручного тестирования — изоляция истории (`history` в `handle_user_task`, `run_scheduled_task` передаёт `history=[]`, commit `cbe02c07`) и контекст исполнения + `AGENT_MAX_STEPS` 15→30 (`scheduler_runner.py`, `config.py`, доки, commit `0cacd7ce`). Код и тесты уже в ветке; добавлена запись в доску (см. `process.md` §3 п.4).
