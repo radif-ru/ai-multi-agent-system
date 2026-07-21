@@ -24,6 +24,7 @@ class ToolContext(Protocol):
     llm: Any
     semantic_memory: Any
     skills: Any
+    scheduler: Any
 
 
 @runtime_checkable

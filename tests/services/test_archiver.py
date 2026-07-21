@@ -78,7 +78,10 @@ def summarizer(llm):
     return Summarizer(llm=llm, system_prompt="SYS")
 
 
-def make_archiver(llm, summarizer, memory, *, size=1500, overlap=150, concurrency=5, event_bus=None) -> Archiver:
+def make_archiver(
+    llm, summarizer, memory, *,
+    size=1500, overlap=150, concurrency=5, event_bus=None, document_prefix="",
+) -> Archiver:
     return Archiver(
         llm=llm,
         summarizer=summarizer,
@@ -89,6 +92,7 @@ def make_archiver(llm, summarizer, memory, *, size=1500, overlap=150, concurrenc
         chunk_overlap=overlap,
         concurrency_limit=concurrency,
         event_bus=event_bus,
+        embedding_document_prefix=document_prefix,
     )
 
 
@@ -361,3 +365,56 @@ async def test_archive_does_not_publish_event_without_event_bus(llm, summarizer,
     )
 
     # Не должно падать, событие просто не публикуется
+
+
+async def test_archive_applies_document_prefix(llm, summarizer, mocker):
+    """При наличии embedding_document_prefix текст чанка эмбеддится с префиксом."""
+    mem = FakeMemory()
+    summary = "x" * 100  # 1 чанк
+    mocker.patch.object(summarizer, "summarize", return_value=summary)
+
+    embed_calls: list[str] = []
+
+    async def fake_embed(text, *, model):
+        embed_calls.append(text)
+        return [0.1, 0.2]
+
+    mocker.patch.object(llm, "embed", side_effect=fake_embed)
+    archiver = make_archiver(llm, summarizer, mem, document_prefix="search_document: ")
+
+    await archiver.archive(
+        [{"role": "user", "content": "hi"}],
+        conversation_id="conv",
+        user_id=42,
+        chat_id=42,
+    )
+
+    assert len(embed_calls) == 1
+    assert embed_calls[0] == f"search_document: {'x' * 100}"
+    # Текст в БД хранится без префикса
+    assert mem.inserted[0][1] == "x" * 100
+
+
+async def test_archive_no_prefix_by_default(llm, summarizer, mocker):
+    """Без префикса (пустая строка) текст эмбеддится как есть."""
+    mem = FakeMemory()
+    summary = "x" * 100
+    mocker.patch.object(summarizer, "summarize", return_value=summary)
+
+    embed_calls: list[str] = []
+
+    async def fake_embed(text, *, model):
+        embed_calls.append(text)
+        return [0.1, 0.2]
+
+    mocker.patch.object(llm, "embed", side_effect=fake_embed)
+    archiver = make_archiver(llm, summarizer, mem)
+
+    await archiver.archive(
+        [{"role": "user", "content": "hi"}],
+        conversation_id="conv",
+        user_id=42,
+        chat_id=42,
+    )
+
+    assert embed_calls[0] == "x" * 100

@@ -48,6 +48,7 @@
 - [`testing.md`](./testing.md) — стратегия и категории тестов, моки, покрытие, обязательность тестов перед коммитом.
 - [`instructions.md`](./instructions.md) — правила разработки: стиль, git, async, ошибки, секреты, тесты, документация.
 - [`observability.md`](./observability.md) — структурные JSON-логи, `trace_id`, маскирование секретов, error tracking (GlitchTip).
+- [`scheduler.md`](./scheduler.md) — планировщик регулярных задач (APScheduler, cron, доставка в Telegram).
 
 ### Справочное
 

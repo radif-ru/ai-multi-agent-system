@@ -73,8 +73,17 @@ def setup_sentry(settings: Settings) -> bool:
             traces_sample_rate=settings.sentry_traces_sample_rate,
             send_default_pii=False,
             before_send=_before_send,
+            enable_logs=settings.sentry_enable_logs,
+            auto_session_tracking=False,
             integrations=[
-                LoggingIntegration(level=logging.INFO, event_level=logging.ERROR),
+                LoggingIntegration(
+                    level=logging.getLevelName(
+                        settings.sentry_log_level
+                    ),
+                    event_level=logging.getLevelName(
+                        settings.sentry_event_level
+                    ),
+                ),
             ],
         )
     except Exception as exc:  # noqa: BLE001

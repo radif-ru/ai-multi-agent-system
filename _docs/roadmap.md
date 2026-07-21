@@ -184,9 +184,28 @@ Tool `context_explore` поверх существующего `Summarizer` — 
 - [ ] Upload на Яндекс.Диск (`disk_upload`).
 - [ ] Google Диск (OAuth, `gdrive_list` / `gdrive_download` / `gdrive_upload`).
 
+## Этап 17. TTL/cleanup долгосрочной памяти
+
+**Статус:** Backlog. **Источник:** ADR-4 (`_docs/decisions.md`).
+
+Индекс `ix_memory_created` существует, но очистки старых чанков нет. Для single-user рост архива медленный, но при длительной эксплуатации БД растёт без ограничений.
+
+- [ ] Конфиг `MEMORY_TTL_DAYS` (default: 0 = отключено).
+- [ ] Фоновая задача (или при `/new`) удаляет чанки старше TTL из `memory_chunks` + `memory_vec`.
+- [ ] Логирование количества удалённых чанков.
+
+## Этап 18. Планировщик задач — расширения
+
+**Статус:** Backlog. **Источник:** спринт 14 (MVP планировщика реализован, non-goals — сюда).
+
+- [ ] Доставка результата планировщика в **console** и **MAX** (сейчас только Telegram): channel-notifier по образцу `make_telegram_notifier` (`app/services/scheduler_runner.py`), выбор по `ScheduledTask.channel`.
+- [ ] Bot-команды `/schedule` / `/schedules` как альтернатива/дополнение к natural-language tools.
+- [ ] Естественный парсер времени в коде (сейчас маппинг «каждый день в 9 утра» → cron делает LLM по скиллу `scheduler`).
+
 ## Отказанные этапы
 
 - **n8n как оркестратор** — отказ (ADR-2, `_docs/decisions.md`). n8n избыточен для single-user local-first: дублирует `EventBus`, orchestrator, tools; добавляет Docker-зависимость и поверхность атаки. Cron — APScheduler внутри процесса; webhook — FastAPI-адаптер (Этап 6). Пересмотр — при многопользовательности.
+- **Смена метрики `memory_vec` на cosine** — отказ (ADR-4, `_docs/decisions.md`). `nomic-embed-text` выдаёт нормализованные векторы: L2 и cosine монотонно связаны, ранжирование идентично. Миграция `memory_vec` неоправданна для single-user. Пересмотр — при смене embedding-модели на ненормализованную.
 
 ---
 

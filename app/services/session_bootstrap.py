@@ -41,7 +41,10 @@ async def build_bootstrap_message(
         return None
 
     try:
-        embedding = await llm.embed(query, model=settings.embedding_model)
+        query_prefix = getattr(settings, "embedding_query_prefix", "")
+        embedding = await llm.embed(
+            f"{query_prefix}{query}", model=settings.embedding_model
+        )
         rows = await semantic_memory.search(
             embedding, top_k=top_k, scope_user_id=user_id
         )

@@ -87,7 +87,7 @@ Telegram-адаптер принимает текст, оборачивает е
 
 - Загружает конфигурацию (`Settings`).
 - Поднимает логирование.
-- Создаёт долгоживущие сервисы: `OllamaClient`, `ConversationStore`, `Summarizer`, `SemanticMemory`, `DialogJournal`, `SkillRegistry`, `PromptLoader`, `ToolRegistry`, `Executor`, `UserRepository`.
+- Создаёт долгоживущие сервисы: `OllamaClient`, `ConversationStore`, `Summarizer`, `SemanticMemory`, `DialogJournal`, `SkillRegistry`, `PromptLoader`, `ToolRegistry`, `Executor`, `UserRepository`, `ScheduledTaskStore`, `SchedulerService` (см. [`scheduler.md`](./scheduler.md)).
 - Создаёт `Bot`, `Dispatcher`, прокидывает зависимости в `dispatcher["..."]` (DI aiogram 3), включая `UserRepository` как `dispatcher["users"]`.
 - Регистрирует роутеры адаптера (`commands`, `messages`, `errors`) и middleware (`LoggingMiddleware`).
 - Регистрирует команды в Telegram UI через `bot.set_my_commands(...)`.
@@ -394,6 +394,10 @@ class Executor:
 ### 8.5 Webhook вместо polling
 
 Заменяется код запуска в `app/main.py` (вместо `start_polling` — `aiohttp` / `aiogram`-webhook сервер). Сервис-слой не страдает.
+
+### 8.6 Доставка планировщика в новый канал (notifier)
+
+Планировщик (`_docs/scheduler.md`) доставляет результат cron-задачи через **notifier** — callable `(chat_id, text) -> Awaitable[None]`, внедряемый в `main()`. Для MVP реализован только `make_telegram_notifier` (`app/services/scheduler_runner.py`). Чтобы доставлять в console/MAX: добавить notifier для канала и выбирать его по `ScheduledTask.channel`. Ядро (`run_scheduled_task`, `handle_user_task`) при этом **не меняется** — точка изоляции та же, что у адаптеров (§8.4). Отложено в `_docs/roadmap.md` Этап 18.
 
 ## 9. Конкурентность и производительность
 

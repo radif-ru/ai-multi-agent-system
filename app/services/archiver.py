@@ -54,6 +54,7 @@ class Archiver:
         chunk_overlap: int,
         concurrency_limit: int = 5,
         event_bus: "EventBus | None" = None,
+        embedding_document_prefix: str = "",
     ) -> None:
         self._llm = llm
         self._summarizer = summarizer
@@ -64,6 +65,7 @@ class Archiver:
         self._chunk_overlap = chunk_overlap
         self._concurrency_limit = concurrency_limit
         self._event_bus = event_bus
+        self._embedding_document_prefix = embedding_document_prefix
 
     async def archive(
         self,
@@ -124,7 +126,10 @@ class Archiver:
 
         async def _embed_one(idx: int, text: str) -> tuple[int, list[float]]:
             async with semaphore:
-                vector = await self._llm.embed(text, model=self._embedding_model)
+                vector = await self._llm.embed(
+                    f"{self._embedding_document_prefix}{text}",
+                    model=self._embedding_model,
+                )
                 return idx, vector
 
         embed_tasks = [_embed_one(i, chunk) for i, chunk in enumerate(chunks)]

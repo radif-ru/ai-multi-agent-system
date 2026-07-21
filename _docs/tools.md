@@ -240,6 +240,31 @@ class ToolRegistry:
 - **Ошибки:** скилл/скрипт не найден, traversal, неподдерживаемое расширение, таймаут, ненулевой код возврата → `ToolError` с текстом stderr.
 - **Безопасность:** опасный tool — входит в `_DANGEROUS_TOOLS`, по умолчанию **заблокирован**; включается через `DANGEROUS_TOOLS_ALLOWLIST=run_skill_script` (см. `security.md` §4).
 
+### 4.16 `schedule_task`
+
+- **Описание:** Поставить повторяющуюся задачу по cron-расписанию (планировщик, см. `scheduler.md`). Prompt исполнится агентом при каждом срабатывании, результат придёт в Telegram.
+- **Args:** `{"prompt": "<что делать при срабатывании>", "cron": "<5-польный cron>", "timezone": "<IANA tz, optional>"}`.
+- **Return:** подтверждение с человекочитаемым описанием расписания и `task_id`.
+- **Реализация:** валидация cron через `SchedulerService.validate_cron` (`CronTrigger.from_crontab`); проверка лимита `count_by_user < SCHEDULER_MAX_JOBS_PER_USER`; `sanitize_user_input(prompt)`; создание `ScheduledTask` (uuid4 id, `channel="telegram"`, `chat_id`/`user_id` из `ctx`); `ctx.scheduler.add_task(task)`. Маппинг «каждый день в 9 утра» → `0 9 * * *` делает LLM по скиллу `scheduler`.
+- **Ошибки:** невалидный cron → `ToolError`; превышение лимита задач → `ToolError` с человекочитаемым текстом; планировщик недоступен → `ToolError`.
+
+### 4.17 `list_scheduled_tasks`
+
+- **Описание:** Показать запланированные задачи текущего пользователя.
+- **Args:** `{}`.
+- **Return:** человекочитаемый список задач пользователя (`id`, `prompt`, `cron`, `timezone`, статус вкл/выкл, `last_run_at`/`last_status`) через `store.list_by_user(ctx.user_id)`; при отсутствии задач — «У вас нет запланированных задач.».
+- **Реализация:** `ctx.scheduler.store.list_by_user(ctx.user_id)`; scope строго по `user_id`.
+- **Ошибки:** планировщик недоступен → `ToolError`.
+
+### 4.18 `cancel_scheduled_task`
+
+- **Описание:** Отменить (удалить) запланированную задачу по её `task_id`.
+- **Args:** `{"task_id": "<строка из list_scheduled_tasks>"}`.
+- **Return:** подтверждение отмены или сообщение, что задача не найдена / не принадлежит пользователю.
+- **Реализация:** `ctx.scheduler.remove_task(task_id, user_id=ctx.user_id)` — удаление из store и scheduler; scope по `user_id` (нельзя отменить чужую задачу).
+- **Ошибки:** пустой `task_id` → `ToolError`; планировщик недоступен → `ToolError`.
+- **Безопасность:** tools планировщика **не** входят в `_DANGEROUS_TOOLS` — они не трогают ФС/сеть напрямую и работают только с задачами текущего пользователя (scope по `user_id`).
+
 ## 5. Как добавить новый tool
 
 1. Создать `app/tools/<name>.py` по контракту §2.

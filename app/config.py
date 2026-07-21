@@ -62,6 +62,8 @@ class Settings(BaseSettings):
     embedding_model: str = "nomic-embed-text"
     embedding_dimensions: int = 768
     embedding_concurrency: int = 5
+    embedding_document_prefix: str = "search_document: "
+    embedding_query_prefix: str = "search_query: "
 
     # --- LLM gate (сериализация доступа к Ollama) ---
     # Верхняя граница одновременных вызовов к Ollama (chat + embed) на весь
@@ -70,7 +72,7 @@ class Settings(BaseSettings):
     llm_max_concurrency: int = 2
 
     # --- Agent loop ---
-    agent_max_steps: int = 15
+    agent_max_steps: int = 30
     agent_max_output_chars: int = 12000
     # Порог суммаризации контекста перед отправкой в LLM. 90000 символов
     # (~22.5k токенов) согласовано с num_ctx=32768: оставляет запас на
@@ -178,16 +180,72 @@ class Settings(BaseSettings):
     # Таймаут выполнения скрипта скилла через run_skill_script, секунды.
     skill_script_timeout: float = 30.0
 
+    # --- Scheduler (APScheduler) ---
+    # Выключатель планировщика: при False scheduler не стартует.
+    scheduler_enabled: bool = True
+    # IANA-таймзона по умолчанию для cron-выражений.
+    scheduler_timezone: str = "Europe/Moscow"
+    # Лимит задач на пользователя (валидатор > 0).
+    scheduler_max_jobs_per_user: int = 20
+
     # --- Observability / error tracking (Sentry/GlitchTip) ---
     # DSN self-hosted GlitchTip или Sentry. Пустая строка / None = выключено.
     sentry_dsn: str | None = None
     sentry_environment: str = "dev"
-    sentry_traces_sample_rate: float = 0.0
+    sentry_traces_sample_rate: float = 0.1
+    # Минимальный уровень логов, которые уезжают в GlitchTip как события (Issues).
+    # См. _docs/observability.md §5.
+    sentry_event_level: str = "ERROR"
+    # Минимальный уровень логов для Logs API и breadcrumbs.
+    # DEBUG включает отладочные логи в Logs. См. _docs/observability.md §5.
+    sentry_log_level: str = "INFO"
+    # Отправлять логи в GlitchTip Logs (отдельная вкладка, не Issues).
+    # Требует sentry-sdk >= 2.0 и GlitchTip с поддержкой Logs API.
+    sentry_enable_logs: bool = True
 
     # --- Security ---
     dangerous_tools_allowlist: Annotated[list[str], NoDecode] = Field(
         default_factory=list
     )
+
+    @field_validator("scheduler_max_jobs_per_user", mode="before")
+    @classmethod
+    def _validate_max_jobs(cls, v):
+        try:
+            v = int(v)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"SCHEDULER_MAX_JOBS_PER_USER must be an integer, got '{v}'"
+            ) from exc
+        if v <= 0:
+            raise ValueError(
+                f"SCHEDULER_MAX_JOBS_PER_USER must be > 0, got {v}"
+            )
+        return v
+
+    @field_validator("sentry_event_level", mode="before")
+    @classmethod
+    def _normalize_sentry_event_level(cls, v):
+        if isinstance(v, str):
+            v = v.strip().upper()
+        allowed = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+        if v not in allowed:
+            raise ValueError(
+                f"SENTRY_EVENT_LEVEL must be one of {sorted(allowed)}, got '{v}'"
+            )
+        return v
+
+    @field_validator("sentry_log_level", mode="before")
+    @classmethod
+    def _normalize_sentry_log_level(cls, v):
+        if isinstance(v, str):
+            v = v.strip().upper()
+        allowed = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+        if v not in allowed:
+            raise ValueError(
+                f"SENTRY_LOG_LEVEL must be one of {sorted(allowed)}, got '{v}'"
+            )
+        return v
 
     @field_validator("ollama_available_models", mode="before")
     @classmethod

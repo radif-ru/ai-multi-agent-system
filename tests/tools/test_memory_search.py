@@ -21,7 +21,11 @@ def _ctx(mocker, *, search_return=None, search_exc=None, embed_exc=None):
         sm = SimpleNamespace(search=mocker.AsyncMock(side_effect=search_exc))
     else:
         sm = SimpleNamespace(search=mocker.AsyncMock(return_value=search_return or []))
-    settings = SimpleNamespace(memory_search_top_k=5, embedding_model="nomic-embed-text")
+    settings = SimpleNamespace(
+        memory_search_top_k=5,
+        embedding_model="nomic-embed-text",
+        embedding_query_prefix="search_query: ",
+    )
     return SimpleNamespace(
         user_id=42, chat_id=42, conversation_id="c",
         settings=settings, llm=llm, semantic_memory=sm, skills=None,
@@ -38,7 +42,7 @@ async def test_success_formats_results(mocker):
     out = await tool.run({"query": "what?"}, ctx)
     parsed = json.loads(out)
     assert parsed == rows
-    ctx.llm.embed.assert_awaited_once_with("what?", model="nomic-embed-text")
+    ctx.llm.embed.assert_awaited_once_with("search_query: what?", model="nomic-embed-text")
     ctx.semantic_memory.search.assert_awaited_once_with(
         [0.1, 0.2, 0.3], top_k=5, scope_user_id=42
     )

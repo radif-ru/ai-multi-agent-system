@@ -40,7 +40,10 @@ class MemorySearchTool(Tool):
         top_k = int(args.get("top_k") or settings.memory_search_top_k)
 
         try:
-            embedding = await ctx.llm.embed(query, model=settings.embedding_model)
+            query_prefix = getattr(settings, "embedding_query_prefix", "")
+            embedding = await ctx.llm.embed(
+                f"{query_prefix}{query}", model=settings.embedding_model
+            )
         except LLMError as exc:
             raise ToolError(f"embedding failed: {exc}") from exc
 
