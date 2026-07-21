@@ -455,7 +455,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 ### Задача 4.1. Актуализация `_docs/*` и roadmap
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** M
 - **Зависит от:** Задачи 1.1, 2.1–2.6, 3.1–3.2
@@ -475,9 +475,9 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 
 #### Definition of Done
 
-- [ ] Документы `_docs/*` соответствуют коду; roadmap синхронизирован; ADR на месте.
-- [ ] `check_doc_links`, `check_env_sync`, `check_sprint_sync` зелёные.
-- [ ] Тесты — `n/a` (docs). `git status` чист.
+- [x] Документы `_docs/*` соответствуют коду; roadmap синхронизирован; ADR на месте.
+- [x] `check_doc_links`, `check_env_sync`, `check_sprint_sync` зелёные.
+- [x] Тесты — `n/a` (docs). `git status` чист.
 
 ### Задача 4.2. Презентабельность `README.md` + финальная сверка гейтов
 
@@ -537,7 +537,7 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 | 2.7 | Фиксы cron-исполнения (изоляция истории, контекст, `AGENT_MAX_STEPS=30`) | high | S | Done | 2.3 |
 | 3.1 | Spike: аудит RAG-пайплайна + ADR | high | M | Done | — |
 | 3.2 | Task-префиксы эмбеддингов (`nomic`) | medium | M | Done | 3.1 |
-| 4.1 | Актуализация `_docs/*` и roadmap | medium | M | Progress | 1.1, 2.1–2.6, 3.1–3.2 |
+| 4.1 | Актуализация `_docs/*` и roadmap | medium | M | Done | 1.1, 2.1–2.6, 3.1–3.2 |
 | 4.2 | Презентабельность `README.md` + сверка гейтов | medium | M | ToDo | 4.1 |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
@@ -557,3 +557,4 @@ Notifier для Telegram (`_wire_telegram` в `app/main.py`): замыкание
 - **2026-07-20** — задача 1.2 закрыта: `enable_logs=True` + `auto_session_tracking=False` в `sentry_sdk.init`, `SENTRY_EVENT_LEVEL` дефолт изменён на `ERROR`, добавлены `SENTRY_LOG_LEVEL` (дефолт `INFO`, настраиваемый порог для Logs/breadcrumbs) и `SENTRY_ENABLE_LOGS` в Settings + `.env.example`, `_docs/observability.md` §5 обновлён (разделение Logs vs Issues), 5 новых тестов в test_event_level.py, обновлены test_setup_sentry.py и test_error_capture.py.
 - **2026-07-20** — задача 1.3 закрыта: `SENTRY_TRACES_SAMPLE_RATE` дефолт поднят до `0.1` (Performance), `_cron_checkin` в `scheduler_runner.py` отправляет heartbeat в GlitchTip Crons (`in_progress`/`ok`/`error`), 4 новых теста в test_scheduler_runner.py, `_docs/observability.md` §5 обновлён (Performance, Crons).
 - **2026-07-21** — задача 2.7 оформлена постфактум (Done): формализация двух фиксов cron-исполнения по итогам ручного тестирования — изоляция истории (`history` в `handle_user_task`, `run_scheduled_task` передаёт `history=[]`, commit `cbe02c07`) и контекст исполнения + `AGENT_MAX_STEPS` 15→30 (`scheduler_runner.py`, `config.py`, доки, commit `0cacd7ce`). Код и тесты уже в ветке; добавлена запись в доску (см. `process.md` §3 п.4).
+- **2026-07-21** — задача 4.1 закрыта: аудит и актуализация `_docs/*` — `current-state.md` §1.10 (планировщик), §1.2 (RAG task-префиксы), §1.7 (GlitchTip Logs/Issues, Performance/Crons); `stack.md` §9 (env `SENTRY_*`, `SCHEDULER_*`, `EMBEDDING_*_PREFIX`); `tools.md` §4.16–4.18 (tools планировщика); `architecture.md` §8.6 (notifier); `roadmap.md` Этап 18 (расширения планировщика); исправлен баг дефолта `SCHEDULER_MAX_JOBS_PER_USER` в `scheduler.md` (5 → 20). Гейты `check_doc_links`/`check_env_sync`/`check_sprint_sync` зелёные.
