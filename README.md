@@ -6,6 +6,12 @@
 [![Python 3.14](https://img.shields.io/badge/python-3.14-blue.svg)](https://www.python.org/downloads/)
 [![Ollama](https://img.shields.io/badge/LLM-Ollama-black.svg)](https://ollama.com)
 [![sqlite-vec](https://img.shields.io/badge/vectors-sqlite--vec-blue.svg)](https://github.com/asg017/sqlite-vec)
+[![aiogram 3](https://img.shields.io/badge/Telegram-aiogram%203-26A5E4.svg)](https://docs.aiogram.dev/)
+[![APScheduler](https://img.shields.io/badge/scheduler-APScheduler-red.svg)](https://apscheduler.readthedocs.io/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
+[![last commit](https://img.shields.io/github/last-commit/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/commits)
+[![repo size](https://img.shields.io/github/repo-size/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system)
+[![issues](https://img.shields.io/github/issues/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/issues)
 
 **Локальная мульти-агентная система** на self-hosted LLM через [Ollama](https://ollama.com). Принимает задачу от пользователя и **выполняет цикл `thought → action → observation`** до финального ответа: думает, выбирает инструмент, наблюдает результат, повторяет. Ответ модели в цикле — строго JSON (`{"thought", "action", "args"}` либо `{"final_answer"}`).
 
@@ -19,35 +25,73 @@
 
 Стек: [`ollama`](https://ollama.com) (LLM + embeddings + vision) + [`aiogram 3`](https://docs.aiogram.dev/) + [`httpx`](https://www.python-httpx.org/) (MAX-клиент) + [`sqlite-vec`](https://github.com/asg017/sqlite-vec) (долгосрочная семантическая память) + [`APScheduler`](https://apscheduler.readthedocs.io/) (cron-планировщик задач) + `pydantic-settings` + `pytest`. Всё локально — **без облачных LLM-API**.
 
+## Оглавление
+
+- [Возможности](#возможности)
+- [Требования](#требования)
+- [Целевая система и тюнинг под неё](#целевая-система-и-тюнинг-под-неё)
+- [Установка](#установка)
+- [Настройка](#настройка)
+- [Запуск](#запуск)
+- [Команды бота](#команды-бота)
+- [Структура проекта](#структура-проекта-целевая)
+- [Тесты](#тесты)
+- [Graphify](#graphify)
+- [Инженерная дисциплина и процессы](#инженерная-дисциплина-и-процессы)
+- [Документация](#документация)
+- [Ограничения и принципы](#ограничения-и-принципы)
+- [История спринтов](#история-спринтов)
+
 ## Возможности
 
 Реализовано в спринтах 01 (MVP Agent), 02 (Память и файловые входы), 03 (Баги и консольный режим), 04 (Событийная модель и модуль Users), 05 (Безопасность и OCR-рефакторинг), 06 (Надёжность диалога и observability), 07 (Multi-agent: Planner + Critic), 08 (Hardening и зачистка), 09 (MAX-адаптер), 10 (Аудит качества и устранение техдолга), 11 (Производительность и эффективность LLM), 12 (Качество, безопасность и процессы), 13 (Интеграции почты и диска, скиллы со скриптами) и 14 (Планировщик задач, логи в GlitchTip, качество RAG). Индекс спринтов — [`_board/plan.md`](./_board/plan.md). Фактическое состояние кода — [`_docs/current-state.md`](./_docs/current-state.md).
 
-- **Агентный цикл** `thought → action → observation` со строгим JSON-форматом, лимитом `AGENT_MAX_STEPS` и лимитом размера output’а — [`app/agents/executor.py`](./app/agents/executor.py), [`app/agents/protocol.py`](./app/agents/protocol.py).
+### Агентный цикл и Multi-agent
+
+- **Агентный цикл** `thought → action → observation` со строгим JSON-форматом, лимитом `AGENT_MAX_STEPS` и лимитом размера output'а — [`app/agents/executor.py`](./app/agents/executor.py), [`app/agents/protocol.py`](./app/agents/protocol.py).
 - **Multi-agent** (Planner + Executor + Critic) с режимами `OFF | NORMAL | DEEP` (`AGENT_REFLECTION_MODE`, `AGENT_REFLECTION_MAX_ITERATIONS`), graceful degradation при ошибках Planner/Critic, команда `/mode` для per-user override — [`app/agents/planner.py`](./app/agents/planner.py), [`app/agents/critic.py`](./app/agents/critic.py), [`app/core/orchestrator.py`](./app/core/orchestrator.py); подробнее в [`_docs/multi-agent.md`](./_docs/multi-agent.md).
 - **Локальные LLM под разные задачи** через Ollama: `qwen3.5:4b` (по умолчанию для агентного цикла/чата), `nomic-embed-text` (эмбеддинги для семантической памяти), `gemma3:4b` (vision-описание изображений, см. `_docs/vision-models.md`); активная чат-модель переключается per-user (`/model`). Клиент с `chat` и `embed` — [`app/services/llm.py`](./app/services/llm.py).
-- **Tools (инструменты)** — агент делегирует им то, что нельзя «придумывать»; сгруппированы по назначению — [`app/tools/`](./app/tools), подробнее [`_docs/tools.md`](./_docs/tools.md):
-  - *точные вычисления*: `calculator` (детерминированная арифметика вместо галлюцинаций);
-  - *работа с файлами и изображениями*: `read_file`, `read_document` (PDF/TXT/MD + OCR через Tesseract), `ocr_image` (точная транскрипция текста с картинок), `describe_image` (описание сцены vision-моделью);
-  - *внешние данные*: `web_search` (DuckDuckGo `ddgs`), `http_request`, `weather` (wttr.in с фолбэком на веб-поиск);
-  - *почта и диск*: `email_list` / `email_read` (IMAP read-only, Яндекс + Gmail), `disk_list` / `disk_download` (Яндекс.Диск);
-  - *память и навыки*: `memory_search` (семантический поиск по архиву), `load_skill`, `run_skill_script` (sandbox-запуск скриптов скилла);
-  - *планировщик*: `schedule_task` / `list_scheduled_tasks` / `cancel_scheduled_task` (повторяющиеся cron-задачи из Telegram на естественном языке).
+
+### Инструменты (Tools)
+
+Агент делегирует им то, что нельзя «придумывать»; сгруппированы по назначению — [`app/tools/`](./app/tools), подробнее [`_docs/tools.md`](./_docs/tools.md):
+
+- *точные вычисления*: `calculator` (детерминированная арифметика вместо галлюцинаций);
+- *работа с файлами и изображениями*: `read_file`, `read_document` (PDF/TXT/MD + OCR через Tesseract), `ocr_image` (точная транскрипция текста с картинок), `describe_image` (описание сцены vision-моделью);
+- *внешние данные*: `web_search` (DuckDuckGo `ddgs`), `http_request`, `weather` (wttr.in с фолбэком на веб-поиск);
+- *почта и диск*: `email_list` / `email_read` (IMAP read-only, Яндекс + Gmail), `disk_list` / `disk_download` (Яндекс.Диск);
+- *память и навыки*: `memory_search` (семантический поиск по архиву), `load_skill`, `run_skill_script` (sandbox-запуск скриптов скилла);
+- *планировщик*: `schedule_task` / `list_scheduled_tasks` / `cancel_scheduled_task` (повторяющиеся cron-задачи из Telegram на естественном языке).
+
+### Каналы
+
 - **Telegram-интерфейс** на aiogram 3 (long polling), команды `/start`, `/help`, `/new`, `/reset`, `/models`, `/model`, `/prompt`, `/search_engines`, `/search_engine`, `/mode` + обработчик произвольного текста и файлов — [`app/adapters/telegram/handlers/`](./app/adapters/telegram/handlers).
 - **Консольный адаптер** — REPL-цикл с теми же командами без Telegram — [`app/adapters/console/adapter.py`](./app/adapters/console/adapter.py), точка входа [`app/console_main.py`](./app/console_main.py); см. [`_docs/console-adapter.md`](./_docs/console-adapter.md).
 - **MAX-адаптер** ([dev.max.ru/docs-api](https://dev.max.ru/docs-api)) — канал `channel="max"` поверх той же доменной модели: тонкий async-клиент `MaxClient` на `httpx` (`get_me` / `get_updates` long polling / `send_message`, авторизация заголовком `Authorization: <token>`, токен маскируется в логах), текст/команды/вложения (документ/фото/голос) через тот же конвейер и общий `CommandRegistry` — [`app/adapters/max/`](./app/adapters/max), точка входа [`app/max_main.py`](./app/max_main.py).
 - **Файловые входы**: документы (PDF/TXT/MD), голосовые сообщения (Voice/Audio), фотографии (Photo) — [`app/adapters/telegram/files.py`](./app/adapters/telegram/files.py), [`app/services/transcribe.py`](./app/services/transcribe.py), [`app/services/vision.py`](./app/services/vision.py).
+
+### Память
+
 - **Краткосрочная память** per-user (in-memory FIFO + in-session суммаризация + полный лог сессии + контекст файлов для reply) — [`app/services/conversation.py`](./app/services/conversation.py), [`app/services/summarizer.py`](./app/services/summarizer.py).
 - **Долгосрочная семантическая память** на `sqlite-vec`: `/new` суммирует сессию, режет на чанки, пишет с embedding'ом в `data/memory.db`; поиск через `memory_search`. Для качества RAG применяются task-префиксы `nomic-embed-text` (`search_document:` при индексации, `search_query:` при поиске — см. ADR-4) — [`app/services/memory.py`](./app/services/memory.py), [`app/services/archiver.py`](./app/services/archiver.py).
 - **Авто-подгрузка архива** при старте новой сессии через `SemanticMemory.search` — [`app/core/orchestrator.py`](./app/core/orchestrator.py).
+- **Журнал диалога** (`dialog_journal` в `data/memory.db`, append-only) и фоновое восстановление незаархивированных сессий при старте — [`app/services/dialog_journal.py`](./app/services/dialog_journal.py), [`app/services/journal_recovery.py`](./app/services/journal_recovery.py); раздел `_docs/memory.md` §4.
+
+### Планировщик и навыки
+
 - **Планировщик задач (cron)** — повторяющиеся задачи из Telegram на естественном языке («проверяй почту каждый день в 9:00»): [`APScheduler`](https://apscheduler.readthedocs.io/) в процессе бота, расписания персистятся в `data/memory.db` и переживают рестарт, результат приходит сообщением в Telegram; изоляция от живой сессии, лимит задач на пользователя, sanitize prompt — [`app/services/scheduler.py`](./app/services/scheduler.py), [`app/services/scheduler_runner.py`](./app/services/scheduler_runner.py), подробнее [`_docs/scheduler.md`](./_docs/scheduler.md).
 - **Skills** из [`app/skills/`](./app/skills): markdown с `Description:` в первой строке или YAML frontmatter; описания инжектятся в системный промпт, полное тело — через tool `load_skill`; скиллы могут содержать детерминированные скрипты в `scripts/` (запуск через `run_skill_script`) — [`app/services/skills.py`](./app/services/skills.py), [`_docs/skills.md`](./_docs/skills.md).
+
+### Пользователи и безопасность
+
 - **Пользователи и событийная шина**: модуль Users с персистентным SQLite-`UserRepository` (таблица `users` в `data/memory.db`, стабильный `user.id` между рестартами) + `EventBus` для развязки компонентов (события `UserCreated`, `MessageReceived`, `ResponseGenerated`, `ConversationArchived`) — [`app/users/`](./app/users), [`app/core/events.py`](./app/core/events.py).
 - **Безопасность** по контракту «sanitize на входе → bastion на выходе»: `InputSanitizer` (prompt injection) на входе всех адаптеров, `ResponseSanitizer` (маскировка системных путей/секретов) на выходе, `FileIdMapper` (маскировка путей в ответах), **per-user область видимости файлов** (в Telegram/MAX `read_file` ограничен каталогом пользователя `data/tmp/<user_id>`; консоль — флаг `CONSOLE_FILE_SCOPE`), allowlist для опасных tools в режиме «secure by default» (пустой allowlist = запрет, явное разрешение через `.env`) — [`app/security/`](./app/security), подробнее [`_docs/security.md`](./_docs/security.md).
+
+### Инфраструктура
+
 - **Prompts** (`app/prompts/`): системный промпт агента и промпт суммаризации в markdown — [`app/services/prompts.py`](./app/services/prompts.py).
 - **Настройки на пользователя** (выбранная модель, промпт) — [`app/services/model_registry.py`](./app/services/model_registry.py).
 - **Логирование** через `TimedRotatingFileHandler` (ежедневная ротация, хранение ~14 дней) + middleware на каждый update; структурные JSON-логи со сквозным `trace_id` и опциональный error tracking в self-hosted GlitchTip (`SENTRY_DSN`): ошибки → **Issues** (порог `SENTRY_EVENT_LEVEL`, default `ERROR`), логи `INFO+` → вкладка **Logs** (`SENTRY_LOG_LEVEL`), плюс performance-трассировки и cron-heartbeat в **Crons** — [`app/core/logging_config.py`](./app/core/logging_config.py), [`app/observability/`](./app/observability), [`docker-compose.observability.yml`](./docker-compose.observability.yml). Подробнее — [`_docs/observability.md`](./_docs/observability.md).
-- **Журнал диалога** (`dialog_journal` в `data/memory.db`, append-only) и фоновое восстановление незаархивированных сессий при старте — [`app/services/dialog_journal.py`](./app/services/dialog_journal.py), [`app/services/journal_recovery.py`](./app/services/journal_recovery.py); раздел `_docs/memory.md` §4.
 - **CI** на GitHub Actions (push/PR) — шесть гейтов: `flake8`, синхронизация `Settings` ↔ `.env.example` (`check_env_sync`), синхронизация `_board/plan.md` ↔ файлов спринтов (`check_sprint_sync`), проверка относительных ссылок в markdown (`check_doc_links`), проверка формата и зеркал скиллов/промптов ассистента (`check_agents_sync`) и `pytest` с жёстким порогом покрытия (`--cov-fail-under=80`) — [`.github/workflows/test.yml`](./.github/workflows/test.yml), [`scripts/`](./scripts).
 - **Сборка приложения** (DI, polling, graceful shutdown) — [`app/main.py`](./app/main.py), точка входа [`app/__main__.py`](./app/__main__.py).
 - **Unit-тесты** через моки ([`tests/`](./tests)): без реального Telegram / Ollama / сети; `sqlite-vec` — на `tmp_path`.
@@ -99,7 +143,7 @@ VISION_MODEL=moondream2        # лёгкая vision-модель (см. _docs/v
 ## Установка
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/radif-ru/ai-multi-agent-system.git
 cd ai-multi-agent-system
 
 python -m venv .venv
