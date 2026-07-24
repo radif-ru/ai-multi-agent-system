@@ -122,7 +122,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 2.2. Доставка планировщика в console и MAX
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** M
 - **Зависит от:** 2.1
@@ -364,7 +364,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 |-----|--------|:---------:|:-----:|:------:|:----------:|
 | 1.1 | Сохранение вложений и возврат file_id | high | M | Done | — |
 | 2.1 | Убрать Crons API, оставить heartbeat-логирование | high | S | Done | — |
-| 2.2 | Доставка планировщика в console и MAX | high | M | ToDo | 2.1 |
+| 2.2 | Доставка планировщика в console и MAX | high | M | Progress | 2.1 |
 | 3.1 | Скилл email_draft — черновик ответа на письмо | medium | M | ToDo | 1.1 |
 | 3.2 | disk_upload — загрузка файлов на Яндекс.Диск | medium | M | ToDo | — |
 | 4.1 | Bot-команды /schedule / /schedules | medium | M | ToDo | 2.2 |
