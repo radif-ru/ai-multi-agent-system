@@ -16,8 +16,6 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-import sentry_sdk
-
 from app.core.orchestrator import handle_user_task
 from app.security import sanitize_user_input
 from app.services.llm import LLMBadResponse, LLMTimeout, LLMUnavailable
@@ -71,25 +69,6 @@ def _format_result(task: ScheduledTask, result: str) -> str:
     return f"⏰ Плановая задача «{prompt_short}»:\n\n{result}"
 
 
-def _cron_checkin(
-    task_id: str,
-    status: str,
-    duration: float | None = None,
-) -> None:
-    """Отправить heartbeat в GlitchTip Crons (если Sentry инициализирован).
-
-    status: 'in_progress' | 'ok' | 'error'.
-    """
-    try:
-        sentry_sdk.crons.capture_checkin(
-            monitor_slug=f"task-{task_id}",
-            status=status,
-            duration=duration,
-        )
-    except Exception:  # noqa: BLE001
-        logger.debug("sentry.crons: capture_checkin failed for task=%s", task_id)
-
-
 async def run_scheduled_task(
     task: ScheduledTask,
     *,
@@ -128,7 +107,7 @@ async def _run_inner(
     )
     model = deps.user_settings.get_model(task.user_id)
     start = time.monotonic()
-    _cron_checkin(task.id, "in_progress")
+    logger.info("scheduler.run status=start task=%s", task.id)
     try:
         reply = await handle_user_task(
             goal,
@@ -146,32 +125,34 @@ async def _run_inner(
             history=[],
         )
     except LLMTimeout:
-        logger.warning("scheduler.run status=error task=%s reason=llm_timeout", task.id)
-        _cron_checkin(task.id, "error", duration=time.monotonic() - start)
+        dur = time.monotonic() - start
+        logger.warning("scheduler.run status=error task=%s reason=llm_timeout dur_ms=%d", task.id, int(dur * 1000))
         await deps.store.mark_run(task.id, status="error", when=_now_iso())
         await _deliver(notifier, task.chat_id, _format_result(task, LLM_TIMEOUT_REPLY))
         return
     except LLMUnavailable:
-        logger.error("scheduler.run status=error task=%s reason=llm_unavailable", task.id)
-        _cron_checkin(task.id, "error", duration=time.monotonic() - start)
+        dur = time.monotonic() - start
+        logger.error("scheduler.run status=error task=%s reason=llm_unavailable dur_ms=%d", task.id, int(dur * 1000))
         await deps.store.mark_run(task.id, status="error", when=_now_iso())
         await _deliver(notifier, task.chat_id, _format_result(task, LLM_UNAVAILABLE_REPLY))
         return
     except LLMBadResponse as exc:
-        logger.warning("scheduler.run status=error task=%s reason=llm_bad_response err=%s", task.id, exc)
-        _cron_checkin(task.id, "error", duration=time.monotonic() - start)
+        dur = time.monotonic() - start
+        logger.warning(
+            "scheduler.run status=error task=%s reason=llm_bad_response err=%s dur_ms=%d",
+            task.id, exc, int(dur * 1000),
+        )
         await deps.store.mark_run(task.id, status="error", when=_now_iso())
         await _deliver(notifier, task.chat_id, _format_result(task, LLM_BAD_RESPONSE_REPLY))
         return
     except Exception:  # noqa: BLE001
-        logger.exception("scheduler.run status=error task=%s", task.id)
-        _cron_checkin(task.id, "error", duration=time.monotonic() - start)
+        dur = time.monotonic() - start
+        logger.exception("scheduler.run status=error task=%s dur_ms=%d", task.id, int(dur * 1000))
         await deps.store.mark_run(task.id, status="error", when=_now_iso())
         await _deliver(notifier, task.chat_id, _format_result(task, GENERIC_ERROR_REPLY))
         return
 
     dur_ms = int((time.monotonic() - start) * 1000)
-    _cron_checkin(task.id, "ok", duration=time.monotonic() - start)
     await deps.store.mark_run(task.id, status="ok", when=_now_iso())
     logger.info("scheduler.run status=ok task=%s dur_ms=%d", task.id, dur_ms)
     await _deliver(notifier, task.chat_id, _format_result(task, reply))
@@ -198,5 +179,28 @@ def make_telegram_notifier(bot) -> NotifierFn:
     async def notifier(chat_id: int, text: str) -> None:
         for part in split_long_message(text, TELEGRAM_MAX_MESSAGE_LENGTH):
             await bot.send_message(chat_id, html.escape(part), parse_mode="HTML")
+
+    return notifier
+
+
+def make_console_notifier() -> NotifierFn:
+    """Создать notifier для консоли — печатает результат в stdout."""
+
+    async def notifier(chat_id: int, text: str) -> None:
+        print(f"\n{'=' * 60}\n{text}\n{'=' * 60}\n")
+
+    return notifier
+
+
+def make_max_notifier(client) -> NotifierFn:
+    """Создать notifier для MAX-клиента.
+
+    ``client`` — экземпляр ``MaxClient``. Текст разбивается под лимит API.
+    """
+    from app.adapters.max.client import MAX_MESSAGE_TEXT_LEN
+
+    async def notifier(chat_id: int, text: str) -> None:
+        for part in split_long_message(text, MAX_MESSAGE_TEXT_LEN):
+            await client.send_message(part, chat_id=chat_id)
 
     return notifier
