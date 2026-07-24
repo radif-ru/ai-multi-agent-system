@@ -223,7 +223,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 4.1. Bot-команды /schedule / /schedules
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** M
 - **Зависит от:** 2.2
@@ -367,7 +367,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 2.2 | Доставка планировщика в console и MAX | high | M | Done | 2.1 |
 | 3.1 | Скилл email_draft — черновик ответа на письмо | medium | M | Done | 1.1 |
 | 3.2 | disk_upload — загрузка файлов на Яндекс.Диск | medium | M | Done | — |
-| 4.1 | Bot-команды /schedule / /schedules | medium | M | Progress | 2.2 |
+| 4.1 | Bot-команды /schedule / /schedules | medium | M | Done | 2.2 |
 | 4.2 | Естественный парсер времени в cron | medium | M | ToDo | — |
 | 5.1 | Демо скриншоты | low | S | ToDo | 1.1, 2.2, 3.1, 4.1 |
 | 5.2 | Актуализация _docs, roadmap, README + гейты | medium | M | ToDo | 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 5.1 |
@@ -382,3 +382,4 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-24** — задача 2.2 закрыта: `make_console_notifier` и `make_max_notifier` реализованы, `ScheduledTask.channel` добавлен, `schedule_task` tool принимает `channel`, scheduler запускается в `console_main.py` и `max_main.py`, тесты обновлены.
 - **2026-07-24** — задача 3.1 закрыта: скилл `email_draft` создан (`app/skills/email_draft/SKILL.md`), `_docs/skills.md`, `_docs/current-state.md` §1.9, `_docs/roadmap.md` Этап 7 и 16 обновлены.
 - **2026-07-24** — задача 3.2 закрыта: `YandexDiskReader.upload` реализован, `DiskUploadTool` создан и зарегистрирован в `main.py`, 4 новых теста в `test_yandex_disk.py`, документация обновлена.
+- **2026-07-24** — задача 4.1 закрыта: команды `/schedule` и `/schedules` реализованы в `CommandRegistry`, `scheduler` добавлен в `CommandContext` и проброшен через все адаптеры, 9 новых тестов, `_docs/commands.md` обновлён.
