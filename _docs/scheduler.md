@@ -75,13 +75,17 @@ CronTrigger срабатывает
 
 `app/skills/scheduler/SKILL.md` — инструкция агенту: когда использовать, таблица маппинга естественного языка в 5-польный cron, порядок действий, безопасность. Скилл инжектится в системный промпт через `SkillRegistry`.
 
+### Детерминированный парсер
+
+`app/services/cron_parser.py` — парсер естественного языка → 5-польный cron. Поддерживаемые паттерны: «каждый день в N», «по будням в N», «каждый час», «каждые N часов/минут», «каждый понедельник в N», «каждое N число месяца», «каждую неделю». Если паттерн не распознан — возвращает `None`, fallback на LLM (graceful). Тесты: `tests/services/test_cron_parser.py`.
+
 ## Решение: APScheduler, не Celery/n8n
 
 Согласно [ADR-2](./decisions.md#adr-2-n8n-как-оркестратор-интеграций), n8n избыточен для single-user local-first системы: дублирует `EventBus`, orchestrator и tools, добавляет Docker-зависимость и поверхность атаки. APScheduler выбран как лёгкая библиотека, работающая внутри Python-процесса, без внешних зависимостей.
 
-## Ограничения MVP
+## Ограничения
 
-- **Только Telegram-доставка**: результат задания отправляется через `bot.send_message`. Console/MAX — в roadmap.
-- **Cron-only**: нет встроенного парсера естественного языка в коде — маппинг «каждый день в 9 утра» → `0 9 * * *` делает LLM по скиллу `scheduler`.
+- **Multi-channel доставка**: результат задания отправляется через notifier, соответствующий каналу задачи (`telegram` — `bot.send_message`, `console` — печать в stdout, `max` — `MaxClient.send_message`). Выбор notifier по `task.channel` в точке входа (`app/main.py`, `app/console_main.py`, `app/max_main.py`).
+- **Cron-only**: детерминированный парсер `cron_parser.py` покрывает базовые паттерны («каждый день в N», «по будням в N», «каждый час» и т.д.); нераспознанные паттерны — fallback на LLM по скиллу `scheduler`.
 - **MemoryJobStore**: jobs хранятся в памяти APScheduler, персистентность — только в sqlite-таблице. При рестарте jobs пересоздаются из store (rehydrate).
 - **Нет webhook-триггеров**: только cron. Webhook — через FastAPI-адаптер (Этап 6 roadmap).

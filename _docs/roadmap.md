@@ -200,9 +200,9 @@ Tool `context_explore` поверх существующего `Summarizer` — 
 
 **Статус:** Backlog. **Источник:** спринт 14 (MVP планировщика реализован, non-goals — сюда).
 
-- [ ] Доставка результата планировщика в **console** и **MAX** (сейчас только Telegram): channel-notifier по образцу `make_telegram_notifier` (`app/services/scheduler_runner.py`), выбор по `ScheduledTask.channel`.
-- [ ] Bot-команды `/schedule` / `/schedules` как альтернатива/дополнение к natural-language tools.
-- [ ] Естественный парсер времени в коде (сейчас маппинг «каждый день в 9 утра» → cron делает LLM по скиллу `scheduler`).
+- [x] Доставка результата планировщика в **console** и **MAX** (сейчас только Telegram): channel-notifier по образцу `make_telegram_notifier` (`app/services/scheduler_runner.py`), выбор по `ScheduledTask.channel`.
+- [x] Bot-команды `/schedule` / `/schedules` как альтернатива/дополнение к natural-language tools.
+- [x] Естественный парсер времени в коде (`app/services/cron_parser.py`); нераспознанные паттерны — fallback на LLM по скиллу `scheduler`.
 
 ## Отказанные этапы
 
