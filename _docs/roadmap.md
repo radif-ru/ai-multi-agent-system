@@ -103,7 +103,8 @@ CON-4 запрещает webhook в MVP, но это кандидат на от�
 - [ ] `web_research` — пошаговый рисёрч с гибридной стратегией (поиск → отбор источников → извлечение → синтез).
 - [x] `code_review` — обзор кода с критериями (скилл `code-review`, спринт 13).
 - [x] `russian_style` — корректировка под deliberate-стиль (без воды, конкретно) (скилл `humanizer`, спринт 13).
-- [ ] `email_draft`, `summary_long_text`, `tutorial_step_by_step` и пр.
+- [x] `email_draft` — черновик ответа на письмо (скилл `email_draft`, спринт 15).
+- [ ] `summary_long_text`, `tutorial_step_by_step` и пр.
 
 ## Этап 9. Docker / docker-compose
 
@@ -177,10 +178,11 @@ Tool `context_explore` поверх существующего `Summarizer` — 
 
 **Статус:** Backlog. **Источник:** спринт 13 (read-only реализован, отложенное — сюда).
 
-Текущее состояние: read-only IMAP (`email_list` / `email_read`) и download с Яндекс.Диска (`disk_list` / `disk_download`). Отложенные фичи:
+Текущее состояние: read-only IMAP (`email_list` / `email_read` с вложениями) и download с Яндекс.Диска (`disk_list` / `disk_download`). Отложенные фичи:
 
+- [x] Чтение вложений писем через `read_document` (реализовано в спринте 14, задача 4.4).
 - [ ] Отправка писем (`email_send` — SMTP, Яндекс + Gmail).
-- [ ] Черновики писем (`email_draft` — скилл для генерации черновика по контексту).
+- [x] Черновики писем (`email_draft` — скилл для генерации черновика по контексту) (реализовано в спринте 15, задача 3.1).
 - [ ] Upload на Яндекс.Диск (`disk_upload`).
 - [ ] Google Диск (OAuth, `gdrive_list` / `gdrive_download` / `gdrive_upload`).
 
