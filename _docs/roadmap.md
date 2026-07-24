@@ -183,7 +183,7 @@ Tool `context_explore` поверх существующего `Summarizer` — 
 - [x] Чтение вложений писем через `read_document` (реализовано в спринте 14, задача 4.4).
 - [ ] Отправка писем (`email_send` — SMTP, Яндекс + Gmail).
 - [x] Черновики писем (`email_draft` — скилл для генерации черновика по контексту) (реализовано в спринте 15, задача 3.1).
-- [ ] Upload на Яндекс.Диск (`disk_upload`).
+- [x] Upload на Яндекс.Диск (`disk_upload`) (реализовано в спринте 15, задача 3.2).
 - [ ] Google Диск (OAuth, `gdrive_list` / `gdrive_download` / `gdrive_upload`).
 
 ## Этап 17. TTL/cleanup долгосрочной памяти

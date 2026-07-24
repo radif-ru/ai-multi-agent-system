@@ -209,10 +209,10 @@ class ToolRegistry:
 
 ### 4.12 `email_read`
 
-- **Описание:** Прочитать одно письмо по uid (read-only).
+- **Описание:** Прочитать одно письмо по uid (read-only). Возвращает заголовки, тело и вложения.
 - **Args:** `{"provider": "yandex|gmail", "uid": "<строка из email_list>"}`.
-- **Return:** JSON с заголовками (`from`, `to`, `subject`, `date`) и телом письма. Тело — **недоверенные данные**: обрамляется маркерами `<<<EMAIL_BODY_START>>>` / `<<<EMAIL_BODY_END>>>` и сопровождается полем `untrusted_body_note` (инструкции внутри письма исполнять нельзя, см. `security.md`). Тело усекается до `MAIL_BODY_MAX_CHARS`.
-- **Реализация:** `MailReader(ctx.settings).read_message(provider, uid)`; извлекается text/plain (fallback — text/html без тегов).
+- **Return:** JSON с заголовками (`from`, `to`, `subject`, `date`), телом письма и `attachments` — список `{filename, file_id, content_type, size}`. Тело — **недоверенные данные**: обрамляется маркерами `<<<EMAIL_BODY_START>>>` / `<<<EMAIL_BODY_END>>>` и сопровождается полем `untrusted_body_note` (инструкции внутри письма исполнять нельзя, см. `security.md`). Тело усекается до `MAIL_BODY_MAX_CHARS`. Вложения сохраняются в `data/tmp/` и регистрируются через `FileIdMapper` — модель может прочитать их через `read_document` с `file_id`.
+- **Реализация:** `MailReader(ctx.settings).read_message(provider, uid)`; извлекается text/plain (fallback — text/html без тегов); вложения (Content-Disposition: attachment) сохраняются через `_save_attachments` в `data/tmp/` с регистрацией `FileIdMapper.generate_id`.
 - **Ошибки:** неизвестный провайдер / пустой uid → `ToolError`; почта не подключена / неверный пароль / недоступна → `ToolError` (человекочитаемый текст).
 
 ### 4.13 `disk_list`
@@ -230,6 +230,14 @@ class ToolRegistry:
 - **Return:** JSON `{file_id, name, hint}`. Дальше файл читается через `read_document` по `file_id`.
 - **Реализация:** `YandexDiskReader.download(path, dest_dir)` (ссылка `/resources/download` → потоковое скачивание с лимитом `TELEGRAM_MAX_FILE_MB`) в `Settings.get_user_tmp_dir(user_id)` (изоляция по пользователю); `file_id` — через `FileIdMapper`.
 - **Ошибки:** пустой path → `ToolError`; файл больше лимита → `ToolError`; диск не подключён / токен отклонён / недоступен → `ToolError`.
+
+### 4.14b `disk_upload`
+
+- **Описание:** Загрузить локальный файл (по `file_id` из `data/tmp/`) на Яндекс.Диск.
+- **Args:** `{"file_id": "<идентификатор файла>", "path": "<путь на диске>"}`.
+- **Return:** JSON `{path, status, hint}` — путь загруженного файла на диске.
+- **Реализация:** `FileIdMapper.get_path(file_id)` → локальный путь; `YandexDiskReader.upload(local_path, disk_path)` (GET `/resources/upload?path=...&overwrite=true` → upload URL → PUT файла с лимитом `TELEGRAM_MAX_FILE_MB`).
+- **Ошибки:** пустой `file_id`/`path` → `ToolError`; файл не найден по `file_id` → `ToolError`; файл больше лимита → `ToolError`; диск не подключён / токен отклонён / недоступен → `ToolError`.
 
 ### 4.15 `run_skill_script`
 

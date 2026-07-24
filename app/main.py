@@ -54,6 +54,7 @@ from app.tools.ocr_image import OcrImageTool
 from app.tools.read_document import ReadDocumentTool
 from app.tools.read_file import ReadFileTool
 from app.tools.disk_download import DiskDownloadTool
+from app.tools.disk_upload import DiskUploadTool
 from app.tools.disk_list import DiskListTool
 from app.tools.email_list import EmailListTool
 from app.tools.email_read import EmailReadTool
@@ -225,6 +226,7 @@ async def _build_components(
             EmailReadTool(max_output_chars=settings.max_tool_output_chars),
             DiskListTool(max_output_chars=settings.max_tool_output_chars),
             DiskDownloadTool(max_output_chars=settings.max_tool_output_chars),
+            DiskUploadTool(max_output_chars=settings.max_tool_output_chars),
             RunSkillScriptTool(max_output_chars=settings.max_tool_output_chars),
             ScheduleTaskTool(),
             ListScheduledTasksTool(),
@@ -503,9 +505,10 @@ async def main() -> None:
             user_settings=components.user_settings,
             store=components.scheduled_task_store,
         )
-        notifier = make_telegram_notifier(bot)
+        notifiers = {"telegram": make_telegram_notifier(bot)}
 
         async def _run_task(task):
+            notifier = notifiers.get(task.channel, notifiers["telegram"])
             await run_scheduled_task(task, deps=runner_deps, notifier=notifier)
 
         components.scheduler.set_run_task(_run_task)
