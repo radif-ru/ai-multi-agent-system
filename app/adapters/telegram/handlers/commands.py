@@ -47,6 +47,7 @@ def build_command_handlers(
     users: Any = None,
     journal: "DialogJournal | None" = None,
     llm: Any = None,
+    scheduler: Any = None,
 ) -> dict[str, Any]:
     """Собрать словарь handler'ов команд.
 
@@ -282,6 +283,47 @@ def build_command_handlers(
         result = await registry.execute("reset", ctx)
         await message.answer(result.text)
 
+    async def cmd_schedule(message: Message, command: CommandObject) -> None:
+        user_id = _user_id(message)
+        chat_id = message.chat.id if message.chat is not None else user_id
+        ctx = _build_context(
+            user_id=user_id,
+            chat_id=chat_id,
+            settings=settings,
+            user_settings=user_settings,
+            prompts=prompts,
+            tools=tools,
+            skills=skills,
+            conversations=conversations,
+            archiver=archiver,
+            users=users,
+            channel="telegram",
+            scheduler=scheduler,
+        )
+        arg = (command.args or "").strip()
+        result = await registry.execute("schedule", ctx, args=arg)
+        await message.answer(result.text)
+
+    async def cmd_schedules(message: Message) -> None:
+        user_id = _user_id(message)
+        chat_id = message.chat.id if message.chat is not None else user_id
+        ctx = _build_context(
+            user_id=user_id,
+            chat_id=chat_id,
+            settings=settings,
+            user_settings=user_settings,
+            prompts=prompts,
+            tools=tools,
+            skills=skills,
+            conversations=conversations,
+            archiver=archiver,
+            users=users,
+            channel="telegram",
+            scheduler=scheduler,
+        )
+        result = await registry.execute("schedules", ctx)
+        await message.answer(result.text)
+
     return {
         "start": cmd_start,
         "help": cmd_help,
@@ -293,6 +335,8 @@ def build_command_handlers(
         "mode": cmd_mode,
         "new": cmd_new,
         "reset": cmd_reset,
+        "schedule": cmd_schedule,
+        "schedules": cmd_schedules,
     }
 
 
@@ -308,6 +352,7 @@ def build_commands_router(
     users: Any = None,
     journal: "DialogJournal | None" = None,
     llm: Any = None,
+    scheduler: Any = None,
 ) -> Router:
     """Собрать aiogram-Router с handler'ами команд.
 
@@ -328,6 +373,7 @@ def build_commands_router(
         users=users,
         journal=journal,
         llm=llm,
+        scheduler=scheduler,
     )
     router = Router(name="commands")
     router.message.register(handlers["start"], Command("start"))
@@ -340,6 +386,8 @@ def build_commands_router(
     router.message.register(handlers["mode"], Command("mode"))
     router.message.register(handlers["new"], Command("new"))
     router.message.register(handlers["reset"], Command("reset"))
+    router.message.register(handlers["schedule"], Command("schedule"))
+    router.message.register(handlers["schedules"], Command("schedules"))
     return router
 
 
@@ -359,6 +407,7 @@ def _build_context(
     channel: str = "telegram",
     journal: "DialogJournal | None" = None,
     llm: Any = None,
+    scheduler: Any = None,
 ) -> CommandContext:
     """Построить контекст команды для Telegram."""
     return CommandContext(
@@ -376,6 +425,7 @@ def _build_context(
         channel=channel,
         journal=journal,
         llm=llm,
+        scheduler=scheduler,
     )
 
 

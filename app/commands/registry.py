@@ -275,6 +275,106 @@ async def cmd_search_engine(ctx: "CommandContext", arg: str) -> "CommandResult":
     return CommandResult(text=f"Поисковик переключён на {arg}.")
 
 
+async def cmd_schedule(ctx: "CommandContext", arg: str) -> "CommandResult":
+    """Команда /schedule <cron> <prompt> — создать запланированную задачу.
+
+    См. `_docs/scheduler.md`, `_docs/commands.md`.
+    """
+    from app.commands.context import CommandResult
+
+    if ctx.scheduler is None:
+        return CommandResult(text="Планировщик задач недоступен.")
+
+    if not arg:
+        return CommandResult(
+            text=(
+                "Использование: /schedule <cron> <prompt>\n"
+                "Пример: /schedule 0 9 * * * Проверь почту\n"
+                "Cron: минута час день месяц день_недели"
+            )
+        )
+
+    parts = arg.split(maxsplit=5)
+    if len(parts) < 6:
+        return CommandResult(
+            text=(
+                "Нужно 5 полей cron + prompt.\n"
+                "Пример: /schedule 0 9 * * * Проверь почту"
+            )
+        )
+
+    cron = " ".join(parts[:5])
+    prompt = parts[5].strip()
+
+    from app.security import sanitize_user_input
+    from app.services.scheduled_tasks import ScheduledTask, new_task_id
+    from app.services.scheduler import validate_cron
+
+    if not validate_cron(cron):
+        return CommandResult(
+            text=(
+                f"Невалидное cron-выражение: '{cron}'.\n"
+                "Используйте 5 полей: минута час день месяц день_недели.\n"
+                "Пример: '0 9 * * *' — каждый день в 9:00."
+            )
+        )
+
+    max_jobs = ctx.settings.scheduler_max_jobs_per_user
+    count = await ctx.scheduler.store.count_by_user(ctx.user_id)
+    if count >= max_jobs:
+        return CommandResult(
+            text=f"Достигнут лимит запланированных задач ({max_jobs})."
+        )
+
+    sanitized = sanitize_user_input(prompt, user_id=ctx.user_id, mode="warn")
+    channel = ctx.channel or "telegram"
+    task = ScheduledTask(
+        id=new_task_id(),
+        user_id=ctx.user_id,
+        chat_id=ctx.chat_id,
+        channel=channel,
+        prompt=sanitized,
+        cron=cron,
+        timezone="Europe/Moscow",
+    )
+    await ctx.scheduler.add_task(task)
+    return CommandResult(
+        text=(
+            f"Задача создана. ID: {task.id}\n"
+            f"Расписание: {cron} (Europe/Moscow)\n"
+            f"Prompt: {sanitized[:100]}"
+        )
+    )
+
+
+async def cmd_schedules(ctx: "CommandContext") -> "CommandResult":
+    """Команда /schedules — список запланированных задач."""
+    from app.commands.context import CommandResult
+
+    if ctx.scheduler is None:
+        return CommandResult(text="Планировщик задач недоступен.")
+
+    tasks = await ctx.scheduler.store.list_by_user(ctx.user_id)
+    if not tasks:
+        return CommandResult(text="У вас нет запланированных задач.")
+
+    lines = []
+    for t in tasks:
+        status = "включена" if t.enabled else "выключена"
+        last_run = t.last_run_at or "—"
+        last_status = t.last_status or "—"
+        prompt_short = t.prompt[:60]
+        if len(t.prompt) > 60:
+            prompt_short += "…"
+        lines.append(
+            f"ID: {t.id}\n"
+            f"  Prompt: {prompt_short}\n"
+            f"  Cron: {t.cron} ({t.timezone})\n"
+            f"  Статус: {status}, последний запуск: {last_run} ({last_status})"
+        )
+    return CommandResult(text="\n".join(lines))
+
+
 class CommandRegistry:
     """Реестр команд для выполнения из любого адаптера."""
 
@@ -290,6 +390,8 @@ class CommandRegistry:
             "mode": cmd_mode,
             "new": cmd_new,
             "reset": cmd_reset,
+            "schedule": cmd_schedule,
+            "schedules": cmd_schedules,
         }
 
     async def execute(
@@ -318,7 +420,7 @@ class CommandRegistry:
         cmd_func = self._commands[command_name]
 
         # Команды с аргументами
-        if command_name in ("model", "prompt", "search_engine", "mode"):
+        if command_name in ("model", "prompt", "search_engine", "mode", "schedule"):
             return await cmd_func(ctx, args)
         # Команда /new с progress_callback
         if command_name == "new":

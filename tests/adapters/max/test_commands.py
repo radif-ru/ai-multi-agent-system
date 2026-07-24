@@ -34,6 +34,7 @@ def _components() -> SimpleNamespace:
         users=AsyncMock(get_or_create=AsyncMock(return_value=(user, True))),
         dialog_journal=None,
         llm=None,
+        scheduler=None,
     )
 
 

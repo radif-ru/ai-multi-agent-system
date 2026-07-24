@@ -357,6 +357,7 @@ def _wire_telegram(c: _Components) -> tuple[Bot, Dispatcher]:
             users=c.users,
             journal=c.dialog_journal,
             llm=c.llm,
+            scheduler=c.scheduler,
         )
     )
     dispatcher.include_router(

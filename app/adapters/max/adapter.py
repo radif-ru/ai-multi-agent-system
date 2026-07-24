@@ -223,6 +223,7 @@ class MaxUpdateDispatcher:
             channel=CHANNEL,
             journal=c.dialog_journal,
             llm=c.llm,
+            scheduler=c.scheduler,
         )
 
     async def _handle_attachments(
