@@ -187,7 +187,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 3.2. disk_upload — загрузка файлов на Яндекс.Диск
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** M
 - **Зависит от:** —
@@ -366,7 +366,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 2.1 | Убрать Crons API, оставить heartbeat-логирование | high | S | Done | — |
 | 2.2 | Доставка планировщика в console и MAX | high | M | Done | 2.1 |
 | 3.1 | Скилл email_draft — черновик ответа на письмо | medium | M | Done | 1.1 |
-| 3.2 | disk_upload — загрузка файлов на Яндекс.Диск | medium | M | ToDo | — |
+| 3.2 | disk_upload — загрузка файлов на Яндекс.Диск | medium | M | Progress | — |
 | 4.1 | Bot-команды /schedule / /schedules | medium | M | ToDo | 2.2 |
 | 4.2 | Естественный парсер времени в cron | medium | M | ToDo | — |
 | 5.1 | Демо скриншоты | low | S | ToDo | 1.1, 2.2, 3.1, 4.1 |
