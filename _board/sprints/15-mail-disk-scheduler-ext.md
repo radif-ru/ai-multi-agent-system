@@ -159,7 +159,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 3.1. Скилл email_draft — черновик ответа на письмо
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** M
 - **Зависит от:** 1.1
@@ -365,7 +365,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 1.1 | Сохранение вложений и возврат file_id | high | M | Done | — |
 | 2.1 | Убрать Crons API, оставить heartbeat-логирование | high | S | Done | — |
 | 2.2 | Доставка планировщика в console и MAX | high | M | Done | 2.1 |
-| 3.1 | Скилл email_draft — черновик ответа на письмо | medium | M | Progress | 1.1 |
+| 3.1 | Скилл email_draft — черновик ответа на письмо | medium | M | Done | 1.1 |
 | 3.2 | disk_upload — загрузка файлов на Яндекс.Диск | medium | M | ToDo | — |
 | 4.1 | Bot-команды /schedule / /schedules | medium | M | ToDo | 2.2 |
 | 4.2 | Естественный парсер времени в cron | medium | M | ToDo | — |
@@ -380,3 +380,4 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-24** — задача 1.1 закрыта: `_extract_body` возвращает `(body, attachments)`, `_save_attachments` сохраняет в `data/tmp/` + `FileIdMapper`, `email_read` возвращает `attachments` с `file_id`, скилл `email-assistant` обновлён, 6 новых тестов в `tests/services/test_mail.py`.
 - **2026-07-24** — задача 2.1 закрыта: `_cron_checkin` убран из `scheduler_runner.py`, заменён на heartbeat-логирование через `logger.info`, тесты обновлены.
 - **2026-07-24** — задача 2.2 закрыта: `make_console_notifier` и `make_max_notifier` реализованы, `ScheduledTask.channel` добавлен, `schedule_task` tool принимает `channel`, scheduler запускается в `console_main.py` и `max_main.py`, тесты обновлены.
+- **2026-07-24** — задача 3.1 закрыта: скилл `email_draft` создан (`app/skills/email_draft/SKILL.md`), `_docs/skills.md`, `_docs/current-state.md` §1.9, `_docs/roadmap.md` Этап 7 и 16 обновлены.
