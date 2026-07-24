@@ -7,11 +7,13 @@
 from __future__ import annotations
 
 import imaplib
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import pytest
 
+from app.security import clear_global_mapper
 from app.services.mail import (
     MailAuthError,
     MailError,
@@ -19,6 +21,7 @@ from app.services.mail import (
     MailReader,
     MailUnavailable,
     _extract_body,
+    _save_attachments,
 )
 
 
@@ -169,7 +172,9 @@ async def test_read_message_missing_uid_raises():
 def test_extract_body_html_fallback():
     msg = MIMEMultipart("alternative")
     msg.attach(MIMEText("<p>Привет, <b>мир</b>!</p><style>a{}</style>", "html", "utf-8"))
-    assert _extract_body(msg) == "Привет, мир !"
+    body, attachments = _extract_body(msg)
+    assert body == "Привет, мир !"
+    assert attachments == []
 
 
 # --- Ошибки конфигурации / авторизации / сети ------------------------------
@@ -218,3 +223,85 @@ def test_configured_providers_lists_only_filled():
     settings = _Settings(yandex_mail_user=None)
     reader, _ = _reader({}, settings=settings)
     assert reader.configured_providers() == []
+
+
+# --- Вложения (attachments) -----------------------------------------------
+
+
+def _message_with_attachment(
+    filename: str = "report.pdf",
+    content: bytes = b"%PDF-1.4 fake pdf content",
+    body: str = "Смотрите отчёт во вложении",
+) -> bytes:
+    msg = MIMEMultipart()
+    msg["From"] = "sender@example.com"
+    msg["To"] = "user@yandex.ru"
+    msg["Subject"] = "Отчёт"
+    msg["Date"] = "Tue, 07 Jul 2026 10:00:00 +0300"
+    msg.attach(MIMEText(body, "plain", "utf-8"))
+    att = MIMEApplication(content, Name=filename)
+    att["Content-Disposition"] = f'attachment; filename="{filename}"'
+    msg.attach(att)
+    return msg.as_bytes()
+
+
+def test_extract_body_with_attachment():
+    raw = _message_with_attachment(filename="doc.pdf", content=b"PDF DATA")
+    from email import message_from_bytes
+    msg = message_from_bytes(raw)
+    body, attachments = _extract_body(msg)
+    assert "Смотрите отчёт" in body
+    assert len(attachments) == 1
+    assert attachments[0]["filename"] == "doc.pdf"
+    assert attachments[0]["content_type"] == "application/octet-stream"
+    assert attachments[0]["size"] == 8
+    assert attachments[0]["payload"] == b"PDF DATA"
+
+
+def test_extract_body_multiple_attachments():
+    from email import message_from_bytes
+    raw = _message_with_attachment()
+    msg = message_from_bytes(raw)
+    # Добавим второе вложение
+    from email.mime.application import MIMEApplication
+    att2 = MIMEApplication(b"IMAGE DATA", Name="photo.jpg")
+    att2["Content-Disposition"] = 'attachment; filename="photo.jpg"'
+    msg.attach(att2)
+    body, attachments = _extract_body(msg)
+    assert len(attachments) == 2
+    names = {a["filename"] for a in attachments}
+    assert names == {"report.pdf", "photo.jpg"}
+
+
+def test_save_attachments_creates_files_and_file_ids(tmp_path):
+    clear_global_mapper()
+    raw = [
+        {"filename": "test.txt", "content_type": "text/plain", "size": 5, "payload": b"HELLO"},
+        {"filename": "data.bin", "content_type": "application/octet-stream", "size": 3, "payload": b"XYZ"},
+    ]
+    result = _save_attachments(raw, dest_dir=tmp_path)
+    assert len(result) == 2
+    assert (tmp_path / "test.txt").read_bytes() == b"HELLO"
+    assert (tmp_path / "data.bin").read_bytes() == b"XYZ"
+    for item in result:
+        assert item["file_id"].startswith("file_")
+        assert "payload" not in item
+    clear_global_mapper()
+
+
+def test_save_attachments_empty_returns_empty():
+    assert _save_attachments([]) == []
+
+
+async def test_read_message_returns_attachments(tmp_path):
+    clear_global_mapper()
+    raw = _message_with_attachment(filename="report.pdf", content=b"PDF CONTENT")
+    messages = {b"3": {"raw": raw, "seen": True}}
+    reader, _ = _reader(messages)
+    msg = await reader.read_message("yandex", "3")
+    assert "attachments" in msg
+    assert len(msg["attachments"]) == 1
+    assert msg["attachments"][0]["filename"] == "report.pdf"
+    assert msg["attachments"][0]["file_id"].startswith("file_")
+    assert "payload" not in msg["attachments"][0]
+    clear_global_mapper()

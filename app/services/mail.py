@@ -17,9 +17,11 @@ import time
 from email import message_from_bytes
 from email.header import decode_header
 from email.message import Message
+from pathlib import Path
 from typing import Any, Callable
 
 from app.config import Settings
+from app.security import get_global_mapper
 
 logger = logging.getLogger(__name__)
 
@@ -234,11 +236,12 @@ class MailReader:
             if part is None:
                 raise MailError(f"Письмо с uid={uid} не найдено.")
             msg = message_from_bytes(part[1])
-            body = _extract_body(msg)
+            body, raw_attachments = _extract_body(msg)
             max_chars = self._settings.mail_body_max_chars
             truncated = len(body) > max_chars
             if truncated:
                 body = body[:max_chars] + "... [truncated]"
+            attachments = _save_attachments(raw_attachments)
             return {
                 "uid": uid,
                 "provider": provider,
@@ -248,6 +251,7 @@ class MailReader:
                 "date": _decode(msg.get("Date")),
                 "body": body,
                 "truncated": truncated,
+                "attachments": attachments,
             }
         finally:
             _close_quietly(conn)
@@ -273,16 +277,32 @@ def _decode(value: str | None) -> str:
     return "".join(parts).strip()
 
 
-def _extract_body(msg: Message) -> str:
-    """Текстовое тело письма: text/plain, fallback — text/html без тегов."""
+def _extract_body(msg: Message) -> tuple[str, list[dict[str, Any]]]:
+    """Текстовое тело письма + список вложений.
+
+    Возвращает ``(body, attachments)`` где attachments — список
+    ``{filename, content_type, size, payload}`` (payload — bytes).
+    """
     plain: str | None = None
     html: str | None = None
+    attachments: list[dict[str, Any]] = []
     for part in msg.walk():
         if part.get_content_maintype() == "multipart":
             continue
-        if part.get_content_disposition() == "attachment":
-            continue
         ctype = part.get_content_type()
+        disposition = part.get_content_disposition()
+        if disposition == "attachment" or (disposition == "inline" and part.get_filename()):
+            payload = part.get_payload(decode=True)
+            if payload is None:
+                continue
+            filename = _decode(part.get_filename()) or "attachment"
+            attachments.append({
+                "filename": filename,
+                "content_type": ctype,
+                "size": len(payload),
+                "payload": payload,
+            })
+            continue
         if ctype not in ("text/plain", "text/html"):
             continue
         payload = part.get_payload(decode=True)
@@ -295,10 +315,46 @@ def _extract_body(msg: Message) -> str:
         elif ctype == "text/html" and html is None:
             html = text
     if plain is not None:
-        return plain.strip()
-    if html is not None:
+        body = plain.strip()
+    elif html is not None:
         stripped = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", html,
                           flags=re.DOTALL | re.IGNORECASE)
         stripped = re.sub(r"<[^>]+>", " ", stripped)
-        return re.sub(r"\s+", " ", html_lib.unescape(stripped)).strip()
-    return ""
+        body = re.sub(r"\s+", " ", html_lib.unescape(stripped)).strip()
+    else:
+        body = ""
+    return body, attachments
+
+
+def _save_attachments(
+    raw_attachments: list[dict[str, Any]],
+    *,
+    dest_dir: Path = Path("data/tmp"),
+) -> list[dict[str, Any]]:
+    """Сохранить вложения в ``dest_dir`` и зарегистрировать через FileIdMapper.
+
+    Возвращает список ``{filename, file_id, content_type, size}`` без payload.
+    """
+    if not raw_attachments:
+        return []
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    mapper = get_global_mapper()
+    result: list[dict[str, Any]] = []
+    for att in raw_attachments:
+        filename = att["filename"]
+        payload: bytes = att["payload"]
+        safe_name = Path(filename).name
+        file_path = dest_dir / safe_name
+        file_path.write_bytes(payload)
+        file_id = mapper.generate_id(file_path)
+        result.append({
+            "filename": filename,
+            "file_id": file_id,
+            "content_type": att["content_type"],
+            "size": att["size"],
+        })
+        logger.info(
+            "Вложение сохранено: %s (%d bytes, %s) → file_id=%s",
+            safe_name, len(payload), att["content_type"], file_id,
+        )
+    return result

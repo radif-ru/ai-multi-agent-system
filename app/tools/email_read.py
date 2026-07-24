@@ -25,7 +25,9 @@ class EmailReadTool(Tool):
     description = (
         "Читает одно письмо по uid (read-only). Параметры: provider "
         "('yandex' | 'gmail'), uid (строка из email_list). Возвращает "
-        "заголовки и текстовое тело письма."
+        "заголовки, текстовое тело письма и список вложений (attachments: "
+        "filename, file_id, content_type, size). Если есть вложения с "
+        "file_id — их можно прочитать через read_document."
     )
     args_schema: Mapping[str, Any] = {
         "type": "object",
