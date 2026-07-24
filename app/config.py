@@ -83,7 +83,7 @@ class Settings(BaseSettings):
     # нарушение контракта thought/action/args | final_answer), прежде чем
     # поднять LLMBadResponse. Не даёт «мыслям» (thought) утечь к пользователю
     # вместо ответа (см. _docs/agent-loop.md §2.4). 0 — отключить само-починку.
-    agent_max_repair_attempts: int = 2
+    agent_max_repair_attempts: int = 3
 
     # --- Multi-agent (Planner + Critic), см. _docs/multi-agent.md ---
     # OFF — только Executor; NORMAL — один проход Critic; DEEP — итеративный Critic.

@@ -21,7 +21,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-_ALLOWED_CHANNELS = ("telegram",)
+_ALLOWED_CHANNELS = ("telegram", "console", "max")
 
 
 def _now_iso() -> str:

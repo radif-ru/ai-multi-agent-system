@@ -119,6 +119,30 @@ async def main() -> None:
     components = await _build_components(settings)
     client, dispatcher = _wire_max(components)
 
+    # Scheduler: стартуем если включён в конфиге
+    if settings.scheduler_enabled and components.scheduler is not None:
+        from app.services.scheduler_runner import RunnerDeps, make_max_notifier, run_scheduled_task
+
+        runner_deps = RunnerDeps(
+            conversations=components.conversations,
+            executor=components.executor,
+            settings=settings,
+            llm=components.llm,
+            semantic_memory=components.semantic_memory,
+            planner=components.planner,
+            critic=components.critic,
+            user_settings=components.user_settings,
+            store=components.scheduled_task_store,
+        )
+        notifiers = {"max": make_max_notifier(client)}
+
+        async def _run_task(task):
+            notifier = notifiers.get(task.channel, notifiers["max"])
+            await run_scheduled_task(task, deps=runner_deps, notifier=notifier)
+
+        components.scheduler.set_run_task(_run_task)
+        await components.scheduler.start()
+
     recovery_task: asyncio.Task | None = None
     if components.dialog_journal is not None:
         recovery_task = asyncio.create_task(

@@ -22,11 +22,46 @@ logger = logging.getLogger(__name__)
 
 RunTaskFn = Callable[[ScheduledTask], Awaitable[None]]
 
+# APScheduler использует 0=Monday, а standard cron — 0=Sunday.
+# Конвертируем numeric DOW в имена дней, которые APScheduler интерпретирует
+# одинаково независимо от конвенции.
+_DOW_NAMES = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+
+
+def _convert_cron_dow_field(dow: str) -> str:
+    """Конвертировать DOW-поле из standard cron (0=Sun) в APScheduler-совместимое."""
+    if dow == '*' or dow.startswith('*/'):
+        return dow
+    if any(c.isalpha() for c in dow):
+        return dow  # Уже имена дней
+
+    def _to_name(s: str) -> str:
+        n = int(s)
+        if n == 7:
+            n = 0  # 7 = Sunday в standard cron
+        return _DOW_NAMES[n]
+
+    if ',' in dow:
+        return ','.join(_to_name(p) for p in dow.split(','))
+    if '-' in dow:
+        lo, hi = dow.split('-')
+        return f'{_to_name(lo)}-{_to_name(hi)}'
+    return _to_name(dow)
+
+
+def _cron_to_trigger(cron: str, timezone: str) -> CronTrigger:
+    """Создать CronTrigger из standard cron-выражения с корректным DOW."""
+    parts = cron.split()
+    if len(parts) == 5:
+        parts[4] = _convert_cron_dow_field(parts[4])
+        cron = ' '.join(parts)
+    return CronTrigger.from_crontab(cron, timezone=timezone)
+
 
 def validate_cron(expr: str) -> bool:
     """Проверить, что ``expr`` — валидное 5-польное cron-выражение."""
     try:
-        CronTrigger.from_crontab(expr)
+        _cron_to_trigger(expr, 'UTC')
         return True
     except (ValueError, IndexError):
         return False
@@ -95,7 +130,7 @@ class SchedulerService:
         """Зарегистрировать job в scheduler для задачи."""
         if not task.enabled:
             return
-        trigger = CronTrigger.from_crontab(task.cron, timezone=task.timezone)
+        trigger = _cron_to_trigger(task.cron, timezone=task.timezone)
         runner = partial(self._job_entrypoint, task_id=task.id)
         self._scheduler.add_job(
             runner,
