@@ -317,7 +317,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 5.1. Демо скриншоты
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** low
 - **Объём:** S
 - **Зависит от:** 1.1, 2.2, 3.1, 4.1
@@ -532,7 +532,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 4.1 | Bot-команды /schedule / /schedules | medium | M | Done | 2.2 |
 | 4.2 | Естественный парсер времени в cron | medium | M | Done | — |
 | 4.3 | Интеграция parse_cron в schedule_task | high | S | Done | 4.2 |
-| 5.1 | Демо скриншоты | low | S | ToDo | 1.1, 2.2, 3.1, 4.1 |
+| 5.1 | Демо скриншоты | low | S | Progress | 1.1, 2.2, 3.1, 4.1 |
 | 5.2 | Актуализация _docs, roadmap, README + гейты | medium | M | ToDo | 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 4.3, 5.1, 6.5, 6.6 |
 | 6.1 | fix(protocol): final_answer + thought — валидный финал | high | S | Done | — |
 | 6.2 | chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3 | medium | S | Done | — |
