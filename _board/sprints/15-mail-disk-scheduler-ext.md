@@ -457,11 +457,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 6.5. fix(tools): read_document — подсказка ocr_image/describe_image для сканов + OCR по умолчанию
 
-- **Статус:** ToDo
-- **Приоритет:** high
-- **Объём:** S
-- **Зависит от:** —
-- **Связанные документы:** `_docs/tools.md` §4.9; `_docs/architecture.md` §6.5.
+- **Статус:** Progress
 - **Затрагиваемые файлы:** `app/config.py`, `app/tools/read_document.py`, `tests/tools/test_read_document.py`, `_docs/tools.md`, `_docs/architecture.md`.
 
 #### Описание
@@ -516,7 +512,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 6.2 | chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3 | medium | S | Done | — |
 | 6.3 | fix(tools): PDF с пустым паролем + GlitchTip Crons правка | medium | S | Done | — |
 | 6.4 | chore(observability): SENTRY_LOG_LEVEL дефолт INFO→DEBUG | low | S | Done | — |
-| 6.5 | fix(tools): read_document — подсказка ocr_image/describe_image для сканов + OCR по умолчанию | high | S | ToDo | — |
+| 6.5 | fix(tools): read_document — подсказка ocr_image/describe_image для сканов + OCR по умолчанию | high | S | Progress | — |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
