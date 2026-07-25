@@ -351,7 +351,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 6.1. fix(protocol): final_answer + thought — валидный финал
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** —
@@ -436,7 +436,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 4.2 | Естественный парсер времени в cron | medium | M | Done | — |
 | 5.1 | Демо скриншоты | low | S | ToDo | 1.1, 2.2, 3.1, 4.1 |
 | 5.2 | Актуализация _docs, roadmap, README + гейты | medium | M | ToDo | 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 5.1 |
-| 6.1 | fix(protocol): final_answer + thought — валидный финал | high | S | ToDo | — |
+| 6.1 | fix(protocol): final_answer + thought — валидный финал | high | S | Progress | — |
 | 6.2 | chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3 | medium | S | ToDo | — |
 | 6.3 | fix(tools): PDF с пустым паролем + GlitchTip Crons правка | medium | S | ToDo | — |
 
