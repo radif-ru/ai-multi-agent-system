@@ -65,22 +65,21 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Извлекаем процент покрытия из coverage.json
-          COV=$(python -c "import json; print(round(json.load(open('coverage.json'))['percent_covered']))")
+          COV=$(python -c "import json; print(round(json.load(open('coverage.json'))['totals']['percent_covered']))")
           echo "Coverage: ${COV}%"
           # Цвет бейджа по уровню покрытия
           if [ "$COV" -ge 90 ]; then COLOR="brightgreen"; elif [ "$COV" -ge 80 ]; then COLOR="green"; elif [ "$COV" -ge 70 ]; then COLOR="yellow"; else COLOR="red"; fi
-          # Генерируем SVG-бейдж
-          cat > coverage.svg <<EOF
+          # Генерируем SVG-бейдж и сохраняем во /tmp (переживёт git checkout --orphan)
+          cat > /tmp/coverage.svg <<EOF
           <svg xmlns="http://www.w3.org/2000/svg" width="108" height="20"><linearGradient id="b" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><rect fill="#555" width="65" height="20"/><rect fill="#$COLOR" x="65" width="43" height="20"/><g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11"><text x="32.5" y="15">coverage</text><text x="86.5" y="15">${COV}%</text></g></svg>
           EOF
-          # Пушим SVG в ветку coverage-badge
+          # Создаём orphan-ветку coverage-badge (только coverage.svg, без остального репозитория)
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git fetch origin coverage-badge 2>/dev/null || true
-          git checkout -B coverage-badge
-          git checkout origin/coverage-badge -- . 2>/dev/null || true
-          cp coverage.svg .
+          git checkout --orphan coverage-badge
+          git rm -rf .
+          cp /tmp/coverage.svg coverage.svg
           git add coverage.svg
-          git commit -m "chore: update coverage badge to ${COV}%" || echo "No changes"
-          git push origin coverage-badge
+          git commit -m "chore: update coverage badge to ${COV}%"
+          git push origin coverage-badge --force
