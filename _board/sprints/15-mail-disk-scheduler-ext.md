@@ -342,7 +342,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 5.2. Актуализация _docs, roadmap, README + гейты
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** M
 - **Зависит от:** 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 5.1
@@ -533,7 +533,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 4.2 | Естественный парсер времени в cron | medium | M | Done | — |
 | 4.3 | Интеграция parse_cron в schedule_task | high | S | Done | 4.2 |
 | 5.1 | Демо скриншоты | low | S | Done | 1.1, 2.2, 3.1, 4.1 |
-| 5.2 | Актуализация _docs, roadmap, README + гейты | medium | M | Progress | 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 4.3, 5.1, 6.5, 6.6 |
+| 5.2 | Актуализация _docs, roadmap, README + гейты | medium | M | Done | 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 4.3, 5.1, 6.5, 6.6 |
 | 6.1 | fix(protocol): final_answer + thought — валидный финал | high | S | Done | — |
 | 6.2 | chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3 | medium | S | Done | — |
 | 6.3 | fix(tools): PDF с пустым паролем + GlitchTip Crons правка | medium | S | Done | — |
@@ -566,3 +566,5 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-25** — задача 6.6 закрыта: хелпер `_send_reply` с `split_long_message` применён во всех command handlers в `commands.py`. `/help` и `_BOT_COMMANDS` дополнены 5 командами (`/search_engines`, `/search_engine`, `/mode`, `/schedule`, `/schedules`). Документация обновлена.
 - **2026-07-25** — задача 5.1 начата: демо скриншоты для README.
 - **2026-07-25** — задача 5.1 закрыта: 4 скриншота в `docs/screenshots/` (Telegram-1/2/3, GlitchTip), раздел «Демо» в README.md, `check_doc_links` зелёный.
+- **2026-07-25** — задача 5.2 начата: финальная актуализация документации.
+- **2026-07-25** — задача 5.2 закрыта: `current-state.md` §1.10 (multi-channel notifiers, cron_parser, bot-commands), `scheduler.md` (console/MAX notifiers), `skills.md` (скилл scheduler), `tools.md` §4.16 (multi-channel, ctx.channel), `README.md` (описания скриншотов), `schedule_task.py` (fix hardcoded channel). Гейты: flake8, pytest, check_doc_links, check_env_sync — зелёные.
