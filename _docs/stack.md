@@ -111,7 +111,7 @@
 | `SENTRY_ENVIRONMENT`        | Имя окружения в теге события (`dev`/`staging`/`prod`).            | `dev`                     |
 | `SENTRY_TRACES_SAMPLE_RATE` | Доля запросов с performance-трассировкой (`0.0` — выкл, `1.0` — все). | `0.1`                     |
 | `SENTRY_EVENT_LEVEL`        | Мин. уровень логов, уезжающих в GlitchTip как события (Issues). `DEBUG\|INFO\|WARNING\|ERROR\|CRITICAL`. См. `_docs/observability.md` §5. | `ERROR`                   |
-| `SENTRY_LOG_LEVEL`          | Мин. уровень логов для GlitchTip Logs и breadcrumbs. `DEBUG` включает отладочные логи в Logs. | `INFO`                    |
+| `SENTRY_LOG_LEVEL`          | Мин. уровень логов для GlitchTip Logs и breadcrumbs. `DEBUG` — отладочные логи в Logs (дефолт для dev). В prod — `INFO`. | `DEBUG`                    |
 | `SENTRY_ENABLE_LOGS`        | Отправлять логи во вкладку Logs (не Issues). Требует sentry-sdk ≥ 2.0 и GlitchTip с Logs API. | `true`                    |
 | `SCHEDULER_ENABLED`         | Выключатель планировщика (см. `_docs/scheduler.md`). При `false` не стартует. | `true`                    |
 | `SCHEDULER_TIMEZONE`        | IANA-таймзона по умолчанию для cron-выражений.                   | `Europe/Moscow`           |

@@ -197,8 +197,9 @@ class Settings(BaseSettings):
     # См. _docs/observability.md §5.
     sentry_event_level: str = "ERROR"
     # Минимальный уровень логов для Logs API и breadcrumbs.
-    # DEBUG включает отладочные логи в Logs. См. _docs/observability.md §5.
-    sentry_log_level: str = "INFO"
+    # DEBUG для dev — отладочные логи в Logs. В prod рекомендуется INFO.
+    # См. _docs/observability.md §5.
+    sentry_log_level: str = "DEBUG"
     # Отправлять логи в GlitchTip Logs (отдельная вкладка, не Issues).
     # Требует sentry-sdk >= 2.0 и GlitchTip с поддержкой Logs API.
     sentry_enable_logs: bool = True
