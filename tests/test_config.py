@@ -113,7 +113,7 @@ def test_context_document_defaults_balanced(base_env):
 
 def test_repair_attempts_default(base_env):
     s = _build(base_env)
-    assert s.agent_max_repair_attempts == 2
+    assert s.agent_max_repair_attempts == 3
 
 
 def test_repair_attempts_from_env(base_env):
