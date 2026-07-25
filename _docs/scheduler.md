@@ -65,7 +65,7 @@ CronTrigger срабатывает
 
 Три tool'а по контракту `app/tools/base.py::Tool`, регистрируются в `ToolRegistry`:
 
-- **`schedule_task`** (args: `prompt`, `cron`, `timezone?`) — создаёт задачу. Валидирует cron через `CronTrigger.from_crontab`, проверяет лимит, санизирует prompt.
+- **`schedule_task`** (args: `prompt`, `schedule_text?`, `cron?`, `timezone?`) — создаёт задачу. Если передан `schedule_text` — вызывается `parse_cron` (детерминированный парсер); если не распознан — fallback на `cron`. Валидирует cron через `CronTrigger.from_crontab`, проверяет лимит, санизирует prompt.
 - **`list_scheduled_tasks`** (args: нет) — список задач текущего пользователя.
 - **`cancel_scheduled_task`** (args: `task_id`) — отмена задачи по ID (scope по `user_id`).
 
