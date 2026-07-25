@@ -563,7 +563,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-25** — задача 6.5 добавлена: `read_document` — подсказка `ocr_image`/`describe_image` для сканов PDF + OCR по умолчанию. Баг: агент галлюцинировал про `disk_download` вместо вызова OCR/vision.
 - **2026-07-25** — задача 6.5 закрыта: `document_ocr_enabled` дефолт False→True, сообщение для сканов содержит подсказку `ocr_image`/`describe_image`, описание tool обновлено, `_docs/tools.md` §4.9 и `_docs/architecture.md` §6.5 обновлены, тест на скан PDF добавлен.
 - **2026-07-25** — задача 6.6 добавлена: `/help` падал с `message is too long` — все command handlers отправляли текст без разбивки по лимиту Telegram 4096.
-- **2026-07-25** — задача 6.6 закрыта: хелпер `_send_reply` с `split_long_message` применён во всех command handlers в `commands.py`. `/help` и `_BOT_COMMANDS` дополнены 5 командами (`/search_engines`, `/search_engine`, `/mode`, `/schedule`, `/schedules`). Документация обновлена.
+- **2026-07-25** — задача 6.6 закрыта: хелпер `_send_reply` с `split_long_message` применён во всех command handlers в `commands.py`. `/help` и `_BOT_COMMANDS` дополнены 5 командами (`/search_engines`, `/search_engine`, `/mode`, `/schedule`, `/schedules`). `PROMPT_PREVIEW_CHARS` увеличен 200→500 для читаемого превью системного промпта. Документация обновлена.
 - **2026-07-25** — задача 5.1 начата: демо скриншоты для README.
 - **2026-07-25** — задача 5.1 закрыта: 4 скриншота в `docs/screenshots/` (Telegram-1/2/3, GlitchTip), раздел «Демо» в README.md, `check_doc_links` зелёный.
 - **2026-07-25** — задача 5.2 начата: финальная актуализация документации.
