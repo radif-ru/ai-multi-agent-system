@@ -371,7 +371,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 6.2. chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -390,7 +390,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 6.3. fix(tools): PDF с пустым паролем + GlitchTip Crons правка
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** medium
 - **Объём:** S
 - **Зависит от:** —
@@ -437,8 +437,8 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 5.1 | Демо скриншоты | low | S | ToDo | 1.1, 2.2, 3.1, 4.1 |
 | 5.2 | Актуализация _docs, roadmap, README + гейты | medium | M | ToDo | 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 5.1 |
 | 6.1 | fix(protocol): final_answer + thought — валидный финал | high | S | Done | — |
-| 6.2 | chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3 | medium | S | Progress | — |
-| 6.3 | fix(tools): PDF с пустым паролем + GlitchTip Crons правка | medium | S | ToDo | — |
+| 6.2 | chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3 | medium | S | Done | — |
+| 6.3 | fix(tools): PDF с пустым паролем + GlitchTip Crons правка | medium | S | Progress | — |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
@@ -454,3 +454,4 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-24** — задача 4.2 закрыта: `app/services/cron_parser.py` создан (8 паттернов + fallback), 19 тестов, скилл `scheduler` и `_docs/scheduler.md` обновлены, `_docs/roadmap.md` Этап 18 отмечен.
 - **2026-07-25** — этап 6 добавлен: техдолг из до-спринтного stash оформлен как задачи 6.1 (protocol fix), 6.2 (repair_attempts 2→3), 6.3 (PDF decrypt + GlitchTip правка).
 - **2026-07-25** — задача 6.1 закрыта: `parse_agent_response` принимает `final_answer` + `thought` как финал, пустой `final_answer` + action — шаг с действием, 3 новых теста.
+- **2026-07-25** — задача 6.2 закрыта: `AGENT_MAX_REPAIR_ATTEMPTS` дефолт 2→3, `.env.example`, `_docs/stack.md`, `_docs/agent-loop.md`, 5 тестов обновлены.
