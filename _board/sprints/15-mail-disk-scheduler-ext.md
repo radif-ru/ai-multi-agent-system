@@ -345,7 +345,72 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ---
 
-## 9. Риски и смягчение
+## 9. Этап 6. Техдолг из stash (постфактум)
+
+Цель: оформить незакоммиченные правки из до-спринтного stash как задачи спринта (process.md §3 п.4).
+
+### Задача 6.1. fix(protocol): final_answer + thought — валидный финал
+
+- **Статус:** ToDo
+- **Приоритет:** high
+- **Объём:** S
+- **Зависит от:** —
+- **Связанные документы:** `_docs/agent-loop.md` §2.4.
+- **Затрагиваемые файлы:** `app/agents/protocol.py`, `tests/agents/test_protocol.py`.
+
+#### Описание
+
+Модель часто пишет `thought` рядом с готовым `final_answer`. Старый код бросал `LLMBadResponse` (mixed format). Новый — берёт `final_answer`, игнорируя `thought`. Пустой `final_answer` + action-поля — шаг с действием.
+
+#### Definition of Done
+
+- [ ] `parse_agent_response` принимает `final_answer` + `thought` как финал.
+- [ ] Пустой `final_answer` + action — шаг с действием.
+- [ ] Тесты зелёные: 3 новых теста в `test_protocol.py`.
+- [ ] `flake8` зелёный.
+
+### Задача 6.2. chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3
+
+- **Статус:** ToDo
+- **Приоритет:** medium
+- **Объём:** S
+- **Зависит от:** —
+- **Связанные документы:** `_docs/agent-loop.md` §2.4; `_docs/stack.md`.
+- **Затрагиваемые файлы:** `.env.example`, `_docs/agent-loop.md`, `_docs/stack.md`, `tests/test_config.py`, `tests/agents/test_executor.py`, `tests/agents/test_roles_share_think.py`, `tests/test_dialog_memory.py`, `tests/test_multi_agent_e2e.py`.
+
+#### Описание
+
+Повышение дефолта `AGENT_MAX_REPAIR_ATTEMPTS` с 2 до 3 — больше шансов модели восстановить формат ответа. Обновить `.env.example`, `_docs/stack.md`, `_docs/agent-loop.md`, и все тесты с хардкодом `2`.
+
+#### Definition of Done
+
+- [ ] `.env.example`, `_docs/stack.md`, `_docs/agent-loop.md` — дефолт 3.
+- [ ] Все тесты с хардкодом `agent_max_repair_attempts` обновлены.
+- [ ] `pytest`, `flake8` зелёные.
+
+### Задача 6.3. fix(tools): PDF с пустым паролем + GlitchTip Crons правка
+
+- **Статус:** ToDo
+- **Приоритет:** medium
+- **Объём:** S
+- **Зависит от:** —
+- **Связанные документы:** `_docs/observability.md` §5.
+- **Затрагиваемые файлы:** `app/tools/read_document.py`, `requirements.txt`, `_docs/observability.md`, `.github/workflows/test.yml`.
+
+#### Описание
+
+`ReadDocumentTool` — расшифровка PDF с пустым паролем через `reader.decrypt("")`. Добавить `cryptography` в `requirements.txt`. Правка `_docs/observability.md` — GlitchTip не поддерживает Sentry Crons API, heartbeat через логирование.
+
+#### Definition of Done
+
+- [ ] `read_document.py` — `reader.decrypt("")` для зашифрованных PDF.
+- [ ] `cryptography` в `requirements.txt`.
+- [ ] `_docs/observability.md` — правка про GlitchTip Crons.
+- [ ] `flake8` зелёный.
+
+---
+
+## 10. Риски и смягчение
 
 | # | Риск | Смягчение |
 |---|------|-----------|
@@ -358,7 +423,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 7 | Парсер времени не покрывает все паттерны | Fallback на LLM (скилл `scheduler`); парсер расширяется итеративно. |
 | 8 | Bot-команды конфликтуют с existing handlers | Регистрация в `CommandRegistry` до `messages.router`; тесты на приоритет. |
 
-## 10. Сводная таблица задач спринта
+## 11. Сводная таблица задач спринта
 
 | #   | Задача | Приоритет | Объём | Статус | Зависит от |
 |-----|--------|:---------:|:-----:|:------:|:----------:|
@@ -371,10 +436,13 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 4.2 | Естественный парсер времени в cron | medium | M | Done | — |
 | 5.1 | Демо скриншоты | low | S | ToDo | 1.1, 2.2, 3.1, 4.1 |
 | 5.2 | Актуализация _docs, roadmap, README + гейты | medium | M | ToDo | 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 5.1 |
+| 6.1 | fix(protocol): final_answer + thought — валидный финал | high | S | ToDo | — |
+| 6.2 | chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3 | medium | S | ToDo | — |
+| 6.3 | fix(tools): PDF с пустым паролем + GlitchTip Crons правка | medium | S | ToDo | — |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
-## 11. История изменений спринта
+## 12. История изменений спринта
 
 - **2026-07-24** — спринт открыт, ветка `feature/15-mail-disk-scheduler-ext` создана от `main` (`cafc1d40c`).
 - **2026-07-24** — задача 1.1 закрыта: `_extract_body` возвращает `(body, attachments)`, `_save_attachments` сохраняет в `data/tmp/` + `FileIdMapper`, `email_read` возвращает `attachments` с `file_id`, скилл `email-assistant` обновлён, 6 новых тестов в `tests/services/test_mail.py`.
@@ -384,3 +452,4 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-24** — задача 3.2 закрыта: `YandexDiskReader.upload` реализован, `DiskUploadTool` создан и зарегистрирован в `main.py`, 4 новых теста в `test_yandex_disk.py`, документация обновлена.
 - **2026-07-24** — задача 4.1 закрыта: команды `/schedule` и `/schedules` реализованы в `CommandRegistry`, `scheduler` добавлен в `CommandContext` и проброшен через все адаптеры, 9 новых тестов, `_docs/commands.md` обновлён.
 - **2026-07-24** — задача 4.2 закрыта: `app/services/cron_parser.py` создан (8 паттернов + fallback), 19 тестов, скилл `scheduler` и `_docs/scheduler.md` обновлены, `_docs/roadmap.md` Этап 18 отмечен.
+- **2026-07-25** — этап 6 добавлен: техдолг из до-спринтного stash оформлен как задачи 6.1 (protocol fix), 6.2 (repair_attempts 2→3), 6.3 (PDF decrypt + GlitchTip правка).
