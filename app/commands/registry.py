@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-PROMPT_PREVIEW_CHARS = 200
+PROMPT_PREVIEW_CHARS = 500
 
 _BYTES_PER_GB = 1024 ** 3
 # Доля бюджета VRAM, начиная с которой модель считается «тяжёлой» и при выборе
