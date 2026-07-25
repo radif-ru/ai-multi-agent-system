@@ -143,7 +143,7 @@ class Settings(BaseSettings):
     # один документ помещался в контекст без преждевременной суммаризации.
     max_document_chars: int = 80000
     document_max_images: int = 20
-    document_ocr_enabled: bool = False
+    document_ocr_enabled: bool = True
     # Настройки OCR
     ocr_default_lang: str = "rus+eng"
     ocr_min_text_threshold: int = 100

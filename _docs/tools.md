@@ -185,10 +185,10 @@ class ToolRegistry:
 
 ### 4.9 `read_document`
 
-- **Описание:** Прочитать содержимое документа (PDF, TXT, MD, JPG, PNG) из временной директории.
+- **Описание:** Прочитать содержимое документа (PDF, TXT, MD, JPG, PNG) из временной директории. Для PDF-сканов без текста возвращает путь к картинке с подсказкой вызвать `ocr_image` или `describe_image`.
 - **Args:** `{"path": "<строка>", "max_chars": <int, default 50000>}` или `{"file_id": "<строка>", "max_chars": <int, default 50000>}` (один из path/file_id обязателен).
-- **Return:** содержимое документа; для PDF — текст + OCR при необходимости; для изображений — текст через OCR.
-- **Реализация:** валидация пути (должен быть в `tmp/`, без `..`); для PDF — извлечение текста через pypdf + картинок; OCR делегируется сервису `app/services/ocr.py` (pytesseract); дисковый кеш `<file>.ocr.txt` убран (задача 06.3-bis.4) — результат OCR попадает в `dialog_journal.content` через goal. Если передан `file_id`, путь восстанавливается через `FileIdMapper`.
+- **Return:** содержимое документа; для PDF — текст + OCR при необходимости; для изображений — текст через OCR. Если PDF — скан и OCR не справился — путь к картинке + подсказка `ocr_image`/`describe_image`.
+- **Реализация:** валидация пути (должен быть в `tmp/`, без `..`); для PDF — извлечение текста через pypdf + картинок; OCR делегируется сервису `app/services/ocr.py` (pytesseract); если OCR не справился — возвращается путь к картинке с подсказкой `ocr_image`/`describe_image`; дисковый кеш `<file>.ocr.txt` убран (задача 06.3-bis.4) — результат OCR попадает в `dialog_journal.content` через goal. Если передан `file_id`, путь восстанавливается через `FileIdMapper`. Дефолт `DOCUMENT_OCR_ENABLED=true`.
 - **Ошибки:** путь вне `tmp/` → `ToolError`; файла нет → `ToolError`; неподдерживаемый тип → `ToolError`; OCR отключён → `ToolError`; file_id не найден → `ToolError("file_id ... не найден")`.
 
 ### 4.10 `ocr_image`
