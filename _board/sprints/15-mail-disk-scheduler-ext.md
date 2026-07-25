@@ -457,7 +457,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 6.5. fix(tools): read_document — подсказка ocr_image/describe_image для сканов + OCR по умолчанию
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Затрагиваемые файлы:** `app/config.py`, `app/tools/read_document.py`, `tests/tools/test_read_document.py`, `_docs/tools.md`, `_docs/architecture.md`.
 
 #### Описание
@@ -512,7 +512,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 6.2 | chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3 | medium | S | Done | — |
 | 6.3 | fix(tools): PDF с пустым паролем + GlitchTip Crons правка | medium | S | Done | — |
 | 6.4 | chore(observability): SENTRY_LOG_LEVEL дефолт INFO→DEBUG | low | S | Done | — |
-| 6.5 | fix(tools): read_document — подсказка ocr_image/describe_image для сканов + OCR по умолчанию | high | S | Progress | — |
+| 6.5 | fix(tools): read_document — подсказка ocr_image/describe_image для сканов + OCR по умолчанию | high | S | Done | — |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
@@ -534,3 +534,4 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-25** — задача 6.4 закрыта: дефолт `SENTRY_LOG_LEVEL` INFO→DEBUG, `.env.example`, `app/config.py`, `_docs/observability.md`, `_docs/stack.md`, `_docs/current-state.md`, `README.md` обновлены, `check_env_sync` + `check_doc_links` зелёные.
 - **2026-07-25** — задача 4.3 закрыта: `ScheduleTaskTool` принимает `schedule_text`, вызывает `parse_cron` (детерминированный парсер), fallback на `cron` от LLM. Скилл `scheduler` обновлён. 4 новых теста. Документация обновлена.
 - **2026-07-25** — задача 6.5 добавлена: `read_document` — подсказка `ocr_image`/`describe_image` для сканов PDF + OCR по умолчанию. Баг: агент галлюцинировал про `disk_download` вместо вызова OCR/vision.
+- **2026-07-25** — задача 6.5 закрыта: `document_ocr_enabled` дефолт False→True, сообщение для сканов содержит подсказку `ocr_image`/`describe_image`, описание tool обновлено, `_docs/tools.md` §4.9 и `_docs/architecture.md` §6.5 обновлены, тест на скан PDF добавлен.
