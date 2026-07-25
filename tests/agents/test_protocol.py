@@ -50,12 +50,34 @@ def test_non_object_raises(payload):
         parse_agent_response(payload)
 
 
-def test_mixed_format_raises():
+def test_mixed_final_answer_with_thought_returns_final():
+    """final_answer + thought — валидный финал, берём final_answer, игнорируя thought."""
+    text = json.dumps(
+        {"thought": "рассуждение модели", "final_answer": "готовый ответ"}
+    )
+    decision = parse_agent_response(text)
+    assert decision.kind == "final"
+    assert decision.final_answer == "готовый ответ"
+
+
+def test_mixed_final_answer_with_action_returns_final():
+    """final_answer + action/args — валидный финал, берём final_answer."""
     text = json.dumps(
         {"thought": "t", "action": "a", "args": {}, "final_answer": "x"}
     )
-    with pytest.raises(LLMBadResponse):
-        parse_agent_response(text)
+    decision = parse_agent_response(text)
+    assert decision.kind == "final"
+    assert decision.final_answer == "x"
+
+
+def test_empty_final_answer_with_action_falls_through_to_action():
+    """Пустой final_answer + action-поля — шаг с действием, не финал."""
+    text = json.dumps(
+        {"thought": "t", "action": "a", "args": {}, "final_answer": ""}
+    )
+    decision = parse_agent_response(text)
+    assert decision.kind == "action"
+    assert decision.action == "a"
 
 
 @pytest.mark.parametrize("value", ["", "   "])

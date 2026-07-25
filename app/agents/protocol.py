@@ -103,13 +103,20 @@ def parse_agent_response(text: str) -> AgentDecision:
         for k in ("thought", "action", "args")
     )
 
-    if has_final and has_action_fields:
-        raise LLMBadResponse(
-            "mixed format: 'final_answer' must not coexist with thought/action/args"
-        )
-
     if has_final:
-        return _parse_final(payload)
+        # Если final_answer присутствует и непустой — используем его,
+        # даже если рядом есть thought. Это не утечка thought: мы берём
+        # настоящее поле final_answer, а не подменяем thought за ответ.
+        # Модель часто добавляет thought «для себя» рядом с готовым ответом.
+        final_answer = payload.get("final_answer")
+        if isinstance(final_answer, str) and final_answer.strip():
+            return _parse_final(payload)
+        # final_answer пустой/невалидный, но есть action-поля — шаг с действием
+        if has_action_fields:
+            return _parse_action(payload)
+        raise LLMBadResponse(
+            "'final_answer' must be a non-empty string"
+        )
 
     # Любой другой вид (включая action: null и «только thought») — это шаг с
     # действием. Невалидный шаг поднимет LLMBadResponse в `_parse_action`, и
