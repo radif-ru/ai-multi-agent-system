@@ -283,7 +283,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 4.3. Интеграция parse_cron в schedule_task
 
-- **Статус:** ToDo
+- **Статус:** Progress
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** 4.2
@@ -481,7 +481,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 3.2 | disk_upload — загрузка файлов на Яндекс.Диск | medium | M | Done | — |
 | 4.1 | Bot-команды /schedule / /schedules | medium | M | Done | 2.2 |
 | 4.2 | Естественный парсер времени в cron | medium | M | Done | — |
-| 4.3 | Интеграция parse_cron в schedule_task | high | S | ToDo | 4.2 |
+| 4.3 | Интеграция parse_cron в schedule_task | high | S | Progress | 4.2 |
 | 5.1 | Демо скриншоты | low | S | ToDo | 1.1, 2.2, 3.1, 4.1 |
 | 5.2 | Актуализация _docs, roadmap, README + гейты | medium | M | ToDo | 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 4.3, 5.1 |
 | 6.1 | fix(protocol): final_answer + thought — валидный финал | high | S | Done | — |
