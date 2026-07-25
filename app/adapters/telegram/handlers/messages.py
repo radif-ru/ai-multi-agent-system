@@ -203,7 +203,7 @@ def build_text_handler(
                 user_settings=user_settings,
             )
         except LLMTimeout:
-            logger.warning("LLM timeout user=%s", user_id)
+            logger.warning("LLM: timeout user=%s", user_id)
             formatted, parse_mode = format_for_telegram(LLM_TIMEOUT_REPLY)
             await _send_with_fallback(message, formatted, parse_mode)
             return
@@ -362,7 +362,7 @@ async def handle_document(
             user_settings=user_settings,
         )
     except LLMTimeout:
-        logger.warning("LLM timeout user=%s", user_id)
+        logger.warning("LLM: timeout user=%s", user_id)
         formatted, parse_mode = format_for_telegram(LLM_TIMEOUT_REPLY)
         await _send_with_fallback(message, formatted, parse_mode)
         return
@@ -550,7 +550,7 @@ async def handle_voice(
             user_settings=user_settings,
         )
     except LLMTimeout:
-        logger.warning("LLM timeout user=%s", user_id)
+        logger.warning("LLM: timeout user=%s", user_id)
         formatted, parse_mode = format_for_telegram(LLM_TIMEOUT_REPLY)
         await _send_with_fallback(message, formatted, parse_mode)
         return
@@ -680,7 +680,7 @@ async def handle_photo(
             user_settings=user_settings,
         )
     except LLMTimeout:
-        logger.warning("LLM timeout user=%s", user_id)
+        logger.warning("LLM: timeout user=%s", user_id)
         formatted, parse_mode = format_for_telegram(LLM_TIMEOUT_REPLY)
         await _send_with_fallback(message, formatted, parse_mode)
         return

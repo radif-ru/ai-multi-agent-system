@@ -58,7 +58,7 @@ async def _run_polling(
         try:
             data = await client.get_updates(marker=marker, timeout=poll_timeout)
         except MaxError as exc:
-            logger.error("max polling error: %s", exc)
+            logger.error("max: ошибка polling: %s", exc)
             await asyncio.sleep(backoff)
             backoff = min(backoff * 2, 30.0)
             continue
@@ -157,7 +157,7 @@ async def main() -> None:
         )
 
     try:
-        logger.info("MAX adapter started")
+        logger.info("MAX-адаптер запущен")
         # Ждём ПЕРВОЕ из {завершение polling, сигнал shutdown}: иначе при
         # падении polling main() висел бы на shutdown_event.wait() навсегда,
         # а исключение терялось бы (см. _docs/current-state.md §3).

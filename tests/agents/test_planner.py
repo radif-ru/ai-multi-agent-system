@@ -95,7 +95,7 @@ async def test_plan_fallback_on_garbage(caplog):
     with caplog.at_level(logging.WARNING):
         plan = await agent.plan("исходная задача", user_id=7)
     assert plan == Plan(steps=(PlanStep(id=1, description="исходная задача"),))
-    assert any("planner.fallback" in r.message for r in caplog.records)
+    assert any("planner: fallback" in r.message for r in caplog.records)
 
 
 @pytest.mark.asyncio

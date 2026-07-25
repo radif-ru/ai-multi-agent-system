@@ -98,7 +98,7 @@ async def test_review_fallback_on_garbage(caplog):
     with caplog.at_level(logging.WARNING):
         verdict = await agent.review("t", _PLAN, "d", user_id=7)
     assert verdict == CriticVerdict(verdict="PASS", feedback="")
-    assert any("critic.fallback" in r.message for r in caplog.records)
+    assert any("critic: fallback" in r.message for r in caplog.records)
 
 
 @pytest.mark.asyncio

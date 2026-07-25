@@ -186,7 +186,7 @@ async def test_log_start_and_ok_on_success(
     store: ScheduledTaskStore,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Успешный прогон: логируется status=start и status=ok с dur_ms."""
+    """Успешный прогон: логируется запуск и выполнение с dur_ms."""
     task = _make_task()
     await store.add(task)
 
@@ -201,15 +201,15 @@ async def test_log_start_and_ok_on_success(
             await run_scheduled_task(task, deps=deps, notifier=notifier)
 
     messages = [r.message for r in caplog.records]
-    assert any("status=start" in m for m in messages)
-    assert any("status=ok" in m and "dur_ms=" in m for m in messages)
+    assert any("scheduler: запуск" in m for m in messages)
+    assert any("scheduler: выполнено" in m and "dur_ms=" in m for m in messages)
 
 
 async def test_log_error_on_llm_timeout(
     store: ScheduledTaskStore,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """LLMTimeout: логируется status=error с dur_ms."""
+    """LLMTimeout: логируется ошибка с dur_ms."""
     task = _make_task()
     await store.add(task)
 
@@ -226,14 +226,14 @@ async def test_log_error_on_llm_timeout(
             await run_scheduled_task(task, deps=deps, notifier=notifier)
 
     messages = [r.message for r in caplog.records]
-    assert any("status=error" in m and "dur_ms=" in m for m in messages)
+    assert any("scheduler: ошибка" in m and "dur_ms=" in m for m in messages)
 
 
 async def test_log_error_on_generic_exception(
     store: ScheduledTaskStore,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Generic exception: логируется status=error с dur_ms."""
+    """Generic exception: логируется ошибка с dur_ms."""
     task = _make_task()
     await store.add(task)
 
@@ -248,7 +248,7 @@ async def test_log_error_on_generic_exception(
             await run_scheduled_task(task, deps=deps, notifier=notifier)
 
     messages = [r.message for r in caplog.records]
-    assert any("status=error" in m and "dur_ms=" in m for m in messages)
+    assert any("scheduler: ошибка" in m and "dur_ms=" in m for m in messages)
 
 
 async def test_scheduled_task_uses_empty_history(

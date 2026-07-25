@@ -239,14 +239,14 @@ class Executor:
     ) -> None:
         if decision.kind == "final":
             logger.info(
-                "step=%d kind=final user=%s conv=%s",
+                "шаг=%d тип=final user=%s conv=%s",
                 step,
                 user_id,
                 conversation_id,
             )
         else:
             logger.info(
-                "step=%d kind=action user=%s conv=%s tool=%s",
+                "шаг=%d тип=action user=%s conv=%s tool=%s",
                 step,
                 user_id,
                 conversation_id,
@@ -262,7 +262,7 @@ class Executor:
     ) -> None:
         truncated = raw if len(raw) <= 500 else raw[:500] + "..."
         logger.warning(
-            "step=%d kind=parse_error user=%s conv=%s raw=%r",
+            "шаг=%d тип=parse_error user=%s conv=%s raw=%r",
             step,
             user_id,
             conversation_id,
@@ -278,7 +278,7 @@ class Executor:
         conversation_id: str,
     ) -> None:
         logger.warning(
-            "step=%d kind=repair attempt=%d/%d user=%s conv=%s",
+            "шаг=%d тип=repair попытка=%d/%d user=%s conv=%s",
             step,
             attempt,
             max_repair,
@@ -289,7 +289,7 @@ class Executor:
     @staticmethod
     def _log_max_steps(max_steps: int, user_id: int, conversation_id: str) -> None:
         logger.info(
-            "step=%d kind=max_steps_exceeded user=%s conv=%s reason=%r",
+            "шаг=%d тип=max_steps_exceeded user=%s conv=%s reason=%r",
             max_steps,
             user_id,
             conversation_id,

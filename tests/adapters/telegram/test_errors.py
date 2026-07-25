@@ -41,7 +41,7 @@ async def test_handler_sends_generic_reply_and_swallows_exception(
 
     assert result is True
     event.update.message.answer.assert_awaited_once_with(GENERIC_ERROR_REPLY, parse_mode=None)
-    assert any("unhandled exception" in r.message for r in caplog.records)
+    assert any("необработанное исключение" in r.message for r in caplog.records)
 
 
 @pytest.mark.asyncio
@@ -65,4 +65,4 @@ async def test_handler_does_not_crash_when_answer_fails(
         result = await handler(event)
 
     assert result is True
-    assert any("failed to send error reply" in r.message for r in caplog.records)
+    assert any("не удалось отправить сообщение об ошибке" in r.message for r in caplog.records)

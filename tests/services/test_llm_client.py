@@ -164,7 +164,7 @@ async def test_chat_logs_metrics(client, mocker, caplog):
     with caplog.at_level("INFO", logger="app.services.llm"):
         await client.chat([{"role": "user", "content": "hi"}], model="qwen3.5:4b")
     assert any(
-        "kind=chat" in r.message and "model=qwen3.5:4b" in r.message and "status=ok" in r.message
+        "kind=chat" in r.message and "model=qwen3.5:4b" in r.message and "статус=ok" in r.message
         for r in caplog.records
     )
 

@@ -80,6 +80,9 @@ def setup_sentry(settings: Settings) -> bool:
                     level=logging.getLevelName(
                         settings.sentry_log_level
                     ),
+                    sentry_logs_level=logging.getLevelName(
+                        settings.sentry_log_level
+                    ),
                     event_level=logging.getLevelName(
                         settings.sentry_event_level
                     ),

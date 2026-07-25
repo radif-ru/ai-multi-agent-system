@@ -532,7 +532,7 @@ async def main() -> None:
         )
 
     try:
-        logger.info("Bot started")
+        logger.info("Бот запущен")
         # Ждём ПЕРВОЕ из {завершение polling, сигнал shutdown}: иначе при
         # падении polling main() висел бы на shutdown_event.wait() навсегда,
         # а исключение терялось бы (см. _docs/current-state.md §3).

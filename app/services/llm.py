@@ -151,7 +151,7 @@ class OllamaClient:
                 ResponseError,
                 asyncio.TimeoutError,
             ) as exc:
-                logger.warning("ollama list failed: %s", exc)
+                logger.warning("ollama: list не удалось: %s", exc)
                 return {}
         sizes: dict[str, int] = {}
         for model in getattr(resp, "models", None) or []:
@@ -188,7 +188,7 @@ class OllamaClient:
         tok_per_s: float | None = None,
     ) -> None:
         dur_ms = int((time.monotonic() - started) * 1000)
-        event = "external.ok" if status == "ok" else "external.fail"
+        event = "external.ok:" if status == "ok" else "external.fail:"
         log_fn = logger.info if status == "ok" else logger.error
         extra = {
             "service": "ollama",
@@ -206,7 +206,7 @@ class OllamaClient:
         if tok_per_s is not None:
             extra["tok_per_s"] = tok_per_s
         log_fn(
-            "%s service=ollama kind=%s model=%s dur_ms=%d queue_wait_ms=%d status=%s think=%s",
+            "%s service=ollama kind=%s model=%s dur_ms=%d queue_wait_ms=%d статус=%s think=%s",
             event,
             kind,
             model,

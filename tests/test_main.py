@@ -96,7 +96,7 @@ async def test_main_logs_bot_started_and_closes(
 
     log_path = Path(os.environ["LOG_FILE"])
     assert log_path.exists()
-    assert "Bot started" in log_path.read_text(encoding="utf-8")
+    assert "Бот запущен" in log_path.read_text(encoding="utf-8")
 
 
 @pytest.mark.asyncio

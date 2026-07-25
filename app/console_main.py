@@ -111,7 +111,7 @@ async def main() -> None:
         await components.scheduler.start()
 
     try:
-        logger.info("Console adapter started")
+        logger.info("Консольный адаптер запущен")
         await adapter.run()
     finally:
         # Bounded shutdown: ограничиваем время завершения компонентов

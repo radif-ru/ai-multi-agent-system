@@ -166,7 +166,7 @@ async def cmd_new(ctx: "CommandContext", progress_callback: Any | None = None) -
         )
     except Exception as exc:  # noqa: BLE001
         logger.exception(
-            "/new archive failed user=%s conv=%s", ctx.user_id, conversation_id
+            "/new: архивация не удалась, user=%s conv=%s", ctx.user_id, conversation_id
         )
         return CommandResult(
             text=(
@@ -184,7 +184,7 @@ async def cmd_new(ctx: "CommandContext", progress_callback: Any | None = None) -
             await ctx.journal.mark_archived(ctx.user_id, conversation_id)
         except Exception:  # noqa: BLE001
             logger.exception(
-                "/new mark_archived failed user=%s conv=%s",
+                "/new: mark_archived не удалось, user=%s conv=%s",
                 ctx.user_id, conversation_id,
             )
 

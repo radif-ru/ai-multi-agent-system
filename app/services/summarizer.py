@@ -59,7 +59,7 @@ class Summarizer:
         for i in range(0, len(msgs), self._chunk_messages):
             batch = msgs[i : i + self._chunk_messages]
             logger.info(
-                "summarize map batch %d/%d size=%d",
+                "summarize map: пакет %d/%d, размер=%d",
                 i // self._chunk_messages + 1,
                 (len(msgs) + self._chunk_messages - 1) // self._chunk_messages,
                 len(batch),
@@ -85,7 +85,7 @@ class Summarizer:
                 ),
             },
         ]
-        logger.info("summarize reduce parts=%d", len(batch_summaries))
+        logger.info("summarize reduce: частей=%d", len(batch_summaries))
         return await self._llm.chat(
             reduce_payload, model=model, temperature=temperature
         )

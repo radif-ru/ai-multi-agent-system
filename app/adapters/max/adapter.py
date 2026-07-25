@@ -142,7 +142,7 @@ class MaxUpdateDispatcher:
                 user_settings=c.user_settings,
             )
         except LLMTimeout:
-            logger.warning("max: LLM timeout user=%s", user_id)
+            logger.warning("max: LLM: timeout user=%s", user_id)
             await self._send(chat_id, LLM_TIMEOUT_REPLY)
             return
         except LLMUnavailable:
@@ -385,7 +385,7 @@ class MaxUpdateDispatcher:
                 user_settings=c.user_settings,
             )
         except LLMTimeout:
-            logger.warning("max: LLM timeout user=%s", user_id)
+            logger.warning("max: LLM: timeout user=%s", user_id)
             await self._send(chat_id, LLM_TIMEOUT_REPLY)
             return
         except LLMUnavailable:

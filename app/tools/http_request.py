@@ -54,7 +54,7 @@ class HttpRequestTool(Tool):
         host = parsed.netloc
         started = time.monotonic()
         logger.info(
-            "external.call service=http_request host=%s",
+            "external.call: service=http_request host=%s",
             host,
             extra={"service": "http_request", "host": host, "scheme": parsed.scheme},
         )
@@ -69,7 +69,7 @@ class HttpRequestTool(Tool):
         except httpx.TimeoutException as exc:
             dur_ms = int((time.monotonic() - started) * 1000)
             logger.error(
-                "external.fail service=http_request host=%s dur_ms=%d error=timeout",
+                "external.fail: service=http_request host=%s dur_ms=%d error=timeout",
                 host, dur_ms,
                 extra={"service": "http_request", "host": host,
                        "duration_ms": dur_ms, "status": "timeout",
@@ -79,7 +79,7 @@ class HttpRequestTool(Tool):
         except httpx.RequestError as exc:
             dur_ms = int((time.monotonic() - started) * 1000)
             logger.error(
-                "external.fail service=http_request host=%s dur_ms=%d error=%s",
+                "external.fail: service=http_request host=%s dur_ms=%d error=%s",
                 host, dur_ms, exc,
                 extra={"service": "http_request", "host": host,
                        "duration_ms": dur_ms, "status": "fail",
@@ -90,7 +90,7 @@ class HttpRequestTool(Tool):
         body = resp.text or ""
         dur_ms = int((time.monotonic() - started) * 1000)
         logger.info(
-            "external.ok service=http_request host=%s dur_ms=%d http_status=%d len_out=%d",
+            "external.ok: service=http_request host=%s dur_ms=%d http_status=%d len_out=%d",
             host, dur_ms, resp.status_code, len(body),
             extra={"service": "http_request", "host": host,
                    "duration_ms": dur_ms, "status": "ok",

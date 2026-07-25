@@ -249,4 +249,4 @@ def test_session_log_overflow_drops_head_and_warns(caplog):
         s.add_assistant_message(1, "m3")
     log = s.get_session_log(1)
     assert [m["content"] for m in log] == ["m1", "m2", "m3"]
-    assert any("session_log overflow" in rec.message for rec in caplog.records)
+    assert any("session_log: переполнение" in rec.message for rec in caplog.records)
