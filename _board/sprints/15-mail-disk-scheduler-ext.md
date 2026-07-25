@@ -479,19 +479,30 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - [ ] `_docs/tools.md` §4.9, `_docs/architecture.md` §6.5 — обновлены.
 - [ ] `flake8` + `pytest` зелёные.
 
-### Задача 6.6. fix(telegram): /help — message is too long (4096)
+### Задача 6.6. fix(telegram): /help — message is too long (4096) + отсутствующие команды
 
 - **Статус:** Done
 
 #### Описание
 
-`/help` падал с `TelegramBadRequest: message is too long` — текст справки превысил лимит Telegram 4096 символов (tools + skills описания выросли). Все command handlers отправляли `message.answer(result.text)` без разбивки, хотя в `messages.py` `split_long_message` уже использовался.
+Два бага в одном:
 
-Фикс: хелпер `_send_reply` с `split_long_message` применён во всех command handlers.
+1. `/help` падал с `TelegramBadRequest: message is too long` — текст справки превысил лимит Telegram 4096 символов (tools + skills описания выросли). Все command handlers отправляли `message.answer(result.text)` без разбивки, хотя в `messages.py` `split_long_message` уже использовался.
+2. В `/help` и в меню автодополнения Telegram (`set_my_commands`) отсутствовали 5 команд: `/search_engines`, `/search_engine`, `/mode`, `/schedule`, `/schedules`.
+
+Фикс:
+- Хелпер `_send_reply` с `split_long_message` применён во всех command handlers.
+- Текст `/help` в `app/commands/registry.py` дополнен 5 командами (общий для telegram/max/console).
+- `_BOT_COMMANDS` в `app/main.py` дополнен 4 командами (`search_engines`, `search_engine`, `schedule`, `schedules`) — регистрация меню автодополнения Telegram.
+- Документация обновлена: `README.md`, `_docs/current-state.md`, `_docs/project-structure.md`, `_docs/console-adapter.md`.
 
 #### Definition of Done
 
 - [ ] `app/adapters/telegram/handlers/commands.py` — `_send_reply` с `split_long_message` во всех handlers.
+- [ ] `app/commands/registry.py` — `/help` содержит все 12 команд.
+- [ ] `app/main.py` — `_BOT_COMMANDS` содержит все 12 команд.
+- [ ] `tests/adapters/telegram/test_commands.py` — проверка `/mode`, `/search_engines`, `/schedule`, `/schedules` в `/help`.
+- [ ] `README.md`, `_docs/current-state.md`, `_docs/project-structure.md`, `_docs/console-adapter.md` — списки команд актуальны.
 - [ ] `flake8` + `pytest` зелёные.
 
 ---
@@ -552,4 +563,4 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-25** — задача 6.5 добавлена: `read_document` — подсказка `ocr_image`/`describe_image` для сканов PDF + OCR по умолчанию. Баг: агент галлюцинировал про `disk_download` вместо вызова OCR/vision.
 - **2026-07-25** — задача 6.5 закрыта: `document_ocr_enabled` дефолт False→True, сообщение для сканов содержит подсказку `ocr_image`/`describe_image`, описание tool обновлено, `_docs/tools.md` §4.9 и `_docs/architecture.md` §6.5 обновлены, тест на скан PDF добавлен.
 - **2026-07-25** — задача 6.6 добавлена: `/help` падал с `message is too long` — все command handlers отправляли текст без разбивки по лимиту Telegram 4096.
-- **2026-07-25** — задача 6.6 закрыта: хелпер `_send_reply` с `split_long_message` применён во всех command handlers в `commands.py`.
+- **2026-07-25** — задача 6.6 закрыта: хелпер `_send_reply` с `split_long_message` применён во всех command handlers в `commands.py`. `/help` и `_BOT_COMMANDS` дополнены 5 командами (`/search_engines`, `/search_engine`, `/mode`, `/schedule`, `/schedules`). Документация обновлена.

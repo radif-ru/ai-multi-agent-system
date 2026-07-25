@@ -94,9 +94,13 @@ _BOT_COMMANDS: list[BotCommand] = [
     BotCommand(command="models", description="Список моделей"),
     BotCommand(command="model", description="Выбрать модель"),
     BotCommand(command="prompt", description="Задать системный промпт"),
+    BotCommand(command="search_engines", description="Список поисковиков"),
+    BotCommand(command="search_engine", description="Выбрать поисковик"),
     BotCommand(command="mode", description="Режим рефлексии (off/normal/deep)"),
     BotCommand(command="new", description="Архивировать и открыть новую сессию"),
     BotCommand(command="reset", description="Очистить контекст и сбросить настройки"),
+    BotCommand(command="schedule", description="Создать регулярную задачу"),
+    BotCommand(command="schedules", description="Список запланированных задач"),
 ]
 
 assert _orchestrator is not None  # явная зависимость для будущего DI

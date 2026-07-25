@@ -48,7 +48,7 @@
 ### 1.4 Адаптеры
 
 - **Telegram-адаптер** — `app/adapters/telegram/handlers/`:
-  - **Commands** — `app/adapters/telegram/handlers/commands.py` — команды `/start`, `/help`, `/models`, `/model`, `/prompt`, `/new`, `/reset`.
+  - **Commands** — `app/adapters/telegram/handlers/commands.py` — команды `/start`, `/help`, `/models`, `/model`, `/search_engines`, `/search_engine`, `/prompt`, `/mode`, `/new`, `/reset`, `/schedule`, `/schedules`. Все ответы разбиваются через `split_long_message` (лимит Telegram 4096).
   - **Messages** — `app/adapters/telegram/handlers/messages.py` — обработчик текста и файлов, вызов `core.handle_user_task`, поддержка reply на файлы (фото, документы, голосовые).
   - **Errors** — `app/adapters/telegram/handlers/errors.py` — глобальный error handler.
 - **Консольный адаптер** — `app/adapters/console/adapter.py` — REPL-цикл с теми же командами, что и Telegram-адаптер (кроме файловых операций). Точка входа — `app/console_main.py`. См. `_docs/console-adapter.md`.
@@ -175,7 +175,7 @@
 - **Один общий `OllamaClient`** на всё приложение (создаётся в `main.py`, закрывается в `finally`). Не плодим клиенты в handler'ах / tools. Флаг `think` (env `OLLAMA_THINK`, default `false`) задаётся в конструкторе и наследуется всеми ролями (executor/summarizer/planner/critic), т.к. они вызывают `chat` без явного `think` (тест `tests/agents/test_roles_share_think.py`). **Замер влияния think** (RTX 5090, без конкуренции за GPU, `qwen3.5:4b`, цикл 5 шагов): think-on `~35.5s` против think-off `~3.4s` (~10x). Отсюда default `false`: rationale агента и так в структурном поле `thought`, а `<think>` Ollama отбрасывает из `content`.
 - **Один общий `SemanticMemory`** на всё приложение (одно SQLite-соединение с загруженным `sqlite-vec`).
 - **Очерёдность роутеров** в `main.py`: `commands.router` → `messages.router` → `errors.router`. Команды должны идти раньше, чтобы текст вида `/start ...` не попал в обработчик произвольного текста.
-- **Обработка длинных ответов**: handler `messages` сам режет ответ через `split_long_message`. Telegram обрежет всё, что > 4096, отдельной ошибкой `BadRequest` — это исключено резкой на стороне бота.
+- **Обработка длинных ответов**: handler `messages` и `commands` режут ответ через `split_long_message` (лимит Telegram 4096). Без разбивки Telegram возвращает `BadRequest: message is too long`.
 - **`parse_mode=ParseMode.HTML`** установлен по умолчанию (`DefaultBotProperties` в `main.py`). Все хендлеры должны экранировать пользовательский ввод (`html.escape`) перед вставкой.
 - **Автоматическая суммаризация контекста**: Executor проверяет размер контекста перед отправкой в LLM. Если превышает `AGENT_MAX_CONTEXT_CHARS` (default 90000, согласовано с `OLLAMA_NUM_CTX=32768` и `MAX_DOCUMENT_CHARS=80000`), история суммаризируется через `Summarizer` для предотвращения пустых ответов при больших контекстах (например, при обработке PDF с OCR текстом).
 - **Порядок подписчиков EventBus**: подписчики вызываются последовательно в порядке регистрации (FIFO). Для события `ResponseGenerated` важно, чтобы `conversation_subscriber.on_response_generated` регистрировался первым, чтобы к моменту суммаризации ответ уже был записан в ConversationStore. Это гарантируется порядком регистрации в точках входа (main.py, console_main.py).
