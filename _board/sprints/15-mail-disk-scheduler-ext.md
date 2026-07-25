@@ -281,6 +281,34 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - [ ] `flake8 app tests` зелёный.
 - [ ] `git status` чист.
 
+### Задача 4.3. Интеграция parse_cron в schedule_task
+
+- **Статус:** ToDo
+- **Приоритет:** high
+- **Объём:** S
+- **Зависит от:** 4.2
+- **Связанные документы:** `_docs/scheduler.md`; `app/skills/scheduler/SKILL.md`; `_docs/tools.md`.
+- **Затрагиваемые файлы:** `app/tools/schedule_task.py`, `app/skills/scheduler/SKILL.md`, `tests/tools/test_schedule_task.py`, `_docs/scheduler.md`, `_docs/tools.md`.
+
+#### Описание
+
+`parse_cron` (задача 4.2) создан, но не подключён в приложении — LLM продолжает сама генерировать cron-выражения и ошибается (например, «каждую субботу в 15:08» → `0 15 * * 6` вместо `8 15 * * 6`). Нужно:
+
+1. Добавить опциональный параметр `schedule_text` в `ScheduleTaskTool` — естественный язык расписания.
+2. Если `schedule_text` передан — вызвать `parse_cron(schedule_text)`. Если вернул cron — использовать его. Если `None` — fallback на `cron` параметр от LLM.
+3. Если `cron` валидный — использовать как есть (явный cron приоритетнее).
+4. Обновить описание tool и скилла `scheduler` — LLM должна передавать `schedule_text` с оригинальным текстом расписания пользователя.
+5. Тесты: `schedule_text` распознан → правильный cron; `schedule_text` не распознан → fallback на `cron`; только `cron` → работает как раньше.
+
+#### Definition of Done
+
+- [ ] `ScheduleTaskTool` принимает `schedule_text`, вызывает `parse_cron`.
+- [ ] Скилл `scheduler` обновлён — LLM передаёт `schedule_text`.
+- [ ] Тесты зелёные: 3 новых теста на интеграцию.
+- [ ] **Документация обновлена**: `_docs/scheduler.md`, `_docs/tools.md`.
+- [ ] `flake8 app tests` зелёный.
+- [ ] `git status` чист.
+
 ---
 
 ## 8. Этап 5. Демо скриншоты и документация
@@ -453,8 +481,9 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 3.2 | disk_upload — загрузка файлов на Яндекс.Диск | medium | M | Done | — |
 | 4.1 | Bot-команды /schedule / /schedules | medium | M | Done | 2.2 |
 | 4.2 | Естественный парсер времени в cron | medium | M | Done | — |
+| 4.3 | Интеграция parse_cron в schedule_task | high | S | ToDo | 4.2 |
 | 5.1 | Демо скриншоты | low | S | ToDo | 1.1, 2.2, 3.1, 4.1 |
-| 5.2 | Актуализация _docs, roadmap, README + гейты | medium | M | ToDo | 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 5.1 |
+| 5.2 | Актуализация _docs, roadmap, README + гейты | medium | M | ToDo | 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 4.3, 5.1 |
 | 6.1 | fix(protocol): final_answer + thought — валидный финал | high | S | Done | — |
 | 6.2 | chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3 | medium | S | Done | — |
 | 6.3 | fix(tools): PDF с пустым паролем + GlitchTip Crons правка | medium | S | Done | — |
