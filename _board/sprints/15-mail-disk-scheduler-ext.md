@@ -283,7 +283,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 4.3. Интеграция parse_cron в schedule_task
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** high
 - **Объём:** S
 - **Зависит от:** 4.2
@@ -481,7 +481,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 3.2 | disk_upload — загрузка файлов на Яндекс.Диск | medium | M | Done | — |
 | 4.1 | Bot-команды /schedule / /schedules | medium | M | Done | 2.2 |
 | 4.2 | Естественный парсер времени в cron | medium | M | Done | — |
-| 4.3 | Интеграция parse_cron в schedule_task | high | S | Progress | 4.2 |
+| 4.3 | Интеграция parse_cron в schedule_task | high | S | Done | 4.2 |
 | 5.1 | Демо скриншоты | low | S | ToDo | 1.1, 2.2, 3.1, 4.1 |
 | 5.2 | Актуализация _docs, roadmap, README + гейты | medium | M | ToDo | 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 4.3, 5.1 |
 | 6.1 | fix(protocol): final_answer + thought — валидный финал | high | S | Done | — |
@@ -507,3 +507,4 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-25** — задача 6.3 закрыта: `read_document.py` — `reader.decrypt("")` для зашифрованных PDF, `cryptography` в `requirements.txt`, `_docs/observability.md` — правка GlitchTip Crons.
 - **2026-07-25** — задача 6.4 начата: `SENTRY_LOG_LEVEL` дефолт INFO→DEBUG для dev среды.
 - **2026-07-25** — задача 6.4 закрыта: дефолт `SENTRY_LOG_LEVEL` INFO→DEBUG, `.env.example`, `app/config.py`, `_docs/observability.md`, `_docs/stack.md`, `_docs/current-state.md`, `README.md` обновлены, `check_env_sync` + `check_doc_links` зелёные.
+- **2026-07-25** — задача 4.3 закрыта: `ScheduleTaskTool` принимает `schedule_text`, вызывает `parse_cron` (детерминированный парсер), fallback на `cron` от LLM. Скилл `scheduler` обновлён. 4 новых теста. Документация обновлена.
