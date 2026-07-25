@@ -59,7 +59,7 @@
 | 12. Качество, безопасность и процессы | Closed | 0 / 0 / 14 | `sprints/12-quality-security-process.md` |
 | 13. Интеграции почты и диска, скиллы со скриптами | Closed | 0 / 0 / 20 | `sprints/13-mail-disk-skills.md` |
 | 14. Планировщик задач, логи в GlitchTip и качество RAG | Closed | 0 / 0 / 14 | `sprints/14-scheduler-logs-rag.md` |
-| 15. Расширения почты, диска и планировщика | Active | 1 / 1 / 13 | `sprints/15-mail-disk-scheduler-ext.md` |
+| 15. Расширения почты, диска и планировщика | Active | 0 / 0 / 14 | `sprints/15-mail-disk-scheduler-ext.md` |
 
 > Таблицу обновлять одновременно с переходами статусов в файлах спринтов (см. `process.md` §7.3 и §7.9).
 

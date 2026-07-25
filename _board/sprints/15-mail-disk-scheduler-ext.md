@@ -481,11 +481,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 6.6. fix(telegram): /help — message is too long (4096)
 
-- **Статус:** Progress
-- **Приоритет:** high
-- **Объём:** S
-- **Зависит от:** —
-- **Затрагиваемые файлы:** `app/adapters/telegram/handlers/commands.py`.
+- **Статус:** Done
 
 #### Описание
 
@@ -532,7 +528,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 6.3 | fix(tools): PDF с пустым паролем + GlitchTip Crons правка | medium | S | Done | — |
 | 6.4 | chore(observability): SENTRY_LOG_LEVEL дефолт INFO→DEBUG | low | S | Done | — |
 | 6.5 | fix(tools): read_document — подсказка ocr_image/describe_image для сканов + OCR по умолчанию | high | S | Done | — |
-| 6.6 | fix(telegram): /help — message is too long (4096) | high | S | Progress | — |
+| 6.6 | fix(telegram): /help — message is too long (4096) | high | S | Done | — |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
@@ -556,3 +552,4 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-25** — задача 6.5 добавлена: `read_document` — подсказка `ocr_image`/`describe_image` для сканов PDF + OCR по умолчанию. Баг: агент галлюцинировал про `disk_download` вместо вызова OCR/vision.
 - **2026-07-25** — задача 6.5 закрыта: `document_ocr_enabled` дефолт False→True, сообщение для сканов содержит подсказку `ocr_image`/`describe_image`, описание tool обновлено, `_docs/tools.md` §4.9 и `_docs/architecture.md` §6.5 обновлены, тест на скан PDF добавлен.
 - **2026-07-25** — задача 6.6 добавлена: `/help` падал с `message is too long` — все command handlers отправляли текст без разбивки по лимиту Telegram 4096.
+- **2026-07-25** — задача 6.6 закрыта: хелпер `_send_reply` с `split_long_message` применён во всех command handlers в `commands.py`.
