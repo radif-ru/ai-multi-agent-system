@@ -179,3 +179,27 @@ async def test_system_path_rejected(tool: ReadDocumentTool, tmp_dir: Path) -> No
         await tool.run({"path": "/sys/kernel"}, MagicMock())
     with pytest.raises(ToolError, match="системный путь не разрешён"):
         await tool.run({"path": "/proc/cpuinfo"}, MagicMock())
+
+
+@pytest.mark.asyncio
+async def test_scan_pdf_hint_ocr_image_and_describe_image(
+    tmp_dir: Path,
+) -> None:
+    """PDF-скан без текста возвращает подсказку ocr_image/describe_image."""
+    scan_tool = ReadDocumentTool(
+        tmp_files_dir=tmp_dir,
+        ocr_enabled=False,
+        ocr_min_text_threshold=100,
+    )
+    # Создаём PDF из изображения через PIL
+    try:
+        from PIL import Image
+    except ImportError:
+        pytest.skip("Pillow not installed")
+
+    test_file = tmp_dir / "scan.pdf"
+    Image.new("RGB", (100, 100), "white").save(test_file, "PDF")
+
+    result = await scan_tool.run({"path": str(test_file)}, MagicMock())
+
+    assert "ocr_image" in result or "describe_image" in result

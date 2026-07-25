@@ -83,7 +83,7 @@ class Settings(BaseSettings):
     # нарушение контракта thought/action/args | final_answer), прежде чем
     # поднять LLMBadResponse. Не даёт «мыслям» (thought) утечь к пользователю
     # вместо ответа (см. _docs/agent-loop.md §2.4). 0 — отключить само-починку.
-    agent_max_repair_attempts: int = 2
+    agent_max_repair_attempts: int = 3
 
     # --- Multi-agent (Planner + Critic), см. _docs/multi-agent.md ---
     # OFF — только Executor; NORMAL — один проход Critic; DEEP — итеративный Critic.
@@ -143,7 +143,7 @@ class Settings(BaseSettings):
     # один документ помещался в контекст без преждевременной суммаризации.
     max_document_chars: int = 80000
     document_max_images: int = 20
-    document_ocr_enabled: bool = False
+    document_ocr_enabled: bool = True
     # Настройки OCR
     ocr_default_lang: str = "rus+eng"
     ocr_min_text_threshold: int = 100
@@ -197,8 +197,9 @@ class Settings(BaseSettings):
     # См. _docs/observability.md §5.
     sentry_event_level: str = "ERROR"
     # Минимальный уровень логов для Logs API и breadcrumbs.
-    # DEBUG включает отладочные логи в Logs. См. _docs/observability.md §5.
-    sentry_log_level: str = "INFO"
+    # DEBUG для dev — отладочные логи в Logs. В prod рекомендуется INFO.
+    # См. _docs/observability.md §5.
+    sentry_log_level: str = "DEBUG"
     # Отправлять логи в GlitchTip Logs (отдельная вкладка, не Issues).
     # Требует sentry-sdk >= 2.0 и GlitchTip с поддержкой Logs API.
     sentry_enable_logs: bool = True

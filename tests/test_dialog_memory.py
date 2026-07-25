@@ -23,7 +23,7 @@ class _FakeSettings:
     agent_max_steps: int = 5
     agent_max_output_chars: int = 8000
     agent_max_context_chars: int = 8000
-    agent_max_repair_attempts: int = 2
+    agent_max_repair_attempts: int = 3
     ollama_default_model: str = "qwen3.5:4b"
 
 

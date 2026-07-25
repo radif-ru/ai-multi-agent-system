@@ -56,7 +56,7 @@ class Transcriber:
         """
         started = time.monotonic()
         logger.info(
-            "external.call service=transcribe model=%s language=%s",
+            "external.call: service=transcribe model=%s language=%s",
             self._model,
             self._language,
             extra={
@@ -74,7 +74,7 @@ class Transcriber:
         except Exception as exc:
             dur_ms = int((time.monotonic() - started) * 1000)
             logger.error(
-                "external.fail service=transcribe model=%s dur_ms=%d error=%s",
+                "external.fail: service=transcribe model=%s dur_ms=%d error=%s",
                 self._model,
                 dur_ms,
                 exc,
@@ -90,7 +90,7 @@ class Transcriber:
 
         dur_ms = int((time.monotonic() - started) * 1000)
         logger.info(
-            "external.ok service=transcribe model=%s dur_ms=%d len_out=%d",
+            "external.ok: service=transcribe model=%s dur_ms=%d len_out=%d",
             self._model,
             dur_ms,
             len(text),

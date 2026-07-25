@@ -103,7 +103,8 @@ CON-4 запрещает webhook в MVP, но это кандидат на от�
 - [ ] `web_research` — пошаговый рисёрч с гибридной стратегией (поиск → отбор источников → извлечение → синтез).
 - [x] `code_review` — обзор кода с критериями (скилл `code-review`, спринт 13).
 - [x] `russian_style` — корректировка под deliberate-стиль (без воды, конкретно) (скилл `humanizer`, спринт 13).
-- [ ] `email_draft`, `summary_long_text`, `tutorial_step_by_step` и пр.
+- [x] `email_draft` — черновик ответа на письмо (скилл `email_draft`, спринт 15).
+- [ ] `summary_long_text`, `tutorial_step_by_step` и пр.
 
 ## Этап 9. Docker / docker-compose
 
@@ -177,11 +178,12 @@ Tool `context_explore` поверх существующего `Summarizer` — 
 
 **Статус:** Backlog. **Источник:** спринт 13 (read-only реализован, отложенное — сюда).
 
-Текущее состояние: read-only IMAP (`email_list` / `email_read`) и download с Яндекс.Диска (`disk_list` / `disk_download`). Отложенные фичи:
+Текущее состояние: read-only IMAP (`email_list` / `email_read` с вложениями) и download с Яндекс.Диска (`disk_list` / `disk_download`). Отложенные фичи:
 
+- [x] Чтение вложений писем через `read_document` (реализовано в спринте 14, задача 4.4).
 - [ ] Отправка писем (`email_send` — SMTP, Яндекс + Gmail).
-- [ ] Черновики писем (`email_draft` — скилл для генерации черновика по контексту).
-- [ ] Upload на Яндекс.Диск (`disk_upload`).
+- [x] Черновики писем (`email_draft` — скилл для генерации черновика по контексту) (реализовано в спринте 15, задача 3.1).
+- [x] Upload на Яндекс.Диск (`disk_upload`) (реализовано в спринте 15, задача 3.2).
 - [ ] Google Диск (OAuth, `gdrive_list` / `gdrive_download` / `gdrive_upload`).
 
 ## Этап 17. TTL/cleanup долгосрочной памяти
@@ -198,9 +200,9 @@ Tool `context_explore` поверх существующего `Summarizer` — 
 
 **Статус:** Backlog. **Источник:** спринт 14 (MVP планировщика реализован, non-goals — сюда).
 
-- [ ] Доставка результата планировщика в **console** и **MAX** (сейчас только Telegram): channel-notifier по образцу `make_telegram_notifier` (`app/services/scheduler_runner.py`), выбор по `ScheduledTask.channel`.
-- [ ] Bot-команды `/schedule` / `/schedules` как альтернатива/дополнение к natural-language tools.
-- [ ] Естественный парсер времени в коде (сейчас маппинг «каждый день в 9 утра» → cron делает LLM по скиллу `scheduler`).
+- [x] Доставка результата планировщика в **console** и **MAX** (сейчас только Telegram): channel-notifier по образцу `make_telegram_notifier` (`app/services/scheduler_runner.py`), выбор по `ScheduledTask.channel`.
+- [x] Bot-команды `/schedule` / `/schedules` как альтернатива/дополнение к natural-language tools.
+- [x] Естественный парсер времени в коде (`app/services/cron_parser.py`); нераспознанные паттерны — fallback на LLM по скиллу `scheduler`.
 
 ## Отказанные этапы
 

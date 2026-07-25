@@ -65,7 +65,7 @@ class CriticAgent:
     def _log_ok(user_id: int, model: str, started: float, *, verdict: str) -> None:
         dur_ms = int((time.monotonic() - started) * 1000)
         logger.info(
-            "critic.ok service=critic user=%s model=%s dur_ms=%d verdict=%s",
+            "critic: OK service=critic user=%s model=%s dur_ms=%d verdict=%s",
             user_id,
             model,
             dur_ms,
@@ -94,7 +94,7 @@ class CriticAgent:
         if raw is not None:
             truncated = raw if len(raw) <= 500 else raw[:500] + "..."
         logger.warning(
-            "critic.fallback service=critic user=%s model=%s dur_ms=%d reason=%s raw=%r",
+            "critic: fallback service=critic user=%s model=%s dur_ms=%d reason=%s raw=%r",
             user_id,
             model,
             dur_ms,

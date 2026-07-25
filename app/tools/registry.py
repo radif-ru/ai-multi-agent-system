@@ -101,7 +101,7 @@ class ToolRegistry:
         ctx: ToolContext,
     ) -> str:
         started = time.monotonic()
-        logger.info("tool=%s args=%s", name, args)
+        logger.info("tool: вызов %s args=%s", name, args)
         try:
             tool = self.get(name)
         except ToolNotFound:
@@ -140,7 +140,7 @@ class ToolRegistry:
     def _log(name: str, started: float, status: str, detail: str = "") -> None:
         dur_ms = int((time.monotonic() - started) * 1000)
         logger.info(
-            "tool=%s dur_ms=%d status=%s%s",
+            "tool=%s dur_ms=%d статус=%s%s",
             name,
             dur_ms,
             status,

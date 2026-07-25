@@ -199,7 +199,7 @@ class ConversationStore:
         overflow = len(bucket) - self._session_log_max
         if overflow > 0:
             logger.warning(
-                "session_log overflow user_id=%s drop_head=%d limit=%d",
+                "session_log: переполнение, user_id=%s drop_head=%d limit=%d",
                 user_id,
                 overflow,
                 self._session_log_max,

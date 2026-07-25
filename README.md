@@ -1,7 +1,7 @@
 # ai-multi-agent-system
 
 [![tests](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml/badge.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
-[![coverage 88%](https://img.shields.io/badge/coverage-88%25-brightgreen.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
+[![coverage](https://raw.githubusercontent.com/radif-ru/ai-multi-agent-system/coverage-badge/coverage.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
 [![flake8](https://img.shields.io/badge/flake8-passing-brightgreen.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
 [![Python 3.14](https://img.shields.io/badge/python-3.14-blue.svg)](https://www.python.org/downloads/)
 [![Ollama](https://img.shields.io/badge/LLM-Ollama-black.svg)](https://ollama.com)
@@ -12,6 +12,8 @@
 [![last commit](https://img.shields.io/github/last-commit/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/commits)
 [![repo size](https://img.shields.io/github/repo-size/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system)
 [![issues](https://img.shields.io/github/issues/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/issues)
+
+> **Бейджи — живые:** `tests` (статус CI), `coverage` (динамический SVG из ветки `coverage-badge`, обновляется CI при пуше в `main`), `last commit`, `repo size`, `issues` (через shields.io API). Стек-бейджи (`Python`, `Ollama`, `aiogram`, `APScheduler`, `sqlite-vec`, `flake8`, `License`) — статичные.
 
 **Локальная мульти-агентная система** на self-hosted LLM через [Ollama](https://ollama.com). Принимает задачу от пользователя и **выполняет цикл `thought → action → observation`** до финального ответа: думает, выбирает инструмент, наблюдает результат, повторяет. Ответ модели в цикле — строго JSON (`{"thought", "action", "args"}` либо `{"final_answer"}`).
 
@@ -34,6 +36,7 @@
 - [Настройка](#настройка)
 - [Запуск](#запуск)
 - [Команды бота](#команды-бота)
+- [Демо](#демо)
 - [Структура проекта](#структура-проекта-целевая)
 - [Тесты](#тесты)
 - [Graphify](#graphify)
@@ -65,7 +68,7 @@
 
 ### Каналы
 
-- **Telegram-интерфейс** на aiogram 3 (long polling), команды `/start`, `/help`, `/new`, `/reset`, `/models`, `/model`, `/prompt`, `/search_engines`, `/search_engine`, `/mode` + обработчик произвольного текста и файлов — [`app/adapters/telegram/handlers/`](./app/adapters/telegram/handlers).
+- **Telegram-интерфейс** на aiogram 3 (long polling), команды `/start`, `/help`, `/new`, `/reset`, `/models`, `/model`, `/prompt`, `/search_engines`, `/search_engine`, `/mode`, `/schedule`, `/schedules` + обработчик произвольного текста и файлов — [`app/adapters/telegram/handlers/`](./app/adapters/telegram/handlers).
 - **Консольный адаптер** — REPL-цикл с теми же командами без Telegram — [`app/adapters/console/adapter.py`](./app/adapters/console/adapter.py), точка входа [`app/console_main.py`](./app/console_main.py); см. [`_docs/console-adapter.md`](./_docs/console-adapter.md).
 - **MAX-адаптер** ([dev.max.ru/docs-api](https://dev.max.ru/docs-api)) — канал `channel="max"` поверх той же доменной модели: тонкий async-клиент `MaxClient` на `httpx` (`get_me` / `get_updates` long polling / `send_message`, авторизация заголовком `Authorization: <token>`, токен маскируется в логах), текст/команды/вложения (документ/фото/голос) через тот же конвейер и общий `CommandRegistry` — [`app/adapters/max/`](./app/adapters/max), точка входа [`app/max_main.py`](./app/max_main.py).
 - **Файловые входы**: документы (PDF/TXT/MD), голосовые сообщения (Voice/Audio), фотографии (Photo) — [`app/adapters/telegram/files.py`](./app/adapters/telegram/files.py), [`app/services/transcribe.py`](./app/services/transcribe.py), [`app/services/vision.py`](./app/services/vision.py).
@@ -91,7 +94,7 @@
 
 - **Prompts** (`app/prompts/`): системный промпт агента и промпт суммаризации в markdown — [`app/services/prompts.py`](./app/services/prompts.py).
 - **Настройки на пользователя** (выбранная модель, промпт) — [`app/services/model_registry.py`](./app/services/model_registry.py).
-- **Логирование** через `TimedRotatingFileHandler` (ежедневная ротация, хранение ~14 дней) + middleware на каждый update; структурные JSON-логи со сквозным `trace_id` и опциональный error tracking в self-hosted GlitchTip (`SENTRY_DSN`): ошибки → **Issues** (порог `SENTRY_EVENT_LEVEL`, default `ERROR`), логи `INFO+` → вкладка **Logs** (`SENTRY_LOG_LEVEL`), плюс performance-трассировки и cron-heartbeat в **Crons** — [`app/core/logging_config.py`](./app/core/logging_config.py), [`app/observability/`](./app/observability), [`docker-compose.observability.yml`](./docker-compose.observability.yml). Подробнее — [`_docs/observability.md`](./_docs/observability.md).
+- **Логирование** через `TimedRotatingFileHandler` (ежедневная ротация, хранение ~14 дней) + middleware на каждый update; структурные JSON-логи со сквозным `trace_id` и опциональный error tracking в self-hosted GlitchTip (`SENTRY_DSN`): ошибки → **Issues** (порог `SENTRY_EVENT_LEVEL`, default `ERROR`), логи `DEBUG+` → вкладка **Logs** (`SENTRY_LOG_LEVEL`, default `DEBUG` для dev; в prod — `INFO`), плюс performance-трассировки — [`app/core/logging_config.py`](./app/core/logging_config.py), [`app/observability/`](./app/observability), [`docker-compose.observability.yml`](./docker-compose.observability.yml). Подробнее — [`_docs/observability.md`](./_docs/observability.md).
 - **CI** на GitHub Actions (push/PR) — шесть гейтов: `flake8`, синхронизация `Settings` ↔ `.env.example` (`check_env_sync`), синхронизация `_board/plan.md` ↔ файлов спринтов (`check_sprint_sync`), проверка относительных ссылок в markdown (`check_doc_links`), проверка формата и зеркал скиллов/промптов ассистента (`check_agents_sync`) и `pytest` с жёстким порогом покрытия (`--cov-fail-under=80`) — [`.github/workflows/test.yml`](./.github/workflows/test.yml), [`scripts/`](./scripts).
 - **Сборка приложения** (DI, polling, graceful shutdown) — [`app/main.py`](./app/main.py), точка входа [`app/__main__.py`](./app/__main__.py).
 - **Unit-тесты** через моки ([`tests/`](./tests)): без реального Telegram / Ollama / сети; `sqlite-vec` — на `tmp_path`.
@@ -231,9 +234,33 @@ ollama serve & .venv/bin/python -m app.console_main
 | `/search_engines`  | —               | Список доступных поисковиков с пометкой активного.                       |
 | `/search_engine <name>` | имя        | Переключить активный поисковик для пользователя.                         |
 | `/mode [off\|normal\|deep]` | режим \| пусто | Показать или переключить режим рефлексии multi-agent (per-user).         |
+| `/schedule <описание>` | текст          | Создать регулярную задачу (парсинг естественного языка → cron).          |
+| `/schedules`       | —               | Список активных задач пользователя.                                      |
 | *произвольный текст* | —             | Запустить агентный цикл с этой задачей; вернуть финальный ответ.         |
 
 Подробное поведение каждой команды — в `_docs/commands.md`.
+
+## Демо
+
+### Telegram-бот
+
+**Инструменты, файлы и планировщик** — погода, веб-поиск, чтение PDF (оглавление, страницы), безопасность (изоляция пользователей), создание cron-задачи на естественном языке, отчёт по почте, управление задачами, код:
+
+![Telegram — инструменты, файлы и планировщик](docs/screenshots/Telegram-1.png)
+
+**Документы, голос и поиск** — чтение документов (домен, посадочный талон), распознавание голоса, список инструментов, веб-поиск:
+
+![Telegram — документы, голос и поиск](docs/screenshots/Telegram-2.png)
+
+**Команды** — `/models`, `/mode`, `/help` со всеми инструментами и скиллами:
+
+![Telegram — команды](docs/screenshots/Telegram-3.png)
+
+### Observability (GlitchTip)
+
+Структурные логи и error tracking в GlitchTip:
+
+![GlitchTip — логи и error tracking](docs/screenshots/GlitchTip.png)
 
 ## Структура проекта (целевая)
 

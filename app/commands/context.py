@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from app.services.llm import OllamaClient
     from app.services.model_registry import UserSettingsRegistry
     from app.services.prompts import PromptLoader
+    from app.services.scheduler import SchedulerService
     from app.users.models import User
     from app.users.repository import UserRepository
 
@@ -52,6 +53,7 @@ class CommandContext:
     channel: str | None = None
     journal: "DialogJournal | None" = None
     llm: "OllamaClient | None" = None
+    scheduler: "SchedulerService | None" = None
 
 
 @dataclass

@@ -34,6 +34,9 @@ class ReadDocumentTool(Tool):
         "Прочитать содержимое документа (PDF, TXT, MD, JPG, PNG) из временной директории. "
         "Для PDF используется текстовое извлечение, для TXT/MD — прямое чтение. "
         "Для изображений (JPG, PNG) используется OCR через tesseract (если включён). "
+        "Если PDF — скан без текста и OCR не справился, возвращается путь к картинке: "
+        "вызовите ocr_image (точная транскрипция текста) или describe_image "
+        "(описание через vision-модель). "
         "Возврат — текст, усечённый до лимита."
     )
     args_schema: Mapping[str, Any] = {
@@ -133,6 +136,9 @@ class ReadDocumentTool(Tool):
         """Извлечь текст и картинки из PDF через pypdf."""
         try:
             reader = PdfReader(path)
+            if reader.is_encrypted:
+                reader.decrypt("")
+                logger.info("PDF расшифрован (пустой пароль): %s", path)
             max_images = self._max_images
             logger.info(
                 "Чтение PDF: %s, страниц=%d, max_chars=%d, max_images=%d, ocr=%s",
@@ -219,6 +225,10 @@ class ReadDocumentTool(Tool):
                     result += (
                         f"\n\n[PDF содержит {len(image_paths)} изображений. "
                         f"Текст не извлечён. Первая картинка: {image_paths[0]}]"
+                        f"\n\nПодсказка: вызовите ocr_image с image_path={image_paths[0]} "
+                        f"для распознавания текста через tesseract "
+                        f"или describe_image с image_path={image_paths[0]} "
+                        f"для описания через vision-модель."
                     )
                 else:
                     result += f"\n\n[PDF содержит {len(image_paths)} изображений: {', '.join(image_paths)}]"

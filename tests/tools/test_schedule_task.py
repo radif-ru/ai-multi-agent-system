@@ -22,10 +22,11 @@ from app.tools.list_scheduled_tasks import ListScheduledTasksTool
 from app.tools.schedule_task import ScheduleTaskTool
 
 
-def _make_ctx(*, user_id: int = 42, chat_id: int = 42, scheduler=None):
+def _make_ctx(*, user_id: int = 42, chat_id: int = 42, scheduler=None, channel="telegram"):
     ctx = MagicMock()
     ctx.user_id = user_id
     ctx.chat_id = chat_id
+    ctx.channel = channel
     ctx.scheduler = scheduler
     ctx.settings.scheduler_max_jobs_per_user = 5
     return ctx
@@ -68,7 +69,7 @@ class TestScheduleTaskTool:
         tool = ScheduleTaskTool()
         ctx = _make_ctx(scheduler=scheduler)
 
-        with pytest.raises(ToolError, match="Невалидное cron-выражение"):
+        with pytest.raises(ToolError, match="Не удалось определить расписание"):
             await tool.run(
                 {"prompt": "test", "cron": "invalid"},
                 ctx,
@@ -120,6 +121,47 @@ class TestScheduleTaskTool:
         assert "UTC" in result
         tasks = await scheduler.store.list_by_user(42)
         assert tasks[0].timezone == "UTC"
+
+    async def test_schedule_text_parsed_to_cron(self, scheduler: SchedulerService) -> None:
+        tool = ScheduleTaskTool()
+        ctx = _make_ctx(scheduler=scheduler)
+
+        result = await tool.run(
+            {"prompt": "Проверь почту", "schedule_text": "каждую субботу в 15:08"},
+            ctx,
+        )
+
+        assert "Задача создана" in result
+        assert "8 15 * * 6" in result
+        tasks = await scheduler.store.list_by_user(42)
+        assert len(tasks) == 1
+        assert tasks[0].cron == "8 15 * * 6"
+
+    async def test_schedule_text_unrecognized_falls_back_to_cron(self, scheduler: SchedulerService) -> None:
+        tool = ScheduleTaskTool()
+        ctx = _make_ctx(scheduler=scheduler)
+
+        result = await tool.run(
+            {"prompt": "test", "schedule_text": "непонятный текст", "cron": "0 9 * * *"},
+            ctx,
+        )
+
+        assert "Задача создана" in result
+        assert "0 9 * * *" in result
+        tasks = await scheduler.store.list_by_user(42)
+        assert tasks[0].cron == "0 9 * * *"
+
+    async def test_no_schedule_text_no_cron_raises_error(self, scheduler: SchedulerService) -> None:
+        from app.tools.errors import ToolError
+
+        tool = ScheduleTaskTool()
+        ctx = _make_ctx(scheduler=scheduler)
+
+        with pytest.raises(ToolError, match="Не удалось определить расписание"):
+            await tool.run(
+                {"prompt": "test"},
+                ctx,
+            )
 
 
 class TestListScheduledTasksTool:

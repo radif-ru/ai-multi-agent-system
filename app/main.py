@@ -54,6 +54,7 @@ from app.tools.ocr_image import OcrImageTool
 from app.tools.read_document import ReadDocumentTool
 from app.tools.read_file import ReadFileTool
 from app.tools.disk_download import DiskDownloadTool
+from app.tools.disk_upload import DiskUploadTool
 from app.tools.disk_list import DiskListTool
 from app.tools.email_list import EmailListTool
 from app.tools.email_read import EmailReadTool
@@ -93,9 +94,13 @@ _BOT_COMMANDS: list[BotCommand] = [
     BotCommand(command="models", description="Список моделей"),
     BotCommand(command="model", description="Выбрать модель"),
     BotCommand(command="prompt", description="Задать системный промпт"),
+    BotCommand(command="search_engines", description="Список поисковиков"),
+    BotCommand(command="search_engine", description="Выбрать поисковик"),
     BotCommand(command="mode", description="Режим рефлексии (off/normal/deep)"),
     BotCommand(command="new", description="Архивировать и открыть новую сессию"),
     BotCommand(command="reset", description="Очистить контекст и сбросить настройки"),
+    BotCommand(command="schedule", description="Создать регулярную задачу"),
+    BotCommand(command="schedules", description="Список запланированных задач"),
 ]
 
 assert _orchestrator is not None  # явная зависимость для будущего DI
@@ -225,6 +230,7 @@ async def _build_components(
             EmailReadTool(max_output_chars=settings.max_tool_output_chars),
             DiskListTool(max_output_chars=settings.max_tool_output_chars),
             DiskDownloadTool(max_output_chars=settings.max_tool_output_chars),
+            DiskUploadTool(max_output_chars=settings.max_tool_output_chars),
             RunSkillScriptTool(max_output_chars=settings.max_tool_output_chars),
             ScheduleTaskTool(),
             ListScheduledTasksTool(),
@@ -355,6 +361,7 @@ def _wire_telegram(c: _Components) -> tuple[Bot, Dispatcher]:
             users=c.users,
             journal=c.dialog_journal,
             llm=c.llm,
+            scheduler=c.scheduler,
         )
     )
     dispatcher.include_router(
@@ -503,9 +510,10 @@ async def main() -> None:
             user_settings=components.user_settings,
             store=components.scheduled_task_store,
         )
-        notifier = make_telegram_notifier(bot)
+        notifiers = {"telegram": make_telegram_notifier(bot)}
 
         async def _run_task(task):
+            notifier = notifiers.get(task.channel, notifiers["telegram"])
             await run_scheduled_task(task, deps=runner_deps, notifier=notifier)
 
         components.scheduler.set_run_task(_run_task)
@@ -528,7 +536,7 @@ async def main() -> None:
         )
 
     try:
-        logger.info("Bot started")
+        logger.info("Бот запущен")
         # Ждём ПЕРВОЕ из {завершение polling, сигнал shutdown}: иначе при
         # падении polling main() висел бы на shutdown_event.wait() навсегда,
         # а исключение терялось бы (см. _docs/current-state.md §3).

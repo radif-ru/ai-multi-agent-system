@@ -87,7 +87,7 @@
 | `SEARCH_ENGINES_AVAILABLE`  | Список доступных поисковиков через запятую.                      | `duckduckgo`              |
 | `AGENT_MAX_STEPS`           | Лимит шагов агентного цикла.                                     | `30`                      |
 | `AGENT_MAX_OUTPUT_CHARS`    | Лимит размера ответа модели за один шаг (защита от мусора).     | `8000`                    |
-| `AGENT_MAX_REPAIR_ATTEMPTS` | Переспросов модели при срыве формата ответа перед `LLMBadResponse` (не даёт `thought` утечь вместо ответа, см. `_docs/agent-loop.md` §2.4). `0` — выключить. | `2`                       |
+| `AGENT_MAX_REPAIR_ATTEMPTS` | Переспросов модели при срыве формата ответа перед `LLMBadResponse` (не даёт `thought` утечь вместо ответа, см. `_docs/agent-loop.md` §2.4). `0` — выключить. | `3`                       |
 | `AGENT_REFLECTION_MODE`     | Режим multi-agent рефлексии (`OFF\|NORMAL\|DEEP`), см. `_docs/multi-agent.md`. | `OFF`     |
 | `AGENT_REFLECTION_MAX_ITERATIONS` | Верхняя граница итераций Critic в режиме `DEEP`.          | `2`                       |
 | `HISTORY_MAX_MESSAGES`      | Жёсткий лимит сообщений in-memory истории на пользователя.       | `20`                      |
@@ -111,7 +111,7 @@
 | `SENTRY_ENVIRONMENT`        | Имя окружения в теге события (`dev`/`staging`/`prod`).            | `dev`                     |
 | `SENTRY_TRACES_SAMPLE_RATE` | Доля запросов с performance-трассировкой (`0.0` — выкл, `1.0` — все). | `0.1`                     |
 | `SENTRY_EVENT_LEVEL`        | Мин. уровень логов, уезжающих в GlitchTip как события (Issues). `DEBUG\|INFO\|WARNING\|ERROR\|CRITICAL`. См. `_docs/observability.md` §5. | `ERROR`                   |
-| `SENTRY_LOG_LEVEL`          | Мин. уровень логов для GlitchTip Logs и breadcrumbs. `DEBUG` включает отладочные логи в Logs. | `INFO`                    |
+| `SENTRY_LOG_LEVEL`          | Мин. уровень логов для GlitchTip Logs и breadcrumbs. `DEBUG` — отладочные логи в Logs (дефолт для dev). В prod — `INFO`. | `DEBUG`                    |
 | `SENTRY_ENABLE_LOGS`        | Отправлять логи во вкладку Logs (не Issues). Требует sentry-sdk ≥ 2.0 и GlitchTip с Logs API. | `true`                    |
 | `SCHEDULER_ENABLED`         | Выключатель планировщика (см. `_docs/scheduler.md`). При `false` не стартует. | `true`                    |
 | `SCHEDULER_TIMEZONE`        | IANA-таймзона по умолчанию для cron-выражений.                   | `Europe/Moscow`           |

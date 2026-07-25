@@ -17,7 +17,12 @@ from app.services.scheduled_tasks import (
     ScheduledTaskStore,
     new_task_id,
 )
-from app.services.scheduler import SchedulerService, validate_cron
+from app.services.scheduler import (
+    SchedulerService,
+    _convert_cron_dow_field,
+    _cron_to_trigger,
+    validate_cron,
+)
 
 
 def _make_task(
@@ -204,3 +209,61 @@ async def test_disabled_task_not_added_as_job(
         assert await store.get(task.id) is not None
     finally:
         scheduler.shutdown(wait=False)
+
+
+# --- DOW конвертация (standard cron 0=Sun → APScheduler 0=Mon) ---
+
+
+def test_dow_convert_single_friday() -> None:
+    """5 (Friday в standard cron) → 'fri'."""
+    assert _convert_cron_dow_field("5") == "fri"
+
+
+def test_dow_convert_sunday_zero() -> None:
+    """0 (Sunday в standard cron) → 'sun'."""
+    assert _convert_cron_dow_field("0") == "sun"
+
+
+def test_dow_convert_sunday_seven() -> None:
+    """7 (Sunday в standard cron) → 'sun'."""
+    assert _convert_cron_dow_field("7") == "sun"
+
+
+def test_dow_convert_range() -> None:
+    """1-5 (Mon-Fri) → 'mon-fri'."""
+    assert _convert_cron_dow_field("1-5") == "mon-fri"
+
+
+def test_dow_convert_list() -> None:
+    """1,3,5 → 'mon,wed,fri'."""
+    assert _convert_cron_dow_field("1,3,5") == "mon,wed,fri"
+
+
+def test_dow_convert_star() -> None:
+    """* → '*' (без изменений)."""
+    assert _convert_cron_dow_field("*") == "*"
+
+
+def test_dow_convert_named_days_passthrough() -> None:
+    """Имена дней проходят без изменений."""
+    assert _convert_cron_dow_field("mon-fri") == "mon-fri"
+    assert _convert_cron_dow_field("fri") == "fri"
+
+
+def test_cron_to_trigger_friday_correct() -> None:
+    """46 13 * * 5 → следующий запуск в пятницу, не субботу."""
+    from datetime import datetime
+
+    try:
+        from zoneinfo import ZoneInfo
+        tz = ZoneInfo("Europe/Moscow")
+    except ImportError:
+        import pytz
+        tz = pytz.timezone("Europe/Moscow")
+
+    now = datetime(2026, 7, 24, 13, 45, tzinfo=tz)  # Friday 13:45
+    trigger = _cron_to_trigger("46 13 * * 5", "Europe/Moscow")
+    next_fire = trigger.get_next_fire_time(None, now)
+    assert next_fire.strftime("%A") == "Friday"
+    assert next_fire.hour == 13
+    assert next_fire.minute == 46

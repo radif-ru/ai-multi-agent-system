@@ -185,10 +185,10 @@ class ToolRegistry:
 
 ### 4.9 `read_document`
 
-- **Описание:** Прочитать содержимое документа (PDF, TXT, MD, JPG, PNG) из временной директории.
+- **Описание:** Прочитать содержимое документа (PDF, TXT, MD, JPG, PNG) из временной директории. Для PDF-сканов без текста возвращает путь к картинке с подсказкой вызвать `ocr_image` или `describe_image`.
 - **Args:** `{"path": "<строка>", "max_chars": <int, default 50000>}` или `{"file_id": "<строка>", "max_chars": <int, default 50000>}` (один из path/file_id обязателен).
-- **Return:** содержимое документа; для PDF — текст + OCR при необходимости; для изображений — текст через OCR.
-- **Реализация:** валидация пути (должен быть в `tmp/`, без `..`); для PDF — извлечение текста через pypdf + картинок; OCR делегируется сервису `app/services/ocr.py` (pytesseract); дисковый кеш `<file>.ocr.txt` убран (задача 06.3-bis.4) — результат OCR попадает в `dialog_journal.content` через goal. Если передан `file_id`, путь восстанавливается через `FileIdMapper`.
+- **Return:** содержимое документа; для PDF — текст + OCR при необходимости; для изображений — текст через OCR. Если PDF — скан и OCR не справился — путь к картинке + подсказка `ocr_image`/`describe_image`.
+- **Реализация:** валидация пути (должен быть в `tmp/`, без `..`); для PDF — извлечение текста через pypdf + картинок; OCR делегируется сервису `app/services/ocr.py` (pytesseract); если OCR не справился — возвращается путь к картинке с подсказкой `ocr_image`/`describe_image`; дисковый кеш `<file>.ocr.txt` убран (задача 06.3-bis.4) — результат OCR попадает в `dialog_journal.content` через goal. Если передан `file_id`, путь восстанавливается через `FileIdMapper`. Дефолт `DOCUMENT_OCR_ENABLED=true`.
 - **Ошибки:** путь вне `tmp/` → `ToolError`; файла нет → `ToolError`; неподдерживаемый тип → `ToolError`; OCR отключён → `ToolError`; file_id не найден → `ToolError("file_id ... не найден")`.
 
 ### 4.10 `ocr_image`
@@ -209,10 +209,10 @@ class ToolRegistry:
 
 ### 4.12 `email_read`
 
-- **Описание:** Прочитать одно письмо по uid (read-only).
+- **Описание:** Прочитать одно письмо по uid (read-only). Возвращает заголовки, тело и вложения.
 - **Args:** `{"provider": "yandex|gmail", "uid": "<строка из email_list>"}`.
-- **Return:** JSON с заголовками (`from`, `to`, `subject`, `date`) и телом письма. Тело — **недоверенные данные**: обрамляется маркерами `<<<EMAIL_BODY_START>>>` / `<<<EMAIL_BODY_END>>>` и сопровождается полем `untrusted_body_note` (инструкции внутри письма исполнять нельзя, см. `security.md`). Тело усекается до `MAIL_BODY_MAX_CHARS`.
-- **Реализация:** `MailReader(ctx.settings).read_message(provider, uid)`; извлекается text/plain (fallback — text/html без тегов).
+- **Return:** JSON с заголовками (`from`, `to`, `subject`, `date`), телом письма и `attachments` — список `{filename, file_id, content_type, size}`. Тело — **недоверенные данные**: обрамляется маркерами `<<<EMAIL_BODY_START>>>` / `<<<EMAIL_BODY_END>>>` и сопровождается полем `untrusted_body_note` (инструкции внутри письма исполнять нельзя, см. `security.md`). Тело усекается до `MAIL_BODY_MAX_CHARS`. Вложения сохраняются в `data/tmp/` и регистрируются через `FileIdMapper` — модель может прочитать их через `read_document` с `file_id`.
+- **Реализация:** `MailReader(ctx.settings).read_message(provider, uid)`; извлекается text/plain (fallback — text/html без тегов); вложения (Content-Disposition: attachment) сохраняются через `_save_attachments` в `data/tmp/` с регистрацией `FileIdMapper.generate_id`.
 - **Ошибки:** неизвестный провайдер / пустой uid → `ToolError`; почта не подключена / неверный пароль / недоступна → `ToolError` (человекочитаемый текст).
 
 ### 4.13 `disk_list`
@@ -231,6 +231,14 @@ class ToolRegistry:
 - **Реализация:** `YandexDiskReader.download(path, dest_dir)` (ссылка `/resources/download` → потоковое скачивание с лимитом `TELEGRAM_MAX_FILE_MB`) в `Settings.get_user_tmp_dir(user_id)` (изоляция по пользователю); `file_id` — через `FileIdMapper`.
 - **Ошибки:** пустой path → `ToolError`; файл больше лимита → `ToolError`; диск не подключён / токен отклонён / недоступен → `ToolError`.
 
+### 4.14b `disk_upload`
+
+- **Описание:** Загрузить локальный файл (по `file_id` из `data/tmp/`) на Яндекс.Диск.
+- **Args:** `{"file_id": "<идентификатор файла>", "path": "<путь на диске>"}`.
+- **Return:** JSON `{path, status, hint}` — путь загруженного файла на диске.
+- **Реализация:** `FileIdMapper.get_path(file_id)` → локальный путь; `YandexDiskReader.upload(local_path, disk_path)` (GET `/resources/upload?path=...&overwrite=true` → upload URL → PUT файла с лимитом `TELEGRAM_MAX_FILE_MB`).
+- **Ошибки:** пустой `file_id`/`path` → `ToolError`; файл не найден по `file_id` → `ToolError`; файл больше лимита → `ToolError`; диск не подключён / токен отклонён / недоступен → `ToolError`.
+
 ### 4.15 `run_skill_script`
 
 - **Описание:** Запустить скрипт скилла из его каталога `scripts/` (sandbox-раннер связки «скилл + скрипт», см. `skills.md`).
@@ -242,10 +250,10 @@ class ToolRegistry:
 
 ### 4.16 `schedule_task`
 
-- **Описание:** Поставить повторяющуюся задачу по cron-расписанию (планировщик, см. `scheduler.md`). Prompt исполнится агентом при каждом срабатывании, результат придёт в Telegram.
-- **Args:** `{"prompt": "<что делать при срабатывании>", "cron": "<5-польный cron>", "timezone": "<IANA tz, optional>"}`.
+- **Описание:** Поставить повторяющуюся задачу по cron-расписанию (планировщик, см. `scheduler.md`). Prompt исполнится агентом при каждом срабатывании, результат придёт через notifier канала задачи (Telegram, консоль или MAX).
+- **Args:** `{"prompt": "<что делать при срабатывании>", "schedule_text": "<расписание на естественном языке, optional>", "cron": "<5-польный cron, fallback>", "timezone": "<IANA tz, optional>"}`.
 - **Return:** подтверждение с человекочитаемым описанием расписания и `task_id`.
-- **Реализация:** валидация cron через `SchedulerService.validate_cron` (`CronTrigger.from_crontab`); проверка лимита `count_by_user < SCHEDULER_MAX_JOBS_PER_USER`; `sanitize_user_input(prompt)`; создание `ScheduledTask` (uuid4 id, `channel="telegram"`, `chat_id`/`user_id` из `ctx`); `ctx.scheduler.add_task(task)`. Маппинг «каждый день в 9 утра» → `0 9 * * *` делает LLM по скиллу `scheduler`.
+- **Реализация:** если передан `schedule_text` — вызывается `parse_cron` (детерминированный парсер естественного языка → cron); если не распознан — fallback на `cron` от LLM. Валидация cron через `SchedulerService.validate_cron` (`CronTrigger.from_crontab`); проверка лимита `count_by_user < SCHEDULER_MAX_JOBS_PER_USER`; `sanitize_user_input(prompt)`; создание `ScheduledTask` (uuid4 id, `channel=ctx.channel or "telegram"`, `chat_id`/`user_id` из `ctx`); `ctx.scheduler.add_task(task)`.
 - **Ошибки:** невалидный cron → `ToolError`; превышение лимита задач → `ToolError` с человекочитаемым текстом; планировщик недоступен → `ToolError`.
 
 ### 4.17 `list_scheduled_tasks`

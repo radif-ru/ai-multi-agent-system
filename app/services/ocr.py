@@ -89,7 +89,7 @@ def extract_text(
 
     started = time.monotonic()
     logger.info(
-        "external.call service=ocr lang=%s n_images=%d",
+        "external.call: service=ocr lang=%s n_images=%d",
         lang, len(image_paths),
         extra={"service": "ocr", "lang": lang, "n_images": len(image_paths)},
     )
@@ -108,7 +108,7 @@ def extract_text(
     dur_ms = int((time.monotonic() - started) * 1000)
     if not ocr_text_parts:
         logger.info(
-            "external.ok service=ocr dur_ms=%d status=empty",
+            "external.ok: service=ocr dur_ms=%d статус=empty",
             dur_ms,
             extra={"service": "ocr", "duration_ms": dur_ms,
                    "status": "ok", "len_out": 0},
@@ -117,7 +117,7 @@ def extract_text(
 
     result = "\n\n".join(ocr_text_parts)
     logger.info(
-        "external.ok service=ocr dur_ms=%d len_out=%d",
+        "external.ok: service=ocr dur_ms=%d len_out=%d",
         dur_ms, len(result),
         extra={"service": "ocr", "duration_ms": dur_ms,
                "status": "ok", "len_out": len(result)},

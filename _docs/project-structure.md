@@ -128,7 +128,7 @@ ai-multi-agent-system/
 │   │   │   ├── files.py          # download_telegram_file: скачивание файлов из Telegram
 │   │   │   ├── handlers/
 │   │   │   │   ├── __init__.py
-│   │   │   │   ├── commands.py   # /start, /help, /models, /model, /prompt, /new, /reset
+│   │   │   │   ├── commands.py   # /start, /help, /models, /model, /search_engines, /search_engine, /prompt, /mode, /new, /reset, /schedule, /schedules — split_long_message (4096)
 │   │   │   │   ├── messages.py   # F.text & ~F.text.startswith('/') → core.handle_user_task
 │   │   │   │   └── errors.py     # глобальный error handler (router.errors)
 │   │   │   └── __init__.py
@@ -264,7 +264,7 @@ ai-multi-agent-system/
 | `app/security/file_id_mapper.py` | `FileIdMapper`: маскирование путей к файлам, персистентность через `dialog_journal` в `data/memory.db`. |
 | `app/security/response_sanitizer.py` | `sanitize_response`: фильтрация системной информации в ответах модели. |
 | `app/users/repository.py` | `UserRepository`: хранилище пользователей с get_or_create, публикует UserCreated. |
-| `app/adapters/telegram/handlers/commands.py` | Router с `/start`, `/help`, `/models`, `/model`, `/prompt`, `/new`, `/reset`. |
+| `app/adapters/telegram/handlers/commands.py` | Router с `/start`, `/help`, `/models`, `/model`, `/search_engines`, `/search_engine`, `/prompt`, `/mode`, `/new`, `/reset`, `/schedule`, `/schedules`. Все ответы — через `_send_reply` (`split_long_message`, лимит 4096). |
 | `app/adapters/telegram/handlers/messages.py` | Router с обработчиком `F.text & ~F.text.startswith('/')` → `core.handle_user_task`, обработка файлов (Document, Voice, Photo). |
 | `app/adapters/telegram/files.py` | `download_telegram_file`: скачивание файлов из Telegram с проверкой размера. |
 | `app/adapters/telegram/handlers/errors.py` | `@router.errors()` — единая точка для необработанных ошибок. |

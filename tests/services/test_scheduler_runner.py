@@ -21,7 +21,6 @@ from app.services.scheduler_runner import (
     GENERIC_ERROR_REPLY,
     LLM_TIMEOUT_REPLY,
     RunnerDeps,
-    _cron_checkin,
     run_scheduled_task,
 )
 
@@ -183,36 +182,34 @@ async def test_result_has_prefix(store: ScheduledTaskStore) -> None:
     assert "Готово" in delivered_text
 
 
-async def test_cron_checkin_in_progress_and_ok_on_success(
+async def test_log_start_and_ok_on_success(
     store: ScheduledTaskStore,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Успешный прогон: capture_checkin вызван с in_progress и ok."""
+    """Успешный прогон: логируется запуск и выполнение с dur_ms."""
     task = _make_task()
     await store.add(task)
 
     deps = _make_deps(store)
     notifier = AsyncMock()
 
-    with (
-        patch(
-            "app.services.scheduler_runner.handle_user_task",
-            new=AsyncMock(return_value="Готово"),
-        ),
-        patch("app.services.scheduler_runner.sentry_sdk") as mock_sentry,
+    with patch(
+        "app.services.scheduler_runner.handle_user_task",
+        new=AsyncMock(return_value="Готово"),
     ):
-        await run_scheduled_task(task, deps=deps, notifier=notifier)
+        with caplog.at_level("INFO", logger="app.services.scheduler_runner"):
+            await run_scheduled_task(task, deps=deps, notifier=notifier)
 
-    statuses = [
-        call.kwargs.get("status") for call in mock_sentry.crons.capture_checkin.call_args_list
-    ]
-    assert "in_progress" in statuses
-    assert "ok" in statuses
+    messages = [r.message for r in caplog.records]
+    assert any("scheduler: запуск" in m for m in messages)
+    assert any("scheduler: выполнено" in m and "dur_ms=" in m for m in messages)
 
 
-async def test_cron_checkin_error_on_llm_timeout(
+async def test_log_error_on_llm_timeout(
     store: ScheduledTaskStore,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """LLMTimeout: capture_checkin вызван с in_progress и error."""
+    """LLMTimeout: логируется ошибка с dur_ms."""
     task = _make_task()
     await store.add(task)
 
@@ -221,53 +218,37 @@ async def test_cron_checkin_error_on_llm_timeout(
 
     from app.services.llm import LLMTimeout
 
-    with (
-        patch(
-            "app.services.scheduler_runner.handle_user_task",
-            new=AsyncMock(side_effect=LLMTimeout("timeout")),
-        ),
-        patch("app.services.scheduler_runner.sentry_sdk") as mock_sentry,
+    with patch(
+        "app.services.scheduler_runner.handle_user_task",
+        new=AsyncMock(side_effect=LLMTimeout("timeout")),
     ):
-        await run_scheduled_task(task, deps=deps, notifier=notifier)
+        with caplog.at_level("WARNING", logger="app.services.scheduler_runner"):
+            await run_scheduled_task(task, deps=deps, notifier=notifier)
 
-    statuses = [
-        call.kwargs.get("status") for call in mock_sentry.crons.capture_checkin.call_args_list
-    ]
-    assert "in_progress" in statuses
-    assert "error" in statuses
+    messages = [r.message for r in caplog.records]
+    assert any("scheduler: ошибка" in m and "dur_ms=" in m for m in messages)
 
 
-async def test_cron_checkin_error_on_generic_exception(
+async def test_log_error_on_generic_exception(
     store: ScheduledTaskStore,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Generic exception: capture_checkin вызван с error."""
+    """Generic exception: логируется ошибка с dur_ms."""
     task = _make_task()
     await store.add(task)
 
     deps = _make_deps(store)
     notifier = AsyncMock()
 
-    with (
-        patch(
-            "app.services.scheduler_runner.handle_user_task",
-            new=AsyncMock(side_effect=RuntimeError("boom")),
-        ),
-        patch("app.services.scheduler_runner.sentry_sdk") as mock_sentry,
+    with patch(
+        "app.services.scheduler_runner.handle_user_task",
+        new=AsyncMock(side_effect=RuntimeError("boom")),
     ):
-        await run_scheduled_task(task, deps=deps, notifier=notifier)
+        with caplog.at_level("ERROR", logger="app.services.scheduler_runner"):
+            await run_scheduled_task(task, deps=deps, notifier=notifier)
 
-    statuses = [
-        call.kwargs.get("status") for call in mock_sentry.crons.capture_checkin.call_args_list
-    ]
-    assert "in_progress" in statuses
-    assert "error" in statuses
-
-
-def test_cron_checkin_does_not_raise_when_sentry_unavailable() -> None:
-    """_cron_checkin не падает, если sentry_sdk не инициализирован."""
-    with patch("app.services.scheduler_runner.sentry_sdk") as mock_sentry:
-        mock_sentry.crons.capture_checkin.side_effect = Exception("no sentry")
-        _cron_checkin("test-task-id", "ok", duration=1.5)
+    messages = [r.message for r in caplog.records]
+    assert any("scheduler: ошибка" in m and "dur_ms=" in m for m in messages)
 
 
 async def test_scheduled_task_uses_empty_history(

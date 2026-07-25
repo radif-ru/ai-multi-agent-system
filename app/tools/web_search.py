@@ -56,7 +56,7 @@ class WebSearchTool(Tool):
 
         started = time.monotonic()
         logger.info(
-            "external.call service=web_search engine=%s top_k=%d",
+            "external.call: service=web_search engine=%s top_k=%d",
             search_engine, top_k,
             extra={"service": "web_search", "engine": search_engine,
                    "top_k": top_k},
@@ -70,7 +70,7 @@ class WebSearchTool(Tool):
         except Exception as exc:  # noqa: BLE001
             dur_ms = int((time.monotonic() - started) * 1000)
             logger.error(
-                "external.fail service=web_search engine=%s dur_ms=%d error=%s",
+                "external.fail: service=web_search engine=%s dur_ms=%d error=%s",
                 search_engine, dur_ms, exc,
                 extra={"service": "web_search", "engine": search_engine,
                        "duration_ms": dur_ms, "status": "fail",
@@ -80,7 +80,7 @@ class WebSearchTool(Tool):
 
         dur_ms = int((time.monotonic() - started) * 1000)
         logger.info(
-            "external.ok service=web_search engine=%s dur_ms=%d n_results=%d",
+            "external.ok: service=web_search engine=%s dur_ms=%d n_results=%d",
             search_engine, dur_ms, len(raw),
             extra={"service": "web_search", "engine": search_engine,
                    "duration_ms": dur_ms, "status": "ok",

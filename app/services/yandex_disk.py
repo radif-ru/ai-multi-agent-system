@@ -1,9 +1,8 @@
-"""Сервис чтения Яндекс.Диска (read-only) через REST API.
+"""Сервис доступа к Яндекс.Диску через REST API.
 
 Обёртка над `https://cloud-api.yandex.net/v1/disk` (заголовок
-`Authorization: OAuth <token>`): список ресурсов и скачивание файла в
-каталог пользователя. Ошибки — иерархия `DiskError` с человекочитаемыми
-сообщениями. См. `_docs/tools.md`.
+`Authorization: OAuth <token>`): список ресурсов, скачивание и загрузка файлов.
+Ошибки — иерархия `DiskError` с человекочитаемыми сообщениями. См. `_docs/tools.md`.
 """
 
 from __future__ import annotations
@@ -39,7 +38,7 @@ class DiskUnavailable(DiskError):
 
 
 class YandexDiskReader:
-    """Read-only доступ к Яндекс.Диску: список ресурсов и скачивание."""
+    """Доступ к Яндекс.Диску: список ресурсов, скачивание и загрузка."""
 
     def __init__(
         self,
@@ -98,6 +97,32 @@ class YandexDiskReader:
         dest = dest_dir / Path(path).name
         await self._download_to(href, dest, limit_bytes)
         return dest
+
+    async def upload(self, local_path: Path, disk_path: str) -> str:
+        """Загрузить локальный файл на Яндекс.Диск по пути `disk_path`.
+
+        Возвращает путь загруженного файла на диске.
+        """
+        token = self._token()
+        if not local_path.is_file():
+            raise DiskError(f"Локальный файл не найден: {local_path}")
+        limit_bytes = self._settings.telegram_max_file_mb * 1024 * 1024
+        size = local_path.stat().st_size
+        if size > limit_bytes:
+            raise DiskError(
+                f"Файл больше лимита {self._settings.telegram_max_file_mb} МБ."
+            )
+        meta = await self._get(
+            token, "/resources/upload",
+            {"path": disk_path, "overwrite": "true"},
+        )
+        href = meta.get("href")
+        if not href:
+            raise DiskUnavailable(
+                f"Не удалось получить ссылку на загрузку {disk_path}."
+            )
+        await self._upload_from(href, local_path)
+        return disk_path
 
     # --- Внутреннее ------------------------------------------------------
 
@@ -161,6 +186,25 @@ class YandexDiskReader:
                 f"Не удалось скачать файл с Яндекс.Диска: {exc}."
             ) from exc
         self._log_ok("/download", started)
+
+    async def _upload_from(self, href: str, local_path: Path) -> None:
+        started = time.monotonic()
+        try:
+            if self._client is not None:
+                with local_path.open("rb") as fh:
+                    resp = await self._client.put(href, content=fh)
+                self._raise_for_status(resp, started, "/upload")
+            else:
+                async with httpx.AsyncClient(timeout=self._timeout) as client:
+                    with local_path.open("rb") as fh:
+                        resp = await client.put(href, content=fh)
+                    self._raise_for_status(resp, started, "/upload")
+        except httpx.HTTPError as exc:
+            self._log_fail("/upload", started, exc)
+            raise DiskUnavailable(
+                f"Не удалось загрузить файл на Яндекс.Диск: {exc}."
+            ) from exc
+        self._log_ok("/upload", started)
 
     def _raise_for_status(
         self, resp: httpx.Response, started: float, endpoint: str

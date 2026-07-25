@@ -105,7 +105,7 @@ class Archiver:
             history, model=self._summarizer_model
         )
         sum_dur = time.monotonic() - sum_start
-        logger.info("archive stage=summarize dur_ms=%d", int(sum_dur * 1000))
+        logger.info("archive: этап=summarize dur_ms=%d", int(sum_dur * 1000))
 
         # Этап 2: Чанкинг
         chunk_start = time.monotonic()
@@ -113,7 +113,7 @@ class Archiver:
             summary, size=self._chunk_size, overlap=self._chunk_overlap
         )
         chunk_dur = time.monotonic() - chunk_start
-        logger.info("archive stage=chunking chunks=%d dur_ms=%d", len(chunks), int(chunk_dur * 1000))
+        logger.info("archive: этап=chunking chunks=%d dur_ms=%d", len(chunks), int(chunk_dur * 1000))
 
         if not chunks:
             return 0
@@ -143,7 +143,7 @@ class Archiver:
             vectors.append(result)
 
         embed_dur = time.monotonic() - embed_start
-        logger.info("archive stage=embedding chunks=%d dur_ms=%d", len(chunks), int(embed_dur * 1000))
+        logger.info("archive: этап=embedding chunks=%d dur_ms=%d", len(chunks), int(embed_dur * 1000))
 
         # Этап 4: Запись в БД
         await _notify("Сохраняю в память...")

@@ -28,7 +28,7 @@ def build_error_handler() -> Callable[[ErrorEvent], Awaitable[bool]]:
 
     async def on_error(event: ErrorEvent) -> bool:
         logger.error(
-            "unhandled exception in handler: %s",
+            "необработанное исключение в handler: %s",
             event.exception,
             exc_info=event.exception,
         )
@@ -38,7 +38,7 @@ def build_error_handler() -> Callable[[ErrorEvent], Awaitable[bool]]:
                 formatted, parse_mode = format_for_telegram(GENERIC_ERROR_REPLY)
                 await message.answer(formatted, parse_mode=parse_mode)
             except Exception:  # noqa: BLE001
-                logger.exception("failed to send error reply to user")
+                logger.exception("не удалось отправить сообщение об ошибке пользователю")
         # True → исключение помечено как обработанное, polling продолжается.
         return True
 

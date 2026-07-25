@@ -114,6 +114,7 @@ def _wire_main_mocks(
 
     components = MagicMock()
     components.dialog_journal = None  # без recovery_task
+    components.scheduler = None  # без scheduler-блока
     monkeypatch.setattr(
         max_main_module, "_build_components", AsyncMock(return_value=components)
     )

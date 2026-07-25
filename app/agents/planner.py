@@ -64,7 +64,7 @@ class PlannerAgent:
     def _log_ok(user_id: int, model: str, started: float, *, steps_count: int) -> None:
         dur_ms = int((time.monotonic() - started) * 1000)
         logger.info(
-            "planner.ok service=planner user=%s model=%s dur_ms=%d steps=%d",
+            "planner: OK service=planner user=%s model=%s dur_ms=%d steps=%d",
             user_id,
             model,
             dur_ms,
@@ -93,7 +93,7 @@ class PlannerAgent:
         if raw is not None:
             truncated = raw if len(raw) <= 500 else raw[:500] + "..."
         logger.warning(
-            "planner.fallback service=planner user=%s model=%s dur_ms=%d reason=%s raw=%r",
+            "planner: fallback service=planner user=%s model=%s dur_ms=%d reason=%s raw=%r",
             user_id,
             model,
             dur_ms,

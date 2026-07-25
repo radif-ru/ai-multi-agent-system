@@ -108,7 +108,7 @@ finally:
 | `SENTRY_ENVIRONMENT` | `dev` | Тег `event.environment`: `dev` / `staging` / `prod`. |
 | `SENTRY_TRACES_SAMPLE_RATE` | `0.1` | Доля запросов с performance-трассировкой (вкладка **Performance**). `0.0` = выключено, `1.0` = все запросы. По умолчанию `0.1` (10%) — баланс между видимостью и нагрузкой. |
 | `SENTRY_EVENT_LEVEL` | `ERROR` | Минимальный уровень логов, которые уезжают в GlitchTip как события **(Issues)** (`DEBUG` \| `INFO` \| `WARNING` \| `ERROR` \| `CRITICAL`). По умолчанию `ERROR` — только ошибки и исключения создают Issues. |
-| `SENTRY_LOG_LEVEL` | `INFO` | Минимальный уровень логов для **Logs API** и breadcrumbs (`DEBUG` \| `INFO` \| `WARNING` \| `ERROR` \| `CRITICAL`). `DEBUG` включает отладочные логи в Logs — удобно для troubleshooting. |
+| `SENTRY_LOG_LEVEL` | `DEBUG` | Минимальный уровень логов для **Logs API** и breadcrumbs (`DEBUG` \| `INFO` \| `WARNING` \| `ERROR` \| `CRITICAL`). `DEBUG` — отладочные логи в Logs (удобно для dev/troubleshooting). В prod рекомендуется `INFO`. |
 | `SENTRY_ENABLE_LOGS` | `true` | Отправлять логи в GlitchTip **Logs** (отдельная вкладка, не Issues). Требует `sentry-sdk` >= 2.0 и GlitchTip с поддержкой Logs API. `false` = отключить (ошибки всё равно идут в Issues). |
 
 Глобальные флаги `send_default_pii=False`, `auto_session_tracking=False` (GlitchTip не поддерживает sessions) и хук `before_send` (см. ниже) — зашиты в код, не конфигурируются.
@@ -126,11 +126,11 @@ finally:
 
 **Разделение Logs vs Issues:**
 
-- **Logs** (`enable_logs=True`, `SENTRY_LOG_LEVEL`): информационные логи уровня `SENTRY_LOG_LEVEL` (по умолчанию `INFO`) и выше направляются во вкладку **Logs** через Sentry Logs API. Не создают Issues. Управляется флагом `SENTRY_ENABLE_LOGS`. `SENTRY_LOG_LEVEL=DEBUG` включает отладочные логи.
+- **Logs** (`enable_logs=True`, `SENTRY_LOG_LEVEL`): информационные логи уровня `SENTRY_LOG_LEVEL` (по умолчанию `DEBUG` для dev) и выше направляются во вкладку **Logs** через Sentry Logs API. Не создают Issues. Управляется флагом `SENTRY_ENABLE_LOGS`. В prod рекомендуется `SENTRY_LOG_LEVEL=INFO`.
 - **Issues** (`LoggingIntegration`, `SENTRY_EVENT_LEVEL`): логи уровня `SENTRY_EVENT_LEVEL` (по умолчанию `ERROR`) и выше создают события во вкладке **Issues**. Уровни ниже порога идут в breadcrumbs. `DEBUG` можно включить через `SENTRY_LOG_LEVEL=DEBUG` — он пойдёт в Logs и breadcrumbs, но не в Issues.
 - `auto_session_tracking=False` — GlitchTip не поддерживает sessions.
 
-> **Важно:** Issues — для ошибок и исключений. Logs — для информационных логов. При дефолтных настройках (`SENTRY_EVENT_LEVEL=ERROR`, `SENTRY_LOG_LEVEL=INFO`, `SENTRY_ENABLE_LOGS=true`) INFO/WARNING идут в Logs, ERROR+ — в Issues. Если нужно видеть WARNING в Issues — поднять `SENTRY_EVENT_LEVEL=WARNING`.
+> **Важно:** Issues — для ошибок и исключений. Logs — для информационных и отладочных логов. При дефолтных настройках (`SENTRY_EVENT_LEVEL=ERROR`, `SENTRY_LOG_LEVEL=DEBUG`, `SENTRY_ENABLE_LOGS=true`) DEBUG/INFO/WARNING идут в Logs, ERROR+ — в Issues. В prod рекомендуется `SENTRY_LOG_LEVEL=INFO`. Если нужно видеть WARNING в Issues — поднять `SENTRY_EVENT_LEVEL=WARNING`.
 
 ### Performance
 
@@ -138,13 +138,7 @@ finally:
 
 ### Crons
 
-`app/services/scheduler_runner.py::_cron_checkin` отправляет heartbeat в GlitchTip (вкладка **Crons**) через `sentry_sdk.crons.capture_checkin` при каждом запуске запланированной задачи:
-
-- `in_progress` — задача стартовала;
-- `ok` — задача завершена успешно (с duration);
-- `error` — задача завершилась с ошибкой (с duration).
-
-Monitor slug: `task-<task_id>`. Если Sentry не инициализирован (пустой `SENTRY_DSN`) — вызов no-op. Позволяет видеть пропуски и задержки cron-задач в GlitchTip UI.
+> **GlitchTip не поддерживает Sentry Crons API** (в отличие от облачного Sentry). Раздел Crons отсутствует в интерфейсе. Heartbeat запланированных задач логируется через стандартное логирование (`scheduler.run status=start/ok/error` с `dur_ms`) и попадает во вкладку **Logs** (или **Issues** при ошибке).
 
 ### Self-hosted GlitchTip: локальный запуск
 

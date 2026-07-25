@@ -21,7 +21,7 @@ class FakeSettings:
     agent_max_steps: int = 5
     agent_max_output_chars: int = 8000
     agent_max_context_chars: int = 8000
-    agent_max_repair_attempts: int = 2
+    agent_max_repair_attempts: int = 3
     ollama_default_model: str = "qwen3.5:4b"
 
 
@@ -109,7 +109,7 @@ async def test_final_on_first_step_no_tool_calls(caplog):
 
     assert result == "готово"
     assert tools.calls == []
-    assert any("step=1" in r.message and "kind=final" in r.message for r in caplog.records)
+    assert any("шаг=1" in r.message and "тип=final" in r.message for r in caplog.records)
 
 
 async def test_final_on_third_step_tools_called_twice(caplog):
@@ -136,11 +136,11 @@ async def test_final_on_third_step_tools_called_twice(caplog):
     assert second_call_msgs[-1]["content"] == "Observation: 2"
     assert second_call_msgs[-2]["role"] == "assistant"
 
-    # Логи: step=1, step=2 kind=action; step=3 kind=final.
+    # Логи: шаг=1, шаг=2 тип=action; шаг=3 тип=final.
     msgs = [r.message for r in caplog.records]
-    assert any("step=1" in m and "kind=action" in m for m in msgs)
-    assert any("step=2" in m and "kind=action" in m for m in msgs)
-    assert any("step=3" in m and "kind=final" in m for m in msgs)
+    assert any("шаг=1" in m and "тип=action" in m for m in msgs)
+    assert any("шаг=2" in m and "тип=action" in m for m in msgs)
+    assert any("шаг=3" in m and "тип=final" in m for m in msgs)
 
 
 async def test_tool_error_becomes_observation_and_loop_continues():
@@ -168,7 +168,7 @@ async def test_bad_json_raises_llm_bad_response(caplog):
         with pytest.raises(LLMBadResponse):
             await run_default(executor)
 
-    assert any("kind=parse_error" in r.message for r in caplog.records)
+    assert any("тип=parse_error" in r.message for r in caplog.records)
     assert len(llm.calls) == 1  # без переспроса
 
 
@@ -356,7 +356,7 @@ async def test_repair_exhausted_raises_without_leaking_thought(caplog):
             await run_default(executor)
 
     assert len(llm.calls) == 2  # переспросили один раз
-    assert any("kind=repair" in r.message for r in caplog.records)
+    assert any("тип=repair" in r.message for r in caplog.records)
 
 
 async def test_final_answer_sanitized():

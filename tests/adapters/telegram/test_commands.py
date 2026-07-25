@@ -177,6 +177,8 @@ async def test_help_includes_model_prompt_tools_skills() -> None:
     text = answer.await_args.args[0]
     # Команды
     assert "/model" in text and "/prompt" in text and "/reset" in text
+    assert "/mode" in text and "/search_engines" in text
+    assert "/schedule" in text and "/schedules" in text
     # Текущая модель — берётся из user_settings
     assert "llama3:8b" in text
     # Системный промпт (default)

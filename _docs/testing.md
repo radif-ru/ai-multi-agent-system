@@ -30,7 +30,7 @@ source = ["app"]
 omit = ["app/__main__.py", "app/main.py", "app/console/__init__.py", "app/console_main.py", "app/max_main.py"]
 ```
 
-Порог `--cov-fail-under=80` — жёсткий гейт: `pytest` падает при покрытии ниже 80%. Порог выставлен ниже фактического (~87%) с запасом на случай `skip` тестов `sqlite-vec` в CI; ужесточение — отдельной задачей.
+Порог `--cov-fail-under=80` — жёсткий гейт: `pytest` падает при покрытии ниже 80%. Порог выставлен ниже фактического (~88%) с запасом на случай `skip` тестов `sqlite-vec` в CI; ужесточение — отдельной задачей.
 
 Маркер `slow` запускается вместе с остальными тестами. При необходимости отключить — `pytest -m "not slow"`.
 
@@ -200,7 +200,8 @@ def fake_message(mocker):
 
 ## 5. Покрытие
 
-- Автоматический гейт (`--cov-fail-under=80`): общее покрытие пакета `app/` не ниже **80%** (фактическое — ~87%). Из покрытия исключены точки входа: `app/__main__.py`, `app/main.py`, `app/console/__init__.py`, `app/console_main.py`, `app/max_main.py` (см. `[tool.coverage.run] omit` в `pyproject.toml`).
+- Автоматический гейт (`--cov-fail-under=80`): общее покрытие пакета `app/` не ниже **80%** (фактическое — ~88%). Из покрытия исключены точки входа: `app/__main__.py`, `app/main.py`, `app/console/__init__.py`, `app/console_main.py`, `app/max_main.py` (см. `[tool.coverage.run] omit` в `pyproject.toml`).
+- **Динамический бейдж:** CI (`test.yml`) при пуше в `main` генерирует SVG-бейдж с фактическим процентом покрытия и пушит его в ветку `coverage-badge`. README ссылается на `raw.githubusercontent.com/.../coverage-badge/coverage.svg` — бейдж обновляется автоматически после merge в `main`, без ручного редактирования.
 - Ориентиры по критичным подпакетам: `services/`, `agents/`, `tools/` — **≥ 85%**.
 - Модуль `app/agents/protocol.py` (парсер JSON) — **100%** (мал, но критичен).
 
