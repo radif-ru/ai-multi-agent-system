@@ -455,6 +455,34 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - [ ] `_docs/observability.md`, `_docs/stack.md`, `_docs/current-state.md`, `README.md` — обновлены.
 - [ ] `check_env_sync`, `check_doc_links` зелёные.
 
+### Задача 6.5. fix(tools): read_document — подсказка ocr_image/describe_image для сканов + OCR по умолчанию
+
+- **Статус:** ToDo
+- **Приоритет:** high
+- **Объём:** S
+- **Зависит от:** —
+- **Связанные документы:** `_docs/tools.md` §4.9; `_docs/architecture.md` §6.5.
+- **Затрагиваемые файлы:** `app/config.py`, `app/tools/read_document.py`, `tests/tools/test_read_document.py`, `_docs/tools.md`, `_docs/architecture.md`.
+
+#### Описание
+
+Корневая причина: при PDF-скане без текста `read_document` возвращал `[PDF содержит N изображений. Текст не извлечён. Первая картинка: path]` без подсказки что делать дальше. Агент не понимал, что нужно вызвать `ocr_image` или `describe_image`, и галлюцинировал про `disk_download`.
+
+Два варианта для надёжности:
+
+1. **Дефолт `document_ocr_enabled` → `True`** — OCR в `read_document` работает из коробки, tesseract пытается распознать текст сам.
+2. **Подсказка в сообщении** — если OCR не справился, агент видит: `Подсказка: вызовите ocr_image с image_path=... или describe_image с image_path=...`.
+3. **Описание tool** обновлено — прямо говорит про fallback на `ocr_image`/`describe_image`.
+
+#### Definition of Done
+
+- [ ] `app/config.py` — `document_ocr_enabled` дефолт `False`→`True`.
+- [ ] `app/tools/read_document.py` — сообщение для сканов содержит подсказку `ocr_image`/`describe_image`.
+- [ ] `app/tools/read_document.py` — описание tool обновлено.
+- [ ] Тест на скан PDF с подсказкой `ocr_image`/`describe_image`.
+- [ ] `_docs/tools.md` §4.9, `_docs/architecture.md` §6.5 — обновлены.
+- [ ] `flake8` + `pytest` зелёные.
+
 ---
 
 ## 10. Риски и смягчение
@@ -483,11 +511,12 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 4.2 | Естественный парсер времени в cron | medium | M | Done | — |
 | 4.3 | Интеграция parse_cron в schedule_task | high | S | Done | 4.2 |
 | 5.1 | Демо скриншоты | low | S | ToDo | 1.1, 2.2, 3.1, 4.1 |
-| 5.2 | Актуализация _docs, roadmap, README + гейты | medium | M | ToDo | 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 4.3, 5.1 |
+| 5.2 | Актуализация _docs, roadmap, README + гейты | medium | M | ToDo | 1.1, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 4.3, 5.1, 6.5 |
 | 6.1 | fix(protocol): final_answer + thought — валидный финал | high | S | Done | — |
 | 6.2 | chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3 | medium | S | Done | — |
 | 6.3 | fix(tools): PDF с пустым паролем + GlitchTip Crons правка | medium | S | Done | — |
 | 6.4 | chore(observability): SENTRY_LOG_LEVEL дефолт INFO→DEBUG | low | S | Done | — |
+| 6.5 | fix(tools): read_document — подсказка ocr_image/describe_image для сканов + OCR по умолчанию | high | S | ToDo | — |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
@@ -508,3 +537,4 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-25** — задача 6.4 начата: `SENTRY_LOG_LEVEL` дефолт INFO→DEBUG для dev среды.
 - **2026-07-25** — задача 6.4 закрыта: дефолт `SENTRY_LOG_LEVEL` INFO→DEBUG, `.env.example`, `app/config.py`, `_docs/observability.md`, `_docs/stack.md`, `_docs/current-state.md`, `README.md` обновлены, `check_env_sync` + `check_doc_links` зелёные.
 - **2026-07-25** — задача 4.3 закрыта: `ScheduleTaskTool` принимает `schedule_text`, вызывает `parse_cron` (детерминированный парсер), fallback на `cron` от LLM. Скилл `scheduler` обновлён. 4 новых теста. Документация обновлена.
+- **2026-07-25** — задача 6.5 добавлена: `read_document` — подсказка `ocr_image`/`describe_image` для сканов PDF + OCR по умолчанию. Баг: агент галлюцинировал про `disk_download` вместо вызова OCR/vision.
