@@ -1,7 +1,7 @@
 # ai-multi-agent-system
 
 [![tests](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml/badge.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
-[![coverage 88%](https://img.shields.io/badge/coverage-88%25-brightgreen.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
+[![coverage](https://raw.githubusercontent.com/radif-ru/ai-multi-agent-system/coverage-badge/coverage.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
 [![flake8](https://img.shields.io/badge/flake8-passing-brightgreen.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
 [![Python 3.14](https://img.shields.io/badge/python-3.14-blue.svg)](https://www.python.org/downloads/)
 [![Ollama](https://img.shields.io/badge/LLM-Ollama-black.svg)](https://ollama.com)
@@ -12,6 +12,8 @@
 [![last commit](https://img.shields.io/github/last-commit/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/commits)
 [![repo size](https://img.shields.io/github/repo-size/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system)
 [![issues](https://img.shields.io/github/issues/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/issues)
+
+> **Бейджи — живые:** `tests` (статус CI), `coverage` (динамический SVG из ветки `coverage-badge`, обновляется CI при пуше в `main`), `last commit`, `repo size`, `issues` (через shields.io API). Стек-бейджи (`Python`, `Ollama`, `aiogram`, `APScheduler`, `sqlite-vec`, `flake8`, `License`) — статичные.
 
 **Локальная мульти-агентная система** на self-hosted LLM через [Ollama](https://ollama.com). Принимает задачу от пользователя и **выполняет цикл `thought → action → observation`** до финального ответа: думает, выбирает инструмент, наблюдает результат, повторяет. Ответ модели в цикле — строго JSON (`{"thought", "action", "args"}` либо `{"final_answer"}`).
 
