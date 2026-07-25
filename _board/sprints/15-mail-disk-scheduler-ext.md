@@ -408,6 +408,25 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - [ ] `_docs/observability.md` — правка про GlitchTip Crons.
 - [ ] `flake8` зелёный.
 
+### Задача 6.4. chore(observability): SENTRY_LOG_LEVEL дефолт INFO→DEBUG
+
+- **Статус:** Progress
+- **Приоритет:** low
+- **Объём:** S
+- **Зависит от:** —
+- **Связанные документы:** `_docs/observability.md` §5; `_docs/stack.md`; `_docs/current-state.md` §1.7.
+- **Затрагиваемые файлы:** `.env.example`, `app/config.py`, `_docs/observability.md`, `_docs/stack.md`, `_docs/current-state.md`, `README.md`.
+
+#### Описание
+
+Дефолт `SENTRY_LOG_LEVEL` изменён с `INFO` на `DEBUG` для dev среды — отладочные логи видны во вкладке Logs. В prod рекомендуется `INFO`. Обновить все упоминания дефолта в документации.
+
+#### Definition of Done
+
+- [ ] `.env.example`, `app/config.py` — дефолт `DEBUG`.
+- [ ] `_docs/observability.md`, `_docs/stack.md`, `_docs/current-state.md`, `README.md` — обновлены.
+- [ ] `check_env_sync`, `check_doc_links` зелёные.
+
 ---
 
 ## 10. Риски и смягчение
@@ -439,6 +458,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 6.1 | fix(protocol): final_answer + thought — валидный финал | high | S | Done | — |
 | 6.2 | chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3 | medium | S | Done | — |
 | 6.3 | fix(tools): PDF с пустым паролем + GlitchTip Crons правка | medium | S | Done | — |
+| 6.4 | chore(observability): SENTRY_LOG_LEVEL дефолт INFO→DEBUG | low | S | Progress | — |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
@@ -456,3 +476,4 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-25** — задача 6.1 закрыта: `parse_agent_response` принимает `final_answer` + `thought` как финал, пустой `final_answer` + action — шаг с действием, 3 новых теста.
 - **2026-07-25** — задача 6.2 закрыта: `AGENT_MAX_REPAIR_ATTEMPTS` дефолт 2→3, `.env.example`, `_docs/stack.md`, `_docs/agent-loop.md`, 5 тестов обновлены.
 - **2026-07-25** — задача 6.3 закрыта: `read_document.py` — `reader.decrypt("")` для зашифрованных PDF, `cryptography` в `requirements.txt`, `_docs/observability.md` — правка GlitchTip Crons.
+- **2026-07-25** — задача 6.4 начата: `SENTRY_LOG_LEVEL` дефолт INFO→DEBUG для dev среды.
