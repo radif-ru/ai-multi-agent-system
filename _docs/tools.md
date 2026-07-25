@@ -250,10 +250,10 @@ class ToolRegistry:
 
 ### 4.16 `schedule_task`
 
-- **Описание:** Поставить повторяющуюся задачу по cron-расписанию (планировщик, см. `scheduler.md`). Prompt исполнится агентом при каждом срабатывании, результат придёт в Telegram.
+- **Описание:** Поставить повторяющуюся задачу по cron-расписанию (планировщик, см. `scheduler.md`). Prompt исполнится агентом при каждом срабатывании, результат придёт через notifier канала задачи (Telegram, консоль или MAX).
 - **Args:** `{"prompt": "<что делать при срабатывании>", "schedule_text": "<расписание на естественном языке, optional>", "cron": "<5-польный cron, fallback>", "timezone": "<IANA tz, optional>"}`.
 - **Return:** подтверждение с человекочитаемым описанием расписания и `task_id`.
-- **Реализация:** если передан `schedule_text` — вызывается `parse_cron` (детерминированный парсер естественного языка → cron); если не распознан — fallback на `cron` от LLM. Валидация cron через `SchedulerService.validate_cron` (`CronTrigger.from_crontab`); проверка лимита `count_by_user < SCHEDULER_MAX_JOBS_PER_USER`; `sanitize_user_input(prompt)`; создание `ScheduledTask` (uuid4 id, `channel="telegram"`, `chat_id`/`user_id` из `ctx`); `ctx.scheduler.add_task(task)`.
+- **Реализация:** если передан `schedule_text` — вызывается `parse_cron` (детерминированный парсер естественного языка → cron); если не распознан — fallback на `cron` от LLM. Валидация cron через `SchedulerService.validate_cron` (`CronTrigger.from_crontab`); проверка лимита `count_by_user < SCHEDULER_MAX_JOBS_PER_USER`; `sanitize_user_input(prompt)`; создание `ScheduledTask` (uuid4 id, `channel=ctx.channel or "telegram"`, `chat_id`/`user_id` из `ctx`); `ctx.scheduler.add_task(task)`.
 - **Ошибки:** невалидный cron → `ToolError`; превышение лимита задач → `ToolError` с человекочитаемым текстом; планировщик недоступен → `ToolError`.
 
 ### 4.17 `list_scheduled_tasks`

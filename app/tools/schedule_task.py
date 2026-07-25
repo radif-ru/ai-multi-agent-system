@@ -91,7 +91,7 @@ class ScheduleTaskTool(Tool):
             id=new_task_id(),
             user_id=ctx.user_id,
             chat_id=ctx.chat_id,
-            channel="telegram",
+            channel=ctx.channel or "telegram",
             prompt=sanitized,
             cron=cron,
             timezone=timezone,
