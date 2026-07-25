@@ -410,7 +410,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 
 ### Задача 6.4. chore(observability): SENTRY_LOG_LEVEL дефолт INFO→DEBUG
 
-- **Статус:** Progress
+- **Статус:** Done
 - **Приоритет:** low
 - **Объём:** S
 - **Зависит от:** —
@@ -458,7 +458,7 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 | 6.1 | fix(protocol): final_answer + thought — валидный финал | high | S | Done | — |
 | 6.2 | chore(config): AGENT_MAX_REPAIR_ATTEMPTS 2→3 | medium | S | Done | — |
 | 6.3 | fix(tools): PDF с пустым паролем + GlitchTip Crons правка | medium | S | Done | — |
-| 6.4 | chore(observability): SENTRY_LOG_LEVEL дефолт INFO→DEBUG | low | S | Progress | — |
+| 6.4 | chore(observability): SENTRY_LOG_LEVEL дефолт INFO→DEBUG | low | S | Done | — |
 
 > Обновляется при каждом переходе статуса и при добавлении/удалении задач.
 
@@ -477,3 +477,4 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-25** — задача 6.2 закрыта: `AGENT_MAX_REPAIR_ATTEMPTS` дефолт 2→3, `.env.example`, `_docs/stack.md`, `_docs/agent-loop.md`, 5 тестов обновлены.
 - **2026-07-25** — задача 6.3 закрыта: `read_document.py` — `reader.decrypt("")` для зашифрованных PDF, `cryptography` в `requirements.txt`, `_docs/observability.md` — правка GlitchTip Crons.
 - **2026-07-25** — задача 6.4 начата: `SENTRY_LOG_LEVEL` дефолт INFO→DEBUG для dev среды.
+- **2026-07-25** — задача 6.4 закрыта: дефолт `SENTRY_LOG_LEVEL` INFO→DEBUG, `.env.example`, `app/config.py`, `_docs/observability.md`, `_docs/stack.md`, `_docs/current-state.md`, `README.md` обновлены, `check_env_sync` + `check_doc_links` зелёные.
