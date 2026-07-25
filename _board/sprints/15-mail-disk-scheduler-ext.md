@@ -3,7 +3,7 @@
 - **Источник:** ТЗ пользователя (чтение вложений email + доставка планировщика в console/MAX + черновики писем + upload на Диск + bot-команды /schedule + парсер времени + демо скриншоты) + `_docs/roadmap.md` Этап 16 (почта/диск добор) + Этап 18 (расширения планировщика) + `_docs/current-state.md` §1.9/§1.10.
 - **Ветка:** `feature/15-mail-disk-scheduler-ext` (от `main`; см. `_board/process.md` §2, п.2).
 - **Открыт:** 2026-07-24
-- **Закрыт:** —
+- **Закрыт:** 2026-07-25
 
 ## 1. Цель спринта
 
@@ -41,16 +41,16 @@
 
 ## 3. Acceptance Criteria спринта
 
-- [ ] `email_read` возвращает `attachments` с `file_id`; модель читает вложения через `read_document`.
-- [ ] Скилл `email_draft` генерирует черновик ответа на письмо по контексту.
-- [ ] `disk_upload` загружает файлы на Яндекс.Диск.
-- [ ] Crons API убран; heartbeat-логирование вместо него.
-- [ ] Планировщик доставляет результаты в console и MAX (не только Telegram).
-- [ ] Bot-команды `/schedule` / `/schedules` работают как альтернатива tools.
-- [ ] Парсер времени преобразует «каждый день в 9 утра» → `0 9 * * *` без LLM.
-- [ ] Демо скриншоты добавлены в README.
-- [ ] Документация актуализирована, все CI-гейты зелёные: `flake8`, `pytest -q` c `--cov-fail-under=80`, `check_env_sync`, `check_sprint_sync`, `check_doc_links`, `check_agents_sync`.
-- [ ] Все задачи спринта — `Done`, сводная таблица актуальна.
+- [x] `email_read` возвращает `attachments` с `file_id`; модель читает вложения через `read_document`.
+- [x] Скилл `email_draft` генерирует черновик ответа на письмо по контексту.
+- [x] `disk_upload` загружает файлы на Яндекс.Диск.
+- [x] Crons API убран; heartbeat-логирование вместо него.
+- [x] Планировщик доставляет результаты в console и MAX (не только Telegram).
+- [x] Bot-команды `/schedule` / `/schedules` работают как альтернатива tools.
+- [x] Парсер времени преобразует «каждый день в 9 утра» → `0 9 * * *` без LLM.
+- [x] Демо скриншоты добавлены в README.
+- [x] Документация актуализирована, все CI-гейты зелёные: `flake8`, `pytest -q` c `--cov-fail-under=80`, `check_env_sync`, `check_sprint_sync`, `check_doc_links`, `check_agents_sync`.
+- [x] Все задачи спринта — `Done`, сводная таблица актуальна.
 
 ---
 
@@ -568,3 +568,4 @@ GlitchTip не поддерживает Crons API (в отличие от Sentry
 - **2026-07-25** — задача 5.1 закрыта: 4 скриншота в `docs/screenshots/` (Telegram-1/2/3, GlitchTip), раздел «Демо» в README.md, `check_doc_links` зелёный.
 - **2026-07-25** — задача 5.2 начата: финальная актуализация документации.
 - **2026-07-25** — задача 5.2 закрыта: `current-state.md` §1.10 (multi-channel notifiers, cron_parser, bot-commands), `scheduler.md` (console/MAX notifiers), `skills.md` (скилл scheduler), `tools.md` §4.16 (multi-channel, ctx.channel), `README.md` (описания скриншотов), `schedule_task.py` (fix hardcoded channel). Гейты: flake8, pytest, check_doc_links, check_env_sync — зелёные.
+- **2026-07-25** — спринт закрыт: все 16 задач Done, AC отмечены, гейты зелёные.
