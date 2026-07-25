@@ -133,6 +133,9 @@ class ReadDocumentTool(Tool):
         """Извлечь текст и картинки из PDF через pypdf."""
         try:
             reader = PdfReader(path)
+            if reader.is_encrypted:
+                reader.decrypt("")
+                logger.info("PDF расшифрован (пустой пароль): %s", path)
             max_images = self._max_images
             logger.info(
                 "Чтение PDF: %s, страниц=%d, max_chars=%d, max_images=%d, ocr=%s",

@@ -138,13 +138,7 @@ finally:
 
 ### Crons
 
-`app/services/scheduler_runner.py::_cron_checkin` отправляет heartbeat в GlitchTip (вкладка **Crons**) через `sentry_sdk.crons.capture_checkin` при каждом запуске запланированной задачи:
-
-- `in_progress` — задача стартовала;
-- `ok` — задача завершена успешно (с duration);
-- `error` — задача завершилась с ошибкой (с duration).
-
-Monitor slug: `task-<task_id>`. Если Sentry не инициализирован (пустой `SENTRY_DSN`) — вызов no-op. Позволяет видеть пропуски и задержки cron-задач в GlitchTip UI.
+> **GlitchTip не поддерживает Sentry Crons API** (в отличие от облачного Sentry). Раздел Crons отсутствует в интерфейсе. Heartbeat запланированных задач логируется через стандартное логирование (`scheduler.run status=start/ok/error` с `dur_ms`) и попадает во вкладку **Logs** (или **Issues** при ошибке).
 
 ### Self-hosted GlitchTip: локальный запуск
 
