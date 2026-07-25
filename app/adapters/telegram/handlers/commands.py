@@ -23,6 +23,7 @@ from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 
 from app.commands import CommandContext, CommandRegistry
+from app.utils.text import split_long_message
 
 if TYPE_CHECKING:
     from app.config import Settings
@@ -33,6 +34,14 @@ if TYPE_CHECKING:
     from app.services.prompts import PromptLoader
 
 logger = logging.getLogger(__name__)
+
+TELEGRAM_MAX_MESSAGE_LENGTH = 4096
+
+
+async def _send_reply(message: Message, text: str) -> None:
+    """Отправить текст, разбивая длинные сообщения по лимиту Telegram."""
+    for part in split_long_message(text, TELEGRAM_MAX_MESSAGE_LENGTH):
+        await message.answer(part)
 
 
 def build_command_handlers(
@@ -76,7 +85,7 @@ def build_command_handlers(
             users=users,
         )
         result = await registry.execute("start", ctx)
-        await message.answer(result.text)
+        await _send_reply(message, result.text)
 
     async def cmd_help(message: Message) -> None:
         user_id = _user_id(message)
@@ -94,7 +103,7 @@ def build_command_handlers(
             users=users,
         )
         result = await registry.execute("help", ctx)
-        await message.answer(result.text)
+        await _send_reply(message, result.text)
 
     async def cmd_models(message: Message) -> None:
         user_id = _user_id(message)
@@ -113,7 +122,7 @@ def build_command_handlers(
             llm=llm,
         )
         result = await registry.execute("models", ctx)
-        await message.answer(result.text)
+        await _send_reply(message, result.text)
 
     async def cmd_model(message: Message, command: CommandObject) -> None:
         user_id = _user_id(message)
@@ -133,7 +142,7 @@ def build_command_handlers(
         )
         arg = (command.args or "").strip()
         result = await registry.execute("model", ctx, args=arg)
-        await message.answer(result.text)
+        await _send_reply(message, result.text)
 
     async def cmd_search_engines(message: Message) -> None:
         user_id = _user_id(message)
@@ -151,7 +160,7 @@ def build_command_handlers(
             users=users,
         )
         result = await registry.execute("search_engines", ctx)
-        await message.answer(result.text)
+        await _send_reply(message, result.text)
 
     async def cmd_search_engine(message: Message, command: CommandObject) -> None:
         user_id = _user_id(message)
@@ -170,7 +179,7 @@ def build_command_handlers(
         )
         arg = (command.args or "").strip()
         result = await registry.execute("search_engine", ctx, args=arg)
-        await message.answer(result.text)
+        await _send_reply(message, result.text)
 
     async def cmd_mode(message: Message, command: CommandObject) -> None:
         user_id = _user_id(message)
@@ -189,7 +198,7 @@ def build_command_handlers(
         )
         arg = (command.args or "").strip()
         result = await registry.execute("mode", ctx, args=arg)
-        await message.answer(result.text)
+        await _send_reply(message, result.text)
 
     async def cmd_prompt(message: Message, command: CommandObject) -> None:
         user_id = _user_id(message)
@@ -208,7 +217,7 @@ def build_command_handlers(
         )
         arg = (command.args or "").strip()
         result = await registry.execute("prompt", ctx, args=arg)
-        await message.answer(result.text)
+        await _send_reply(message, result.text)
 
     async def cmd_new(message: Message) -> None:
         user_id = _user_id(message)
@@ -262,7 +271,7 @@ def build_command_handlers(
             except Exception:  # noqa: BLE001
                 pass  # Игнорируем ошибки удаления
 
-        await message.answer(result.text)
+        await _send_reply(message, result.text)
 
     async def cmd_reset(message: Message) -> None:
         user_id = _user_id(message)
@@ -281,7 +290,7 @@ def build_command_handlers(
             journal=journal,
         )
         result = await registry.execute("reset", ctx)
-        await message.answer(result.text)
+        await _send_reply(message, result.text)
 
     async def cmd_schedule(message: Message, command: CommandObject) -> None:
         user_id = _user_id(message)
@@ -302,7 +311,7 @@ def build_command_handlers(
         )
         arg = (command.args or "").strip()
         result = await registry.execute("schedule", ctx, args=arg)
-        await message.answer(result.text)
+        await _send_reply(message, result.text)
 
     async def cmd_schedules(message: Message) -> None:
         user_id = _user_id(message)
@@ -322,7 +331,7 @@ def build_command_handlers(
             scheduler=scheduler,
         )
         result = await registry.execute("schedules", ctx)
-        await message.answer(result.text)
+        await _send_reply(message, result.text)
 
     return {
         "start": cmd_start,
