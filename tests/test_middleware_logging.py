@@ -39,10 +39,10 @@ async def test_logs_ok_status_and_returns_handler_result(
     handler.assert_awaited_once_with(event, {})
     log_lines = [r.message for r in caplog.records]
     assert any(
-        "update:" in line
+        "update " in line
         and "user=42" in line
         and "chat=777" in line
-        and "статус=ok" in line
+        and "status=ok" in line
         for line in log_lines
     )
 
@@ -60,7 +60,7 @@ async def test_logs_error_status_and_propagates_exception(
             await middleware(handler, event, {})
 
     log_lines = [r.message for r in caplog.records]
-    assert any("статус=error" in line for line in log_lines)
+    assert any("status=error" in line for line in log_lines)
 
 
 @pytest.mark.asyncio

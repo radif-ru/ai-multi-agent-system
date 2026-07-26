@@ -107,7 +107,7 @@ async def _run_inner(
     )
     model = deps.user_settings.get_model(task.user_id)
     start = time.monotonic()
-    logger.info("scheduler: запуск task=%s", task.id)
+    logger.info("scheduler.run status=start task=%s", task.id)
     try:
         reply = await handle_user_task(
             goal,
@@ -126,20 +126,26 @@ async def _run_inner(
         )
     except LLMTimeout:
         dur = time.monotonic() - start
-        logger.warning("scheduler: ошибка task=%s, причина=llm_timeout dur_ms=%d", task.id, int(dur * 1000))
+        logger.warning(
+            "scheduler.run status=error task=%s reason=llm_timeout dur_ms=%d",
+            task.id, int(dur * 1000),
+        )
         await deps.store.mark_run(task.id, status="error", when=_now_iso())
         await _deliver(notifier, task.chat_id, _format_result(task, LLM_TIMEOUT_REPLY))
         return
     except LLMUnavailable:
         dur = time.monotonic() - start
-        logger.error("scheduler: ошибка task=%s, причина=llm_unavailable dur_ms=%d", task.id, int(dur * 1000))
+        logger.error(
+            "scheduler.run status=error task=%s reason=llm_unavailable dur_ms=%d",
+            task.id, int(dur * 1000),
+        )
         await deps.store.mark_run(task.id, status="error", when=_now_iso())
         await _deliver(notifier, task.chat_id, _format_result(task, LLM_UNAVAILABLE_REPLY))
         return
     except LLMBadResponse as exc:
         dur = time.monotonic() - start
         logger.warning(
-            "scheduler: ошибка task=%s, причина=llm_bad_response err=%s dur_ms=%d",
+            "scheduler.run status=error task=%s reason=llm_bad_response err=%s dur_ms=%d",
             task.id, exc, int(dur * 1000),
         )
         await deps.store.mark_run(task.id, status="error", when=_now_iso())
@@ -147,14 +153,14 @@ async def _run_inner(
         return
     except Exception:  # noqa: BLE001
         dur = time.monotonic() - start
-        logger.exception("scheduler: ошибка task=%s dur_ms=%d", task.id, int(dur * 1000))
+        logger.exception("scheduler.run status=error task=%s dur_ms=%d", task.id, int(dur * 1000))
         await deps.store.mark_run(task.id, status="error", when=_now_iso())
         await _deliver(notifier, task.chat_id, _format_result(task, GENERIC_ERROR_REPLY))
         return
 
     dur_ms = int((time.monotonic() - start) * 1000)
     await deps.store.mark_run(task.id, status="ok", when=_now_iso())
-    logger.info("scheduler: выполнено task=%s dur_ms=%d", task.id, dur_ms)
+    logger.info("scheduler.run status=ok task=%s dur_ms=%d", task.id, dur_ms)
     await _deliver(notifier, task.chat_id, _format_result(task, reply))
 
 

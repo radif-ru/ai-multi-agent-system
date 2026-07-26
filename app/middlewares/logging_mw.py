@@ -60,7 +60,7 @@ class LoggingMiddleware(BaseMiddleware):
         finally:
             dur_ms = int((time.monotonic() - started) * 1000)
             logger.info(
-                "update: user=%s chat=%s type=%s dur_ms=%d статус=%s",
+                "update user=%s chat=%s type=%s dur_ms=%d status=%s",
                 user_id,
                 chat_id,
                 type(event).__name__,

@@ -86,7 +86,7 @@ async def handle_user_task(
     mode = _resolve_mode(user_id, settings=settings, user_settings=user_settings)
     if mode == "OFF" or planner is None or critic is None:
         logger.info(
-            "orchestrator: режим=OFF user=%s",
+            "orchestrator.mode mode=OFF user=%s",
             user_id,
             extra={"service": "orchestrator", "mode": "OFF", "user_id": user_id},
         )
@@ -100,7 +100,7 @@ async def handle_user_task(
         )
 
     logger.info(
-        "orchestrator: режим=%s user=%s",
+        "orchestrator.mode mode=%s user=%s",
         mode,
         user_id,
         extra={"service": "orchestrator", "mode": mode, "user_id": user_id},
@@ -110,7 +110,7 @@ async def handle_user_task(
         plan = await planner.plan(text, user_id=user_id, model=model)
     except Exception as exc:  # noqa: BLE001
         logger.warning(
-            "orchestrator: planner_fallback user=%s err=%s",
+            "orchestrator.planner_fallback user=%s err=%s",
             user_id, exc,
             extra={"service": "orchestrator", "user_id": user_id},
         )
@@ -123,7 +123,7 @@ async def handle_user_task(
             history=history,
         )
     logger.info(
-        "orchestrator: planner_ok user=%s steps=%d",
+        "orchestrator.planner_ok user=%s steps=%d",
         user_id,
         len(plan.steps),
         extra={
@@ -152,14 +152,14 @@ async def handle_user_task(
             verdict = await critic.review(text, plan, draft, user_id=user_id, model=model)
         except Exception as exc:  # noqa: BLE001
             logger.warning(
-                "orchestrator: critic_error user=%s iter=%d err=%s",
+                "orchestrator.critic_error user=%s iter=%d err=%s",
                 user_id, iteration, exc,
                 extra={"service": "orchestrator", "user_id": user_id, "iteration": iteration},
             )
             return draft
 
         logger.info(
-            "orchestrator: итерация user=%s iter=%d verdict=%s",
+            "orchestrator.iteration user=%s iter=%d verdict=%s",
             user_id, iteration, verdict.verdict,
             extra={
                 "service": "orchestrator",
@@ -189,7 +189,7 @@ async def handle_user_task(
             )
         except Exception as exc:  # noqa: BLE001
             logger.warning(
-                "orchestrator: revise_error user=%s iter=%d err=%s",
+                "orchestrator.revise_error user=%s iter=%d err=%s",
                 user_id, iteration, exc,
                 extra={"service": "orchestrator", "user_id": user_id, "iteration": iteration},
             )

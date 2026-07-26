@@ -90,7 +90,7 @@ async def test_execute_success_logs_status_ok(ctx, caplog):
         out = await reg.execute("echo", {"text": "hi"}, ctx)
     assert out == "hi"
     assert any(
-        "tool=echo" in r.message and "статус=ok" in r.message
+        "tool=echo" in r.message and "status=ok" in r.message
         for r in caplog.records
     )
 
@@ -101,7 +101,7 @@ async def test_execute_tool_error_propagates_and_logs_error(ctx, caplog):
         with pytest.raises(ToolError):
             await reg.execute("boom", {}, ctx)
     assert any(
-        "tool=boom" in r.message and "статус=error" in r.message
+        "tool=boom" in r.message and "status=error" in r.message
         for r in caplog.records
     )
 
