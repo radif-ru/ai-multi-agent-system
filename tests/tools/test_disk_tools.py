@@ -1,4 +1,4 @@
-"""Тесты tools `disk_list` и `disk_download` (Яндекс.Диск, read-only)."""
+"""Тесты tools `disk_list`, `disk_download` и `disk_upload` (Яндекс.Диск)."""
 
 from __future__ import annotations
 
@@ -12,8 +12,10 @@ from app.security import clear_global_mapper, get_global_mapper
 from app.services.yandex_disk import DiskAuthError, DiskNotConfigured
 from app.tools import disk_download as disk_download_mod
 from app.tools import disk_list as disk_list_mod
+from app.tools import disk_upload as disk_upload_mod
 from app.tools.disk_download import DiskDownloadTool
 from app.tools.disk_list import DiskListTool
+from app.tools.disk_upload import DiskUploadTool
 from app.tools.errors import ToolError
 
 
@@ -44,6 +46,13 @@ class _FakeReader:
         dest = dest_dir / Path(path).name
         dest.write_bytes(b"data")
         return dest
+
+    async def upload(self, local_path, disk_path):
+        if self._exc:
+            raise self._exc
+        if self._saved is not None:
+            self._saved.append((Path(local_path), disk_path))
+        return disk_path
 
 
 # --- disk_list -------------------------------------------------------------
@@ -106,3 +115,78 @@ async def test_disk_download_auth_error(monkeypatch, tmp_path):
     )
     with pytest.raises(ToolError, match="токен"):
         await DiskDownloadTool().run({"path": "disk:/x"}, _ctx(tmp_path))
+
+
+# --- disk_upload -----------------------------------------------------------
+
+
+def _registered_file(tmp_path) -> tuple[str, Path]:
+    """Создать локальный файл и выдать его `file_id` через глобальный маппер."""
+    local = tmp_path / "report.pdf"
+    local.write_bytes(b"data")
+    return get_global_mapper().generate_id(local), local
+
+
+async def test_disk_upload_returns_path(monkeypatch, tmp_path):
+    saved: list[tuple[Path, str]] = []
+    monkeypatch.setattr(
+        disk_upload_mod, "YandexDiskReader",
+        lambda settings: _FakeReader(settings, saved=saved),
+    )
+    clear_global_mapper()
+    try:
+        file_id, local = _registered_file(tmp_path)
+        out = json.loads(
+            await DiskUploadTool().run(
+                {"file_id": file_id, "path": "/uploads/report.pdf"},
+                _ctx(tmp_path),
+            )
+        )
+        assert out["status"] == "ok"
+        assert out["path"] == "/uploads/report.pdf"
+        assert saved == [(local, "/uploads/report.pdf")]
+    finally:
+        clear_global_mapper()
+
+
+async def test_disk_upload_requires_path(tmp_path):
+    clear_global_mapper()
+    try:
+        file_id, _ = _registered_file(tmp_path)
+        with pytest.raises(ToolError, match="path обязателен"):
+            await DiskUploadTool().run(
+                {"file_id": file_id, "path": "  "}, _ctx(tmp_path)
+            )
+    finally:
+        clear_global_mapper()
+
+
+async def test_disk_upload_unknown_file_id(tmp_path):
+    clear_global_mapper()
+    try:
+        with pytest.raises(ToolError, match="Файл не найден"):
+            await DiskUploadTool().run(
+                {"file_id": "file_missing", "path": "/uploads/x.pdf"},
+                _ctx(tmp_path),
+            )
+    finally:
+        clear_global_mapper()
+
+
+async def test_disk_upload_disk_error(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        disk_upload_mod, "YandexDiskReader",
+        lambda settings: _FakeReader(
+            settings, exc=DiskAuthError("Яндекс.Диск отклонил токен")
+        ),
+    )
+    clear_global_mapper()
+    try:
+        file_id, _ = _registered_file(tmp_path)
+        with pytest.raises(ToolError, match="токен"):
+            await DiskUploadTool().run(
+                {"file_id": file_id, "path": "/uploads/report.pdf"},
+                _ctx(tmp_path),
+            )
+    finally:
+        clear_global_mapper()
