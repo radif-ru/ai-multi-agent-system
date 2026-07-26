@@ -10,12 +10,15 @@
 
 | ID | Название | Файл | Ветка | Статус | Открыт | Закрыт |
 |:--:|----------|------|-------|:------:|:------:|:------:|
-| 15 | Расширения почты, диска и планировщика | [`sprints/15-mail-disk-scheduler-ext.md`](./sprints/15-mail-disk-scheduler-ext.md) | `feature/15-mail-disk-scheduler-ext` | Active | 2026-07-24 | — |
+| —  | (нет активных спринтов) | — | — | — | — | — |
+
+> Пока активного спринта нет, мелкие правки идут через [`maintenance.md`](./maintenance.md) (см. [`process.md`](./process.md) §13).
 
 ### Закрытые
 
 | ID | Название | Файл | Ветка | Статус | Открыт | Закрыт |
 |:--:|----------|------|-------|:------:|:------:|:------:|
+| 15 | Расширения почты, диска и планировщика | [`sprints/15-mail-disk-scheduler-ext.md`](./sprints/15-mail-disk-scheduler-ext.md) | `feature/15-mail-disk-scheduler-ext` | Closed | 2026-07-24 | 2026-07-25 |
 | 14 | Планировщик задач, логи в GlitchTip и качество RAG | [`sprints/14-scheduler-logs-rag.md`](./sprints/14-scheduler-logs-rag.md) | `feature/14-scheduler-logs-rag` | Closed | 2026-07-10 | 2026-07-21 |
 | 12 | Качество, безопасность и процессы | [`sprints/12-quality-security-process.md`](./sprints/12-quality-security-process.md) | `feature/12-quality-security-process` | Closed | 2026-06-29 | 2026-06-29 |
 | 13 | Интеграции почты и диска, скиллы со скриптами | [`sprints/13-mail-disk-skills.md`](./sprints/13-mail-disk-skills.md) | `feature/13-mail-disk-skills` | Closed | 2026-07-08 | 2026-07-09 |
@@ -67,6 +70,7 @@
 
 - [`process.md`](./process.md) — правила работы со спринтами и задачами, легенды, шаблоны, пошаговый алгоритм.
 - [`sprints/`](./sprints/) — файлы спринтов.
+- [`maintenance.md`](./maintenance.md) — журнал внеспринтовой работы (хотфиксы, правки по итогам аудита).
 - [`_docs/instructions.md`](../_docs/instructions.md) — правила разработки (git-дисциплина, стиль, тесты, flake8).
 - [`_docs/roadmap.md`](../_docs/roadmap.md) — что планируется (Planned/Backlog), источник кандидатов на новые спринты.
 - [`_docs/current-state.md`](../_docs/current-state.md) — фактическое состояние кода `app/`, баги/легаси, нюансы.
