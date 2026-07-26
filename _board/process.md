@@ -420,7 +420,7 @@ pytest --cov=app --cov-report=term-missing     # покрытие (если ус
 
 | Скрипт | Что проверяет | Когда запускать |
 |--------|---------------|-----------------|
-| `python3 scripts/check_sprint_sync.py` | Статусы задач в файле спринта совпадают со счётчиками в `plan.md`. | После каждого перехода статуса задачи. |
+| `python3 scripts/check_sprint_sync.py` | Статусы задач в файле спринта ↔ счётчики в `plan.md`; согласованность индекса спринтов и сводной таблицы (§9 п.4); отмеченные чекбоксы DoD у задач `Done` активного спринта (§7.9). | После каждого перехода статуса задачи и при закрытии спринта. |
 | `python3 scripts/check_env_sync.py` | `.env.example` и `Settings` синхронизированы. | После изменения настроек. |
 | `python3 scripts/check_doc_links.py` | Внутренние ссылки в `_docs/`, `_board/`, `README.md` живые. | После правок документации. |
 | `python3 .agents/skills/skill-authoring/scripts/check_agents_sync.py` | Формат скиллов/промптов и зеркала (symlink'и, упоминания в `AGENTS.md` и README). | После правок `.agents/`. |
