@@ -398,7 +398,7 @@ class Executor:
 
 ### 8.6 Доставка планировщика в новый канал (notifier)
 
-Планировщик (`_docs/scheduler.md`) доставляет результат cron-задачи через **notifier** — callable `(chat_id, text) -> Awaitable[None]`, внедряемый в `main()`. Для MVP реализован только `make_telegram_notifier` (`app/services/scheduler_runner.py`). Чтобы доставлять в console/MAX: добавить notifier для канала и выбирать его по `ScheduledTask.channel`. Ядро (`run_scheduled_task`, `handle_user_task`) при этом **не меняется** — точка изоляции та же, что у адаптеров (§8.4). Отложено в `_docs/roadmap.md` Этап 18.
+Планировщик (`_docs/scheduler.md`) доставляет результат cron-задачи через **notifier** — callable `(chat_id, text) -> Awaitable[None]`, внедряемый в `main()`. Реализованы `make_telegram_notifier`, `make_console_notifier` и `make_max_notifier` (`app/services/scheduler_runner.py`); канал выбирается по `ScheduledTask.channel`. Чтобы добавить новый канал: написать свой notifier и зарегистрировать его в точке входа канала. Ядро (`run_scheduled_task`, `handle_user_task`) при этом **не меняется** — точка изоляции та же, что у адаптеров (§8.4).
 
 ## 9. Конкурентность и производительность
 

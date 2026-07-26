@@ -101,10 +101,9 @@ CON-4 запрещает webhook в MVP, но это кандидат на от�
 После того, как `app/skills/` инфраструктура работает, наполняем библиотеку.
 
 - [ ] `web_research` — пошаговый рисёрч с гибридной стратегией (поиск → отбор источников → извлечение → синтез).
-- [x] `code_review` — обзор кода с критериями (скилл `code-review`, спринт 13).
-- [x] `russian_style` — корректировка под deliberate-стиль (без воды, конкретно) (скилл `humanizer`, спринт 13).
-- [x] `email_draft` — черновик ответа на письмо (скилл `email_draft`, спринт 15).
 - [ ] `summary_long_text`, `tutorial_step_by_step` и пр.
+
+Уже реализованные скиллы — `_docs/skills.md` §8 (список) и `_board/plan.md` (история по спринтам).
 
 ## Этап 9. Docker / docker-compose
 
@@ -178,12 +177,9 @@ Tool `context_explore` поверх существующего `Summarizer` — 
 
 **Статус:** Backlog. **Источник:** спринт 13 (read-only реализован, отложенное — сюда).
 
-Текущее состояние: read-only IMAP (`email_list` / `email_read` с вложениями) и download с Яндекс.Диска (`disk_list` / `disk_download`). Отложенные фичи:
+Текущее состояние: read-only IMAP (`email_list` / `email_read` с вложениями, чтение вложений через `read_document`), скилл `email_draft`, Яндекс.Диск на чтение и запись (`disk_list` / `disk_download` / `disk_upload`). Отложенные фичи:
 
-- [x] Чтение вложений писем через `read_document` (реализовано в спринте 14, задача 4.4).
 - [ ] Отправка писем (`email_send` — SMTP, Яндекс + Gmail).
-- [x] Черновики писем (`email_draft` — скилл для генерации черновика по контексту) (реализовано в спринте 15, задача 3.1).
-- [x] Upload на Яндекс.Диск (`disk_upload`) (реализовано в спринте 15, задача 3.2).
 - [ ] Google Диск (OAuth, `gdrive_list` / `gdrive_download` / `gdrive_upload`).
 
 ## Этап 17. TTL/cleanup долгосрочной памяти
@@ -196,13 +192,14 @@ Tool `context_explore` поверх существующего `Summarizer` — 
 - [ ] Фоновая задача (или при `/new`) удаляет чанки старше TTL из `memory_chunks` + `memory_vec`.
 - [ ] Логирование количества удалённых чанков.
 
-## Этап 18. Планировщик задач — расширения
+## Этап 18. Планировщик — отмена задачи из команды
 
-**Статус:** Backlog. **Источник:** спринт 14 (MVP планировщика реализован, non-goals — сюда).
+**Статус:** Backlog. **Источник:** аудит спринта 15 (задача 4.1 описывала `/schedules cancel <id>`, но реализованы только `/schedule` и `/schedules`).
 
-- [x] Доставка результата планировщика в **console** и **MAX** (сейчас только Telegram): channel-notifier по образцу `make_telegram_notifier` (`app/services/scheduler_runner.py`), выбор по `ScheduledTask.channel`.
-- [x] Bot-команды `/schedule` / `/schedules` как альтернатива/дополнение к natural-language tools.
-- [x] Естественный парсер времени в коде (`app/services/cron_parser.py`); нераспознанные паттерны — fallback на LLM по скиллу `scheduler`.
+Сейчас отменить задачу можно только через агента (tool `cancel_scheduled_task`) — детерминированного пути из команды нет.
+
+- [ ] `/schedules cancel <id>` — отмена своей задачи (scope по `user_id`, как в tool).
+- [ ] Понятный ответ при чужом / несуществующем `id`.
 
 ## Отказанные этапы
 
