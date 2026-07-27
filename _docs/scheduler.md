@@ -90,4 +90,4 @@ CronTrigger срабатывает
 - **Multi-channel доставка**: результат задания отправляется через notifier, соответствующий каналу задачи (`telegram` — `bot.send_message`, `console` — печать в stdout, `max` — `MaxClient.send_message`). Выбор notifier по `task.channel` в точке входа (`app/main.py`, `app/console_main.py`, `app/max_main.py`).
 - **Cron-only**: детерминированный парсер `cron_parser.py` покрывает базовые паттерны («каждый день в N», «по будням в N», «каждый час» и т.д.); нераспознанные паттерны — fallback на LLM по скиллу `scheduler`.
 - **MemoryJobStore**: jobs хранятся в памяти APScheduler, персистентность — только в sqlite-таблице. При рестарте jobs пересоздаются из store (rehydrate).
-- **Нет webhook-триггеров**: только cron. Webhook — через FastAPI-адаптер (Этап 6 roadmap).
+- **Нет webhook-триггеров**: только cron. Webhook — через FastAPI-адаптер (`_docs/roadmap.md` § «Webhook вместо polling (Telegram и MAX)»).

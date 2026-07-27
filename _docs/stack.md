@@ -34,7 +34,7 @@
 
 ### Почему не FAISS / Chroma
 
-См. `_docs/memory.md` §3.1 и решение в `_board/sprints/00-bootstrap.md` § «Решения по архитектуре».
+См. `_docs/memory.md` §3.1 и решение в `_board/sprints/00-bootstrap.md` § «Решения по архитектуре, принятые в этом спринте».
 
 ## 5. Веб-поиск
 
