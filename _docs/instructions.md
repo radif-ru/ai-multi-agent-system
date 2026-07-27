@@ -115,9 +115,11 @@
 
 Конфиг — в `.flake8` (`max-line-length = 120`, исключения `E203`, `W503`). Нарушения в **изменённых в текущей задаче файлах** — починить до коммита. Нарушения в нетронутых файлах — техдолг, закрываются отдельной задачей (§3; `_docs/current-state.md` §2).
 
+> Обе проверки (§8.2 и §8.3) вместе с остальными гейтами прогоняются одной командой `bash .agents/skills/git-discipline/scripts/preflight.sh` (`_board/process.md` §7.6) — отдельные запуски нужны только для точечной проверки по ходу работы.
+
 ### 8.4 CI (GitHub Actions)
 
-Workflow `.github/workflows/test.yml` автоматически прогоняет `flake8 app tests` и `pytest -q` на каждый `push` в любую ветку и на `pull_request` в `main`. Job — один: Python 3.14 на `ubuntu-latest`, кеш pip по `requirements.txt`, без матрицы версий и без секретов. Тесты на CI запускаются **без** реальных Ollama/Telegram/сети — все внешние клиенты замоканы, `sqlite-vec` поднимается на `tmp_path`.
+Workflow `.github/workflows/test.yml` на каждый `push` в любую ветку и на `pull_request` в `main` прогоняет тот же набор гейтов, что и локальный `preflight.sh` (артефакты из `.gitignore`, `flake8`, скрипты-гейты, `pytest` с порогом покрытия). Список гейтов — в `_board/process.md` §7.10, здесь не дублируется. Job — один: Python 3.14 на `ubuntu-latest`, кеш pip по `requirements.txt`, без матрицы версий и без секретов. Тесты на CI запускаются **без** реальных Ollama/Telegram/сети — все внешние клиенты замоканы, `sqlite-vec` поднимается на `tmp_path`.
 
 Контроль покрытия — часть CI: порог `--cov-fail-under` задан в `pyproject.toml` (`addopts`), поэтому `pytest -q` (и локально, и в CI) падает при покрытии `app/` ниже порога. Подробности и текущее значение порога — `testing.md` §2/§5.
 
