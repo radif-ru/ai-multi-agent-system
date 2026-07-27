@@ -9,6 +9,8 @@
    п.4) выполнен полностью.
 3. У задач активного спринта со статусом `Done` не осталось незакрытых
    чекбоксов Definition of Done (`process.md` §7.9).
+4. В статусе `Progress` — не более одной задачи на всей доске
+   (`process.md` §3 п.2).
 
 Закрытые спринты — архив (`process.md` §2 п.5), их DoD не проверяется.
 
@@ -178,6 +180,11 @@ def find_unchecked_dod(sprint_text: str) -> dict[str, int]:
     return unchecked
 
 
+def find_progress_tasks(statuses: dict[str, str]) -> list[str]:
+    """ID задач в статусе `Progress`."""
+    return sorted(task for task, status in statuses.items() if status == "Progress")
+
+
 def main() -> int:
     repo_root = Path(__file__).resolve().parent.parent
     plan_path = repo_root / "_board" / "plan.md"
@@ -191,6 +198,7 @@ def main() -> int:
     plan_counts = parse_plan_counts(plan_text)
     errors: list[str] = check_plan_tables(plan_text)
 
+    in_progress: list[str] = []
     for sprint_num, (plan_todo, plan_progress, plan_done) in sorted(
         plan_counts.items()
     ):
@@ -226,6 +234,16 @@ def main() -> int:
                 f"Спринт {sprint_num}, задача {task_id}: статус Done, но "
                 f"{count} чекбокс(ов) DoD не отмечены (process.md §7.9)"
             )
+
+        in_progress.extend(
+            f"{sprint_num}.{task_id}" for task_id in find_progress_tasks(statuses)
+        )
+
+    if len(in_progress) > 1:
+        errors.append(
+            "В Progress больше одной задачи на доске (process.md §3 п.2): "
+            + ", ".join(in_progress)
+        )
 
     if errors:
         print("ERROR: рассинхронизация доски:\n", file=sys.stderr)

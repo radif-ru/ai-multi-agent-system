@@ -76,7 +76,7 @@
 - ИИ оставляй для суждений (дизайн, рассуждения, неоднозначность), а не для механики, которую решает `grep`/скрипт/тест.
 - Зелёный гейт — источник истины: не дублируй его ИИ-проверкой, красный — чини, а не маскируй.
 
-Примеры в репозитории: `flake8`, `pytest` + порог покрытия, `scripts/check_env_sync.py`, `scripts/check_sprint_sync.py`, `scripts/check_doc_links.py` (`_docs/instructions.md` §13, скилл `automation-discipline`).
+Примеры в репозитории: `flake8`, `pytest` + порог покрытия, `scripts/check_env_sync.py`, `scripts/check_sprint_sync.py`, `scripts/check_doc_links.py`, гейт на артефакты из `.gitignore` — всё сразу через `preflight.sh`. Автоматизируются не только проверки, но и операции: ритуал перехода статуса задачи делает `python3 -m scripts.task start|done <NN>.<stage>.<task>` (`_docs/instructions.md` §13, скилл `automation-discipline`).
 
 ---
 
@@ -89,7 +89,7 @@
 `AGENTS.md` — **единая точка входа и источник истины** для всех AI-агентов проекта. Файлы `CLAUDE.md`, `GEMINI.md`, `QWEN.md`, `.github/copilot-instructions.md` — относительные symlink'и на этот файл; правила Cursor (`.cursor/rules/`) и Devin/Windsurf (`.devin/rules/`) на него ссылаются. Меняй правила **здесь** — изменения подхватят все агенты. Подробно про зеркалирование и добавление нового агента — `.agents/README.md`.
 
 - **Правила разработки** (git, стиль, async, ошибки, тесты, документация) — `_docs/instructions.md`.
-- **Процесс задач** (спринты, ритуал коммитов, DoD) — `_board/process.md`.
+- **Процесс задач** (спринты, ритуал коммитов, DoD) — `_board/process.md`; весь цикл задачи на одном экране — §0 «Шпаргалка (TL;DR)», остальные разделы — по ссылке из шага.
 - **Работа вне спринта** (хотфикс, правка по итогам аудита, когда активного спринта нет) — `_board/process.md` §12 и журнал `_board/maintenance.md`. «Безымянных» коммитов в обход доски быть не должно.
 - **Архитектура** — `_docs/architecture.md`.
 - **Целевая система** (бюджет ресурсов для решений/дефолтов) — RTX 5090, 24 ГБ VRAM, Core Ultra 9 275HX, Kingston FURY Renegade G5 4 ТБ (PCIe 5.0 x4); подробности и тюнинг под слабые системы — `README.md` § «Целевая система и тюнинг под неё».

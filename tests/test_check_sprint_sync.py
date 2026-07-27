@@ -5,6 +5,7 @@ from __future__ import annotations
 from scripts.check_sprint_sync import (
     check_plan_tables,
     count_statuses,
+    find_progress_tasks,
     find_unchecked_dod,
     parse_plan_counts,
     parse_plan_index,
@@ -143,3 +144,13 @@ def test_find_unchecked_dod_ignores_open_tasks_and_other_sections():
         "- [x] Всё закрыто.\n"
     )
     assert find_unchecked_dod(sprint) == {}
+
+
+def test_find_progress_tasks_returns_sorted_ids():
+    statuses = {"2.1": "Progress", "1.1": "Done", "1.2": "Progress", "3.1": "ToDo"}
+
+    assert find_progress_tasks(statuses) == ["1.2", "2.1"]
+
+
+def test_find_progress_tasks_empty_when_nothing_in_progress():
+    assert find_progress_tasks({"1.1": "Done", "1.2": "ToDo"}) == []
