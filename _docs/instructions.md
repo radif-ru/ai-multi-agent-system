@@ -36,7 +36,7 @@
   - `test(tools): покрыть calculator случаем деления на ноль`
   - `docs(architecture): уточнить поток /new в §5`
   - `chore(plan): начать задачу 01.2.3`
-- **Ритуал коммитов на каждую задачу** — трёхэтапный цикл `chore(plan): начать задачу ... → атомарные коммиты содержимого → chore(plan): закрыть задачу ...`. Подробно — в `_board/process.md` §7 (выполнение задачи: §7.3 старт, §7.8 коммиты, §7.9 закрытие).
+- **Ритуал коммитов на каждую задачу** — трёхэтапный цикл: `python3 -m scripts.task start <NN>.<stage>.<task>` → атомарные коммиты содержимого → `python3 -m scripts.task done <NN>.<stage>.<task> --note "..."`. Крайние шаги делает скрипт (статусы, DoD, сводная таблица, история, счётчики `plan.md`, коммит) — руками эти файлы не правим. Подробно — в `_board/process.md` §7 (§7.3 старт, §7.8 коммиты, §7.9 закрытие).
 - **Коммиты вне спринта.** Если активного спринта нет, а правка нужна (хотфикс, синхронизация документа с кодом, итог аудита) — работа идёт через журнал `_board/maintenance.md`: запись добавляется **тем же коммитом**, что и правка. Условия и ритуал — `_board/process.md` §13. Коммитов в `main` без следа на доске быть не должно.
 - `.gitignore` обязательно содержит: `.env`, `venv/`, `.venv/`, `__pycache__/`, `*.pyc`, `logs/`, `data/`, `*.db`, `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `.idea/`, `.vscode/`, `graphify-out/`. См. `project-structure.md` § «Что должно попасть в `.gitignore`».
 - **Graphify** (опционально): `graphify hook install` ставит pre-commit хук для авто-обновления графа кода. См. `_docs/stack.md` §14.
@@ -200,4 +200,6 @@ pytest -q
 - Готовый гейт — источник истины: при зелёном гейте не дублируем его ИИ-проверкой; красный гейт чиним, а не маскируем (§8.2, §8.3).
 - Новый инструмент — обычный код проекта: тесты в `tests/`, стиль по §3, запуск `python -m scripts.<name>`, документирование здесь и/или в `_board/process.md`.
 
-Действующие гейты: `flake8 app tests`, `pytest -q` с порогом `--cov-fail-under` (§8.4), `scripts/check_env_sync.py` (`Settings` ↔ `.env.example`, §7), `scripts/check_sprint_sync.py` (`plan.md` ↔ файлы спринтов), `scripts/check_doc_links.py` (относительные ссылки в markdown, §9).
+Действующие гейты: `flake8 app tests`, `pytest -q` с порогом `--cov-fail-under` (§8.4), `scripts/check_env_sync.py` (`Settings` ↔ `.env.example`, §7), `scripts/check_sprint_sync.py` (`plan.md` ↔ файлы спринтов), `scripts/check_doc_links.py` (ссылки на файлы и разделы в markdown, §9). Все они запускаются одной командой — `bash .agents/skills/git-discipline/scripts/preflight.sh`.
+
+Автоматизированы не только проверки, но и повторяемые **операции**: `python3 -m scripts.task start|done <NN>.<stage>.<task>` выполняет весь ритуал перехода статуса задачи (`_board/process.md` §7.3 и §7.9).
