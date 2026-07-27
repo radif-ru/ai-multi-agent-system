@@ -23,7 +23,7 @@ description: "Автоматизация без ИИ: детерминирова
 
 ## Действующие гейты
 
-`flake8 app tests`, `pytest -q` с порогом `--cov-fail-under`, `scripts/check_env_sync.py` (`Settings` ↔ `.env.example`), `scripts/check_sprint_sync.py` (`plan.md` ↔ файлы спринтов), `scripts/check_doc_links.py` (ссылки на файлы и разделы в markdown). Все собраны в `.github/workflows/test.yml` и в `preflight.sh`.
+Полный список с командами и моментом запуска — таблица в `_board/process.md` §7.10 (единый источник; здесь не дублируется). Локально всё сразу — `bash .agents/skills/git-discipline/scripts/preflight.sh`, в CI — `.github/workflows/test.yml`.
 
 Автоматизированы не только проверки, но и повторяемые **операции**: `python3 -m scripts.task start|done <NN>.<stage>.<task>` — весь ритуал перехода статуса задачи одной командой (`_board/process.md` §7.3 и §7.9).
 
