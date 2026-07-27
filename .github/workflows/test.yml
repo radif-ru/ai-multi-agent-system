@@ -37,6 +37,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Tracked artifacts (files matching .gitignore)
+        run: |
+          tracked_ignored=$(git ls-files --cached --ignored --exclude-standard)
+          if [ -n "$tracked_ignored" ]; then
+            echo "ERROR: игнорируемые файлы попали в git:" >&2
+            echo "$tracked_ignored" | sed 's/^/  - /' >&2
+            exit 1
+          fi
+
       - name: Lint (flake8)
         run: flake8 app tests
 

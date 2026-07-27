@@ -422,7 +422,8 @@ pytest --cov=app --cov-report=term-missing     # покрытие (если ус
 | `python3 scripts/check_env_sync.py` | `.env.example` и `Settings` синхронизированы. | После изменения настроек. |
 | `python3 scripts/check_doc_links.py` | Внутренние ссылки в `_docs/`, `_board/`, `README.md` живые. | После правок документации. |
 | `python3 .agents/skills/skill-authoring/scripts/check_agents_sync.py` | Формат скиллов/промптов и зеркала (symlink'и, упоминания в `AGENTS.md` и README). | После правок `.agents/`. |
-| `bash .agents/skills/git-discipline/scripts/preflight.sh` | Весь ритуал: `flake8` + `pytest` + все скрипты-гейты выше. | Перед каждым кодовым коммитом задачи. |
+| `git ls-files --cached --ignored --exclude-standard` | В git нет файлов, попадающих под `.gitignore` (секреты, `data/`, `*.db`, кэши, `graphify-out/`). Пустой вывод = чисто. | Входит в `preflight.sh` и в CI; отдельно — если делал `git add -f` или `git add .`. |
+| `bash .agents/skills/git-discipline/scripts/preflight.sh` | Весь ритуал: артефакты + `flake8` + `pytest` + все скрипты-гейты выше. | Перед каждым кодовым коммитом задачи. |
 
 > Скрипты-гейты включены в CI (`.github/workflows/test.yml`). Локальный прогон `preflight.sh` перед коммитом = тот же набор проверок.
 
