@@ -16,13 +16,8 @@ description: "Подготовка pull request (GitHub) / merge request (GitLab
 ## Алгоритм
 
 1. **Ветка.** Одна `feature/<NN>-<short-name>` на спринт, от `main`. Не смешивать задачи разных спринтов в одной ветке.
-2. **Коммиты — атомарные**, по Conventional Commits на русском (см. `git-discipline`). Ритуал задачи: `chore(plan): начать` → код/доки → `chore(plan): закрыть` + `plan.md`.
-3. **Перед открытием PR — все зелёные:**
-   - `pytest -q` (включая порог `--cov-fail-under`);
-   - `flake8 app tests`;
-   - `python -m scripts.check_env_sync`;
-   - `python -m scripts.check_sprint_sync`;
-   - `python -m scripts.check_doc_links`.
+2. **Коммиты — атомарные**, по Conventional Commits на русском (см. `git-discipline`). Ритуал задачи: `python3 -m scripts.task start <NN>.<stage>.<task>` → код/доки → `python3 -m scripts.task done <NN>.<stage>.<task> --note "..."`.
+3. **Перед открытием PR** — зелёный `bash .agents/skills/git-discipline/scripts/preflight.sh` (весь набор гейтов — `_board/process.md` §7.10; тот же набор прогоняет CI).
 4. **Тело PR/MR:**
    - **Summary** — что сделано и зачем, 2–5 строк. Ссылка на спринт (`_board/sprints/<NN>-*.md`).
    - **Test plan** — как проверялось: `pytest -q`, smoke-test, конкретные тесты на новое поведение.
