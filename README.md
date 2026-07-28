@@ -27,6 +27,8 @@
 
 Стек: [`ollama`](https://ollama.com) (LLM + embeddings + vision) + [`aiogram 3`](https://docs.aiogram.dev/) + [`httpx`](https://www.python-httpx.org/) (MAX-клиент) + [`sqlite-vec`](https://github.com/asg017/sqlite-vec) (долгосрочная семантическая память) + [`APScheduler`](https://apscheduler.readthedocs.io/) (cron-планировщик задач) + `pydantic-settings` + `pytest`. Всё локально — **без облачных LLM-API**.
 
+> **Коротко:** рабочий ассистент в Telegram, MAX и консоли — читает почту и Яндекс.Диск, распознаёт голос и изображения, ходит в веб, помнит контекст между сессиями и выполняет задачи по расписанию. Работает на своём железе: без облачных API, без ключей и без оплаты за токены. → **[Демо со скриншотами](#демо)**
+
 ## Оглавление
 
 - [Возможности](#возможности)
@@ -54,7 +56,7 @@
 
 - **Агентный цикл** `thought → action → observation` со строгим JSON-форматом, лимитом `AGENT_MAX_STEPS` и лимитом размера output'а — [`app/agents/executor.py`](./app/agents/executor.py), [`app/agents/protocol.py`](./app/agents/protocol.py).
 - **Multi-agent** (Planner + Executor + Critic) с режимами `OFF | NORMAL | DEEP` (`AGENT_REFLECTION_MODE`, `AGENT_REFLECTION_MAX_ITERATIONS`), graceful degradation при ошибках Planner/Critic, команда `/mode` для per-user override — [`app/agents/planner.py`](./app/agents/planner.py), [`app/agents/critic.py`](./app/agents/critic.py), [`app/core/orchestrator.py`](./app/core/orchestrator.py); подробнее в [`_docs/multi-agent.md`](./_docs/multi-agent.md).
-- **Локальные LLM под разные задачи** через Ollama: `qwen3.5:4b` (по умолчанию для агентного цикла/чата), `nomic-embed-text` (эмбеддинги для семантической памяти), `gemma3:4b` (vision-описание изображений, см. `_docs/vision-models.md`); активная чат-модель переключается per-user (`/model`). Клиент с `chat` и `embed` — [`app/services/llm.py`](./app/services/llm.py).
+- **Локальные LLM под разные задачи** через Ollama: `qwen3.5:4b` (по умолчанию для агентного цикла/чата), `nomic-embed-text` (эмбеддинги для семантической памяти), `gemma3:4b` (vision-описание изображений, см. [`_docs/vision-models.md`](./_docs/vision-models.md)); активная чат-модель переключается per-user (`/model`). Клиент с `chat` и `embed` — [`app/services/llm.py`](./app/services/llm.py).
 
 ### Инструменты (Tools)
 
@@ -79,7 +81,7 @@
 - **Краткосрочная память** per-user (in-memory FIFO + in-session суммаризация + полный лог сессии + контекст файлов для reply) — [`app/services/conversation.py`](./app/services/conversation.py), [`app/services/summarizer.py`](./app/services/summarizer.py).
 - **Долгосрочная семантическая память** на `sqlite-vec`: `/new` суммирует сессию, режет на чанки, пишет с embedding'ом в `data/memory.db`; поиск через `memory_search`. Для качества RAG применяются task-префиксы `nomic-embed-text` (`search_document:` при индексации, `search_query:` при поиске — см. ADR-4) — [`app/services/memory.py`](./app/services/memory.py), [`app/services/archiver.py`](./app/services/archiver.py).
 - **Авто-подгрузка архива** при старте новой сессии через `SemanticMemory.search` — [`app/core/orchestrator.py`](./app/core/orchestrator.py).
-- **Журнал диалога** (`dialog_journal` в `data/memory.db`, append-only) и фоновое восстановление незаархивированных сессий при старте — [`app/services/dialog_journal.py`](./app/services/dialog_journal.py), [`app/services/journal_recovery.py`](./app/services/journal_recovery.py); раздел `_docs/memory.md` §4.
+- **Журнал диалога** (`dialog_journal` в `data/memory.db`, append-only) и фоновое восстановление незаархивированных сессий при старте — [`app/services/dialog_journal.py`](./app/services/dialog_journal.py), [`app/services/journal_recovery.py`](./app/services/journal_recovery.py); раздел [`_docs/memory.md`](./_docs/memory.md) §4.
 
 ### Планировщик и навыки
 
@@ -93,17 +95,17 @@
 
 ### Инфраструктура
 
-- **Prompts** (`app/prompts/`): системный промпт агента и промпт суммаризации в markdown — [`app/services/prompts.py`](./app/services/prompts.py).
+- **Prompts** ([`app/prompts/`](./app/prompts)): системный промпт агента и промпт суммаризации в markdown — [`app/services/prompts.py`](./app/services/prompts.py).
 - **Настройки на пользователя** (выбранная модель, промпт) — [`app/services/model_registry.py`](./app/services/model_registry.py).
 - **Логирование** через `TimedRotatingFileHandler` (ежедневная ротация, хранение ~14 дней) + middleware на каждый update; структурные JSON-логи со сквозным `trace_id` и опциональный error tracking в self-hosted GlitchTip (`SENTRY_DSN`): ошибки → **Issues** (порог `SENTRY_EVENT_LEVEL`, default `ERROR`), логи `DEBUG+` → вкладка **Logs** (`SENTRY_LOG_LEVEL`, default `DEBUG` для dev; в prod — `INFO`), плюс performance-трассировки — [`app/core/logging_config.py`](./app/core/logging_config.py), [`app/observability/`](./app/observability), [`docker-compose.observability.yml`](./docker-compose.observability.yml). Подробнее — [`_docs/observability.md`](./_docs/observability.md).
-- **CI** на GitHub Actions (push/PR) — семь гейтов: отсутствие в git файлов под `.gitignore` (секреты, `data/`, `*.db`, кэши), `flake8`, синхронизация `Settings` ↔ `.env.example` (`check_env_sync`), синхронизация `_board/plan.md` ↔ файлов спринтов (`check_sprint_sync`), проверка ссылок в markdown — на файлы и на разделы (`check_doc_links`), проверка формата и зеркал скиллов/промптов ассистента (`check_agents_sync`) и `pytest` с жёстким порогом покрытия (`--cov-fail-under=80`) — [`.github/workflows/test.yml`](./.github/workflows/test.yml), [`scripts/`](./scripts).
+- **CI** на GitHub Actions (push/PR) — семь гейтов: отсутствие в git файлов под `.gitignore` (секреты, `data/`, `*.db`, кэши), `flake8`, синхронизация `Settings` ↔ [`.env.example`](./.env.example) (`check_env_sync`), синхронизация [`_board/plan.md`](./_board/plan.md) ↔ файлов спринтов (`check_sprint_sync`), проверка ссылок в markdown — на файлы и на разделы (`check_doc_links`), проверка формата и зеркал скиллов/промптов ассистента (`check_agents_sync`) и `pytest` с жёстким порогом покрытия (`--cov-fail-under=80`) — [`.github/workflows/test.yml`](./.github/workflows/test.yml), [`scripts/`](./scripts).
 - **Сборка приложения** (DI, polling, graceful shutdown) — [`app/main.py`](./app/main.py), точка входа [`app/__main__.py`](./app/__main__.py).
 - **Unit-тесты** через моки ([`tests/`](./tests)): без реального Telegram / Ollama / сети; `sqlite-vec` — на `tmp_path`.
 
 ## Требования
 
 - **Python** 3.14+.
-- **Ollama** (`https://ollama.com`) с предзагруженными моделями `qwen3.5:4b`, `nomic-embed-text` и `gemma3:4b` (или другая vision-модель, см. `_docs/vision-models.md`).
+- **Ollama** ([ollama.com](https://ollama.com)) с предзагруженными моделями `qwen3.5:4b`, `nomic-embed-text` и `gemma3:4b` (или другая vision-модель, см. [`_docs/vision-models.md`](./_docs/vision-models.md)).
 - **Telegram bot token** от [@BotFather](https://t.me/BotFather) — для Telegram-канала.
 - **MAX bot token** (`MAX_BOT_TOKEN`) — для MAX-канала; получается на [business.max.ru](https://business.max.ru/self) (Чат-боты → Интеграция → Получить токен). Опционален: при пустом значении MAX-канал не запускается.
 - **tesseract-ocr** (опционально, для OCR в PDF): `sudo apt-get install tesseract-ocr tesseract-ocr-rus`
@@ -113,7 +115,7 @@
 
 ## Целевая система и тюнинг под неё
 
-Дефолты в `.env.example` (размер контекста, параллелизм, выбор моделей, `keep_alive`, бюджет VRAM) **подобраны под мощную локальную систему**, на которой ведётся разработка. Это отдельная машина под локальный ИИ: тяжёлые задачи (LLM, эмбеддинги, vision, дообучение) гоняются локально, без облака — данные не покидают устройство, нет внешних API-ключей и лимитов (подробнее о железе — [radif.ru/#hardware](https://radif.ru/#hardware)):
+Дефолты в [`.env.example`](./.env.example) (размер контекста, параллелизм, выбор моделей, `keep_alive`, бюджет VRAM) **подобраны под мощную локальную систему**, на которой ведётся разработка. Это отдельная машина под локальный ИИ: тяжёлые задачи (LLM, эмбеддинги, vision, дообучение) гоняются локально, без облака — данные не покидают устройство, нет внешних API-ключей и лимитов (подробнее о железе — [radif.ru/#hardware](https://radif.ru/#hardware)):
 
 - **Ноутбук:** ASUS ROG Strix SCAR 18 — флагманская мобильная рабочая платформа (быстрая DDR5-память, NVMe SSD (PCIe 5.0 x4), производительное охлаждение).
 - **GPU:** NVIDIA GeForce RTX 5090 Laptop — **24 ГБ GDDR7 VRAM**. Это ключевой ресурс: вся LLM-нагрузка (chat, эмбеддинги, vision) идёт через GPU, а 24 ГБ позволяют держать модель резидентной (`OLLAMA_KEEP_ALIVE=30m`), большой контекст (`OLLAMA_NUM_CTX=32768`) и параллельные сессии (`LLM_MAX_CONCURRENCY=2`).
@@ -175,11 +177,11 @@ pip install -r requirements.txt
    ollama list   # убедиться, что все модели доступны
    ```
 
-3. Полный список переменных окружения — в `_docs/stack.md` §9 и в самом `.env.example` (поля прокомментированы). Важно: для обработки больших файлов порог суммаризации контекста `AGENT_MAX_CONTEXT_CHARS` (default 90000) согласован с `OLLAMA_NUM_CTX=32768` и `MAX_DOCUMENT_CHARS=80000`, чтобы большой документ попадал в контекст без преждевременной суммаризации (см. `_docs/agent-loop.md` §4).
+3. Полный список переменных окружения — в [`_docs/stack.md`](./_docs/stack.md) §9 и в самом [`.env.example`](./.env.example) (поля прокомментированы). Важно: для обработки больших файлов порог суммаризации контекста `AGENT_MAX_CONTEXT_CHARS` (default 90000) согласован с `OLLAMA_NUM_CTX=32768` и `MAX_DOCUMENT_CHARS=80000`, чтобы большой документ попадал в контекст без преждевременной суммаризации (см. [`_docs/agent-loop.md`](./_docs/agent-loop.md) §4).
 
 ## Запуск
 
-**Через `scripts/run.sh` (рекомендуется):**
+**Через [`scripts/run.sh`](./scripts/run.sh) (рекомендуется):**
 
 Скрипт запускает бот в собственной группе процессов с `trap` на graceful shutdown — Ctrl+C или SIGTERM завершает всё дерево процессов (бот + ollama serve).
 
@@ -219,7 +221,7 @@ ollama serve & .venv/bin/python -m app.max_main
 ollama serve & .venv/bin/python -m app.console_main
 ```
 
-Консольный режим — REPL-цикл с теми же командами (`/start`, `/help`, `/new`, `/reset`, `/models`, `/model`, `/prompt`, `/exit`), но без Telegram. См. `_docs/console-adapter.md`.
+Консольный режим — REPL-цикл с теми же командами (`/start`, `/help`, `/new`, `/reset`, `/models`, `/model`, `/prompt`, `/exit`), но без Telegram. См. [`_docs/console-adapter.md`](./_docs/console-adapter.md).
 
 ## Команды бота
 
@@ -231,7 +233,7 @@ ollama serve & .venv/bin/python -m app.console_main
 | `/reset`           | —               | Очищает текущую in-memory историю и per-user настройки. Архив **не трогает**. |
 | `/models`          | —               | Список `OLLAMA_AVAILABLE_MODELS` с пометкой активной.                    |
 | `/model <name>`    | имя модели      | Переключить активную LLM для пользователя.                               |
-| `/prompt [<text>]` | текст \| пусто  | Задать системный промпт; без аргумента — сброс к default из `app/prompts/`. |
+| `/prompt [<text>]` | текст \| пусто  | Задать системный промпт; без аргумента — сброс к default из [`app/prompts/`](./app/prompts). |
 | `/search_engines`  | —               | Список доступных поисковиков с пометкой активного.                       |
 | `/search_engine <name>` | имя        | Переключить активный поисковик для пользователя.                         |
 | `/mode [off\|normal\|deep]` | режим \| пусто | Показать или переключить режим рефлексии multi-agent (per-user).         |
@@ -239,7 +241,7 @@ ollama serve & .venv/bin/python -m app.console_main
 | `/schedules`       | —               | Список запланированных задач: ID, cron, статус и результат последнего запуска.        |
 | *произвольный текст* | —             | Запустить агентный цикл с этой задачей; вернуть финальный ответ.         |
 
-Подробное поведение каждой команды — в `_docs/commands.md`.
+Подробное поведение каждой команды — в [`_docs/commands.md`](./_docs/commands.md).
 
 ## Демо
 
@@ -309,18 +311,18 @@ ai-multi-agent-system/
 └── logs/         # файлы логов (в .gitignore)
 ```
 
-Полное дерево с пояснениями — `_docs/project-structure.md`.
+Полное дерево с пояснениями — [`_docs/project-structure.md`](./_docs/project-structure.md).
 
 ## Тесты
 
-`pytest-cov` — обязательная зависимость: `pytest` всегда измеряет покрытие `app/` и **падает, если оно ниже порога** `--cov-fail-under=80` (задан в `pyproject.toml`; тот же гейт работает в CI). Подробнее — [`_docs/testing.md`](./_docs/testing.md).
+`pytest-cov` — обязательная зависимость: `pytest` всегда измеряет покрытие `app/` и **падает, если оно ниже порога** `--cov-fail-under=80` (задан в [`pyproject.toml`](./pyproject.toml); тот же гейт работает в CI). Подробнее — [`_docs/testing.md`](./_docs/testing.md).
 
 ```bash
 pytest -q                                # тесты + гейт покрытия
 pytest --cov-report=term-missing         # детальный отчёт по непокрытым строкам
 ```
 
-Тесты не делают сетевых вызовов — `aiogram.Bot`, `Message`, `ollama.AsyncClient`, `sqlite-vec` мокаются (см. `_docs/testing.md`). Регрессионные тесты для длительных операций (например, `Archiver.archive`) маркируются маркером `slow` и могут быть пропущены в CI.
+Тесты не делают сетевых вызовов — `aiogram.Bot`, `Message`, `ollama.AsyncClient`, `sqlite-vec` мокаются (см. [`_docs/testing.md`](./_docs/testing.md)). Регрессионные тесты для длительных операций (например, `Archiver.archive`) маркируются маркером `slow` и могут быть пропущены в CI.
 
 ## Graphify
 
@@ -341,18 +343,18 @@ graphify hook install             # установить git-хук (авто-о
 | `graphify hook install` | Установить git-хук для авто-обновления при коммите |
 | `graphify hook uninstall` | Удалить git-хук |
 
-Граф генерируется в `graphify-out/` (в `.gitignore`, не коммитится). Исключения — в `.graphifyignore` (code-only graph: документы, медиа, конфиги исключены). Подробности — `_docs/stack.md` §14.
+Граф генерируется в `graphify-out/` (в [`.gitignore`](./.gitignore), не коммитится). Исключения — в [`.graphifyignore`](./.graphifyignore) (code-only graph: документы, медиа, конфиги исключены). Подробности — [`_docs/stack.md`](./_docs/stack.md) §14.
 
 ## Инженерная дисциплина и процессы
 
 Проект ведётся как инженерный продукт: правила разработки, документация и дисциплины AI-ассистента зафиксированы и проверяются автоматически — это снижает регрессии и делает вклад любого агента/человека предсказуемым.
 
-- **Правила и процесс спринтов** — [`_board/`](./_board): [`process.md`](./_board/process.md) (жизненный цикл спринта/задачи, ветки `feature/<NN>-...`, DoD, целесообразный порядок задач, маршрутизация находок, §13 — работа вне спринта), [`plan.md`](./_board/plan.md) (индекс спринтов), [`maintenance.md`](./_board/maintenance.md) (журнал внеспринтовых правок — ни одного «безымянного» коммита в обход доски), файлы спринтов в [`_board/sprints/`](./_board/sprints). Правила разработки (git, стиль, async, ошибки, секреты, тесты, документация) — [`_docs/instructions.md`](./_docs/instructions.md).
+- **Правила и процесс спринтов** — [`_board/`](./_board): [`process.md`](./_board/process.md) (жизненный цикл спринта/задачи, ветки `feature/<NN>-...`, DoD, целесообразный порядок задач, маршрутизация находок, §12 — работа вне спринта), [`plan.md`](./_board/plan.md) (индекс спринтов), [`maintenance.md`](./_board/maintenance.md) (журнал внеспринтовых правок — ни одного «безымянного» коммита в обход доски), файлы спринтов в [`_board/sprints/`](./_board/sprints). Правила разработки (git, стиль, async, ошибки, секреты, тесты, документация) — [`_docs/instructions.md`](./_docs/instructions.md).
 - **Проектная документация** — [`_docs/`](./_docs): архитектура, агентный цикл, память, tools, безопасность, observability и др. (индекс — [`_docs/README.md`](./_docs/README.md)).
 - **Скиллы и промпты для AI-ассистента разработки** — [`.agents/`](./.agents): переиспользуемые промпты ([`.agents/prompts/`](./.agents/prompts)) и скиллы-дисциплины ([`.agents/skills/`](./.agents/skills)) — архитектура, async, тесты, обработка ошибок, защита от prompt injection, документация, git, автоматизация, отладка, **подготовка и ревью pull request (MR)**.
 - **Скрипты в скиллах** — детерминированная часть скилла выполняется кодом, а не ИИ: у бота — `app/skills/<name>/scripts/` через sandbox-tool `run_skill_script` ([`_docs/skills.md`](./_docs/skills.md)), у ассистента — `.agents/skills/<name>/scripts/` (например, [`preflight.sh`](./.agents/skills/git-discipline/scripts/preflight.sh) — весь ритуал проверок перед коммитом одной командой). Так автоматизация остаётся надёжной и воспроизводимой, а токены LLM тратятся на суждения, а не на механику.
-- **Единые правила для всех AI-инструментов** — единственный источник истины [`AGENTS.md`](./AGENTS.md) зеркалится относительными симлинками ([`CLAUDE.md`](./CLAUDE.md), [`GEMINI.md`](./GEMINI.md), [`QWEN.md`](./QWEN.md), `.github/copilot-instructions.md`); Cursor (`.cursor/rules/`) и Windsurf/Devin (`.devin/rules/`) — через файл-указатель; скиллы — в `.claude/skills/`. Подробнее — [`.agents/README.md`](./.agents/README.md).
-- **Автоматический контроль качества (в CI, без ИИ)** — `flake8`, `pytest` с порогом покрытия `--cov-fail-under=80` и скрипты-гейты [`scripts/`](./scripts): `check_env_sync` (нет конфигов мимо `.env`), `check_doc_links` (нет битых/абсолютных ссылок и ссылок на несуществующие разделы), `check_sprint_sync` (`plan.md` не расходится с файлами спринтов), `check_agents_sync` (формат и зеркала скиллов/промптов ассистента, живёт в `.agents/skills/skill-authoring/scripts/`), плюс проверка, что в git не попали артефакты из `.gitignore`.
+- **Единые правила для всех AI-инструментов** — единственный источник истины [`AGENTS.md`](./AGENTS.md) зеркалится относительными симлинками ([`CLAUDE.md`](./CLAUDE.md), [`GEMINI.md`](./GEMINI.md), [`QWEN.md`](./QWEN.md), [`.github/copilot-instructions.md`](./.github/copilot-instructions.md)); Cursor ([`.cursor/rules/`](./.cursor/rules)) и Windsurf/Devin ([`.devin/rules/`](./.devin/rules)) — через файл-указатель; скиллы — в [`.claude/skills/`](./.claude/skills). Подробнее — [`.agents/README.md`](./.agents/README.md).
+- **Автоматический контроль качества (в CI, без ИИ)** — `flake8`, `pytest` с порогом покрытия `--cov-fail-under=80` и скрипты-гейты [`scripts/`](./scripts): `check_env_sync` (нет конфигов мимо `.env`), `check_doc_links` (нет битых/абсолютных ссылок и ссылок на несуществующие разделы), `check_sprint_sync` (`plan.md` не расходится с файлами спринтов), `check_agents_sync` (формат и зеркала скиллов/промптов ассистента, живёт в [`.agents/skills/skill-authoring/scripts/`](./.agents/skills/skill-authoring/scripts)), плюс проверка, что в git не попали артефакты из `.gitignore`.
 - **Ритуалы разработки тоже автоматизированы** — перевод задачи по доске делает [`scripts/task.py`](./scripts/task.py) (`python3 -m scripts.task start|done <NN>.<stage>.<task>`): статусы, чекбоксы DoD, сводная таблица, история спринта, счётчики [`_board/plan.md`](./_board/plan.md) и коммит — одной командой, без токенов на механику.
 - **Безопасность по умолчанию** — sanitize на входе / bastion на выходе, per-user область видимости файлов, allowlist опасных tools, маскирование секретов в логах — [`_docs/security.md`](./_docs/security.md).
 
@@ -374,21 +376,21 @@ graphify hook install             # установить git-хук (авто-о
 - 🔐 [`_docs/security.md`](./_docs/security.md) — sanitize/bastion, per-user область видимости файлов, allowlist tools, маскирование секретов.
 - 🗂️ [`_board/README.md`](./_board/README.md) — процесс спринтов и задач.
 - 📌 [`_docs/current-state.md`](./_docs/current-state.md) — фактическое состояние кода (читать перед правками).
-- 🗺️ [`_docs/roadmap.md`](./_docs/roadmap.md) — этапы развития (capability graph, внешние онлайн-LLM, web-адаптер, MAX-webhook и др.).
+- 🗺️ [`_docs/roadmap.md`](./_docs/roadmap.md) — этапы развития (capability graph, web-адаптер, MAX-webhook, sandboxed tools и др.).
 - 📋 [`_docs/decisions.md`](./_docs/decisions.md) — журнал архитектурных решений (ADR): контекст, варианты, решение, последствия.
-- 🤖 [`.agents/README.md`](./.agents/README.md) — переиспользуемые промпты и скиллы для **AI-ассистента разработки**; здесь же разделение: `app/skills/` — runtime-скиллы бота, `.agents/skills/` — дисциплины ассистента.
+- 🤖 [`.agents/README.md`](./.agents/README.md) — переиспользуемые промпты и скиллы для **AI-ассистента разработки**; здесь же разделение: [`app/skills/`](./app/skills) — runtime-скиллы бота, [`.agents/skills/`](./.agents/skills) — дисциплины ассистента.
 
 ## Ограничения и принципы
 
 - Только **локальная LLM** через Ollama, никаких облачных API.
-- Только **long polling** для всех каналов (Telegram и MAX), без webhook (см. `_docs/architecture.md` §2). MAX-документация рекомендует webhook для production — это вынесено в `_docs/roadmap.md`.
+- Только **long polling** для всех каналов (Telegram и MAX), без webhook (см. [`_docs/architecture.md`](./_docs/architecture.md) §2). MAX-документация рекомендует webhook для production — это вынесено в [`_docs/roadmap.md`](./_docs/roadmap.md).
 - **In-memory** история текущей сессии, **долгосрочная** память — только саммари (не сырые сообщения), для приватности.
 - Поддерживаются файловые входы: документы (PDF/TXT/MD), голосовые сообщения (Voice/Audio), фотографии (Photo) — через `faster-whisper` (опционально) и Ollama vision API (опционально).
 - Документация и сообщения коммитов ведутся **на русском**, технические идентификаторы — латиницей.
 
 ## История спринтов
 
-Полный индекс и история спринтов — в [`_board/plan.md`](./_board/plan.md). Правки вне спринта (хотфиксы, итоги аудита) — в [`_board/maintenance.md`](./_board/maintenance.md). Планируемые этапы (capability graph, внешние онлайн-LLM, web-адаптер, MAX-webhook и др.) — в [`_docs/roadmap.md`](./_docs/roadmap.md).
+Полный индекс и история спринтов — в [`_board/plan.md`](./_board/plan.md). Правки вне спринта (хотфиксы, итоги аудита) — в [`_board/maintenance.md`](./_board/maintenance.md). Планируемые этапы (capability graph, web-адаптер, MAX-webhook, sandboxed tools и др.) — в [`_docs/roadmap.md`](./_docs/roadmap.md).
 
 ## Автор
 
