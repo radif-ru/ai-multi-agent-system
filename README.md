@@ -9,11 +9,15 @@
 [![aiogram 3](https://img.shields.io/badge/Telegram-aiogram%203-26A5E4.svg)](https://docs.aiogram.dev/)
 [![APScheduler](https://img.shields.io/badge/scheduler-APScheduler-red.svg)](https://apscheduler.readthedocs.io/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/radif-ru/ai-multi-agent-system/pulls)
+[![stars](https://img.shields.io/github/stars/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/stargazers)
+[![commit activity](https://img.shields.io/github/commit-activity/m/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/commits)
+[![issues](https://img.shields.io/github/issues/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/issues)
 [![last commit](https://img.shields.io/github/last-commit/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/commits)
 [![repo size](https://img.shields.io/github/repo-size/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system)
-[![issues](https://img.shields.io/github/issues/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/issues)
+[![code size](https://img.shields.io/github/languages/code-size/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system)
 
-> **Бейджи — живые:** `tests` (статус CI), `coverage` (динамический SVG из ветки `coverage-badge`, обновляется CI при пуше в `main`), `last commit`, `repo size`, `issues` (через shields.io API). Стек-бейджи (`Python`, `Ollama`, `aiogram`, `APScheduler`, `sqlite-vec`, `flake8`, `License`) — статичные.
+> **Бейджи — живые:** `tests` (статус CI), `coverage` (динамический SVG из ветки `coverage-badge`, обновляется CI при пуше в `main`), `stars`, `commit activity`, `issues`, `last commit`, `repo size`, `code size` (через shields.io API). Стек-бейджи (`Python`, `Ollama`, `aiogram`, `APScheduler`, `sqlite-vec`, `flake8`, `License`, `PRs welcome`) — статичные.
 
 **Локальная мульти-агентная система** на self-hosted LLM через [Ollama](https://ollama.com). Принимает задачу от пользователя и **выполняет цикл `thought → action → observation`** до финального ответа: думает, выбирает инструмент, наблюдает результат, повторяет. Ответ модели в цикле — строго JSON (`{"thought", "action", "args"}` либо `{"final_answer"}`).
 
