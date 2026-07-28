@@ -303,6 +303,7 @@ venv/
 .mypy_cache/
 .ruff_cache/
 .coverage
+coverage.json
 htmlcov/
 
 # IDE
