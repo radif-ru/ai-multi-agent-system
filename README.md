@@ -1,23 +1,46 @@
 # ai-multi-agent-system
 
-[![tests](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml/badge.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
+[![CI](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml/badge.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
 [![coverage](https://raw.githubusercontent.com/radif-ru/ai-multi-agent-system/coverage-badge/coverage.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
-[![flake8](https://img.shields.io/badge/flake8-passing-brightgreen.svg)](https://github.com/radif-ru/ai-multi-agent-system/actions/workflows/test.yml)
-[![Python 3.14](https://img.shields.io/badge/python-3.14-blue.svg)](https://www.python.org/downloads/)
-[![Ollama](https://img.shields.io/badge/LLM-Ollama-black.svg)](https://ollama.com)
-[![sqlite-vec](https://img.shields.io/badge/vectors-sqlite--vec-blue.svg)](https://github.com/asg017/sqlite-vec)
-[![aiogram 3](https://img.shields.io/badge/Telegram-aiogram%203-26A5E4.svg)](https://docs.aiogram.dev/)
-[![APScheduler](https://img.shields.io/badge/scheduler-APScheduler-red.svg)](https://apscheduler.readthedocs.io/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
-[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/radif-ru/ai-multi-agent-system/pulls)
-[![stars](https://img.shields.io/github/stars/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/stargazers)
-[![commit activity](https://img.shields.io/github/commit-activity/m/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/commits)
-[![issues](https://img.shields.io/github/issues/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/issues)
-[![last commit](https://img.shields.io/github/last-commit/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system/commits)
-[![repo size](https://img.shields.io/github/repo-size/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system)
-[![code size](https://img.shields.io/github/languages/code-size/radif-ru/ai-multi-agent-system)](https://github.com/radif-ru/ai-multi-agent-system)
+[![coverage gate](https://img.shields.io/badge/coverage_gate-%E2%89%A580%25-brightgreen?logo=codecov&logoColor=white)](./pyproject.toml)
+[![tests](https://img.shields.io/badge/tests-889-0A9EDC?logo=pytest&logoColor=white)](./tests)
+[![CI gates](https://img.shields.io/badge/CI_gates-7-2088FF?logo=githubactions&logoColor=white)](./.github/workflows/test.yml)
+[![flake8](https://img.shields.io/badge/flake8-passing-brightgreen?logo=python&logoColor=white)](./.flake8)
 
-> **Бейджи — живые:** `tests` (статус CI), `coverage` (динамический SVG из ветки `coverage-badge`, обновляется CI при пуше в `main`), `stars`, `commit activity`, `issues`, `last commit`, `repo size`, `code size` (через shields.io API). Стек-бейджи (`Python`, `Ollama`, `aiogram`, `APScheduler`, `sqlite-vec`, `flake8`, `License`, `PRs welcome`) — статичные.
+[![Python 3.14](https://img.shields.io/badge/python-3.14-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Ollama](https://img.shields.io/badge/LLM-Ollama-000000?logo=ollama&logoColor=white)](https://ollama.com)
+[![aiogram 3](https://img.shields.io/badge/Telegram-aiogram_3-26A5E4?logo=telegram&logoColor=white)](https://docs.aiogram.dev/)
+[![MAX](https://img.shields.io/badge/MAX-Bot_API-7B2BF9)](https://dev.max.ru/docs-api)
+[![sqlite-vec](https://img.shields.io/badge/vectors-sqlite--vec-003B57?logo=sqlite&logoColor=white)](https://github.com/asg017/sqlite-vec)
+[![APScheduler](https://img.shields.io/badge/cron-APScheduler-D7263D)](https://apscheduler.readthedocs.io/)
+[![httpx](https://img.shields.io/badge/httpx-async-2A6DB2?logo=python&logoColor=white)](https://www.python-httpx.org/)
+[![pydantic-settings](https://img.shields.io/badge/config-pydantic--settings-E92063?logo=pydantic&logoColor=white)](https://docs.pydantic.dev/latest/concepts/pydantic_settings/)
+[![Tesseract](https://img.shields.io/badge/OCR-Tesseract-4E9A06)](https://github.com/tesseract-ocr/tesseract)
+[![faster-whisper](https://img.shields.io/badge/ASR-faster--whisper-FF6F00)](https://github.com/SYSTRAN/faster-whisper)
+[![GlitchTip](https://img.shields.io/badge/observability-GlitchTip-362D59?logo=sentry&logoColor=white)](https://glitchtip.com/)
+[![Docker Compose](https://img.shields.io/badge/Docker_Compose-observability-2496ED?logo=docker&logoColor=white)](./docker-compose.observability.yml)
+
+[![local-first](https://img.shields.io/badge/local--first-0_cloud_LLM_API-1a7f37?logo=ollama&logoColor=white)](#ограничения-и-принципы)
+[![security by default](https://img.shields.io/badge/security-by_default-8250df?logo=letsencrypt&logoColor=white)](./_docs/security.md)
+[![agent tools](https://img.shields.io/badge/agent_tools-19-6f42c1)](./_docs/tools.md)
+[![sprints](https://img.shields.io/badge/sprints-15_closed-0969da)](./_board/plan.md)
+[![AI rules](https://img.shields.io/badge/AI_rules-AGENTS.md-000000?logo=markdown&logoColor=white)](./AGENTS.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-3fb950?logo=opensourceinitiative&logoColor=white)](./LICENSE)
+
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?logo=github&logoColor=white)](https://github.com/radif-ru/ai-multi-agent-system/pulls)
+[![stars](https://img.shields.io/github/stars/radif-ru/ai-multi-agent-system?logo=github&logoColor=white)](https://github.com/radif-ru/ai-multi-agent-system/stargazers)
+[![commit activity](https://img.shields.io/github/commit-activity/m/radif-ru/ai-multi-agent-system?logo=github&logoColor=white)](https://github.com/radif-ru/ai-multi-agent-system/commits)
+[![issues](https://img.shields.io/github/issues/radif-ru/ai-multi-agent-system?logo=github&logoColor=white)](https://github.com/radif-ru/ai-multi-agent-system/issues)
+[![last commit](https://img.shields.io/github/last-commit/radif-ru/ai-multi-agent-system?logo=github&logoColor=white)](https://github.com/radif-ru/ai-multi-agent-system/commits)
+[![repo size](https://img.shields.io/github/repo-size/radif-ru/ai-multi-agent-system?logo=github&logoColor=white)](https://github.com/radif-ru/ai-multi-agent-system)
+[![code size](https://img.shields.io/github/languages/code-size/radif-ru/ai-multi-agent-system?logo=github&logoColor=white)](https://github.com/radif-ru/ai-multi-agent-system)
+
+<details>
+<summary>Какие бейджи обновляются автоматически</summary>
+
+Живые: `CI` (статус пайплайна), `coverage` (динамический SVG из ветки `coverage-badge`, перегенерируется CI при пуше в `main`), `stars`, `commit activity`, `issues`, `last commit`, `repo size`, `code size` (shields.io API). Остальные — статические: они фиксируют стек, принципы и текущие значения гейтов (`coverage_gate`, `tests`, `CI gates`, `agent tools`, `sprints`), которые проверяются в CI и обновляются вместе с кодом.
+
+</details>
 
 **Локальная мульти-агентная система** на self-hosted LLM через [Ollama](https://ollama.com). Принимает задачу от пользователя и **выполняет цикл `thought → action → observation`** до финального ответа: думает, выбирает инструмент, наблюдает результат, повторяет. Ответ модели в цикле — строго JSON (`{"thought", "action", "args"}` либо `{"final_answer"}`).
 
@@ -35,6 +58,8 @@
 
 ## Оглавление
 
+- [Инженерные показатели](#инженерные-показатели)
+- [Архитектура одним взглядом](#архитектура-одним-взглядом)
 - [Возможности](#возможности)
 - [Требования](#требования)
 - [Целевая система и тюнинг под неё](#целевая-система-и-тюнинг-под-неё)
@@ -52,9 +77,89 @@
 - [История спринтов](#история-спринтов)
 - [Автор](#автор)
 
+## Инженерные показатели
+
+| Показатель | Значение | Чем подтверждается |
+|---|---|---|
+| Unit-тесты | **889**, без сетевых вызовов | [`tests/`](./tests), [`_docs/testing.md`](./_docs/testing.md) |
+| Покрытие кода | **88%** при жёстком гейте `--cov-fail-under=80` | [`pyproject.toml`](./pyproject.toml), бейдж обновляет CI |
+| Автоматические гейты в CI | **7**, все детерминированные (без ИИ) | [`.github/workflows/test.yml`](./.github/workflows/test.yml), [`scripts/`](./scripts) |
+| Инструменты агента | **19** — от `calculator` до `email_read` и `schedule_task` | [`app/tools/`](./app/tools), [`_docs/tools.md`](./_docs/tools.md) |
+| Каналы на одном доменном контракте | **3** — Telegram, MAX, консоль | [`app/adapters/`](./app/adapters) |
+| Локальные модели под разные задачи | **4** — reasoning, embeddings, vision, ASR | [`_docs/stack.md`](./_docs/stack.md) |
+| Закрытых спринтов с DoR/DoD | **15** | [`_board/plan.md`](./_board/plan.md) |
+| Объём кода | ~12,8 тыс. строк `app/` при ~15 тыс. строк тестов | соотношение тестов к коду > 1:1 |
+| Обращений к облачным LLM-API | **0** | [Ограничения и принципы](#ограничения-и-принципы) |
+
+## Архитектура одним взглядом
+
+Единственная точка входа для всех каналов — `core.handle_user_task`. Адаптеры не знают ни про LLM, ни про инструменты, ни про память, поэтому новый канал добавляется без правок ядра.
+
+```mermaid
+flowchart LR
+    subgraph CH["Каналы — тонкие адаптеры"]
+        TG["Telegram<br/>aiogram 3"]
+        CO["Консоль<br/>REPL"]
+        MX["MAX<br/>httpx"]
+    end
+
+    subgraph CORE["Ядро — app/core, app/agents"]
+        IN["InputSanitizer<br/>защита от prompt injection"]
+        OR["handle_user_task<br/>Orchestrator"]
+        PL["Planner"]
+        EX["Executor<br/>thought → action → observation"]
+        CR["Critic"]
+        OUT["ResponseSanitizer<br/>+ FileIdMapper"]
+    end
+
+    subgraph RES["Ресурсы — всё локально"]
+        LLM["Ollama<br/>LLM · embeddings · vision"]
+        TL["19 tools<br/>web · mail · disk · OCR · cron"]
+        ME["Память<br/>sqlite-vec · журнал диалога"]
+    end
+
+    TG --> IN
+    CO --> IN
+    MX --> IN
+    IN --> OR
+    OR --> PL
+    PL --> EX
+    EX --> CR
+    CR --> OUT
+    EX <--> LLM
+    EX <--> TL
+    OR <--> ME
+    OUT --> CH
+```
+
+Planner и Critic включаются при `AGENT_REFLECTION_MODE` ≠ `OFF`; при их сбое оркестратор деградирует до последнего черновика Executor'а, а не до ошибки. Детали — [`_docs/architecture.md`](./_docs/architecture.md) и [`_docs/multi-agent.md`](./_docs/multi-agent.md).
+
 ## Возможности
 
-Реализовано в спринтах 01 (MVP Agent), 02 (Память и файловые входы), 03 (Баги и консольный режим), 04 (Событийная модель и модуль Users), 05 (Безопасность и OCR-рефакторинг), 06 (Надёжность диалога и observability), 07 (Multi-agent: Planner + Critic), 08 (Hardening и зачистка), 09 (MAX-адаптер), 10 (Аудит качества и устранение техдолга), 11 (Производительность и эффективность LLM), 12 (Качество, безопасность и процессы), 13 (Интеграции почты и диска, скиллы со скриптами), 14 (Планировщик задач, логи в GlitchTip, качество RAG) и 15 (Расширения почты, диска и планировщика: вложения писем, `disk_upload`, cron-парсер, доставка в console/MAX). Индекс спринтов — [`_board/plan.md`](./_board/plan.md). Фактическое состояние кода — [`_docs/current-state.md`](./_docs/current-state.md).
+Система выросла за **15 закрытых спринтов** — от MVP агентного цикла до почты, Яндекс.Диска, планировщика и observability. Каждый спринт проходил Definition of Ready / Definition of Done, ни одна возможность ниже не «дописана мимо доски». Индекс — [`_board/plan.md`](./_board/plan.md), фактическое состояние кода — [`_docs/current-state.md`](./_docs/current-state.md).
+
+<details>
+<summary>Спринты 01–15 — что дал каждый</summary>
+
+| # | Спринт | Результат |
+|---|---|---|
+| 01 | MVP Agent | Агентный цикл `thought → action → observation`, JSON-протокол, первые tools |
+| 02 | Память и файловые входы | Долгосрочная память на `sqlite-vec`, документы и голос |
+| 03 | Баги и консольный режим | Консольный адаптер, стабилизация цикла |
+| 04 | События и модуль Users | `EventBus`, персистентный `UserRepository` |
+| 05 | Безопасность и OCR | Sanitize/bastion, `FileIdMapper`, OCR через Tesseract |
+| 06 | Надёжность и observability | Журнал диалога, структурные логи, сквозной `trace_id` |
+| 07 | Multi-agent | Planner + Critic, режимы рефлексии, graceful degradation |
+| 08 | Hardening | Зачистка техдолга, ужесточение контрактов |
+| 09 | MAX-адаптер | Третий канал поверх той же доменной модели |
+| 10 | Аудит качества | Устранение техдолга по итогам сквозного аудита |
+| 11 | Производительность LLM | Контекст, `keep_alive`, параллелизм, бюджет VRAM |
+| 12 | Качество и процессы | Скрипты-гейты в CI, порог покрытия, правила процесса |
+| 13 | Почта, диск, скиллы | IMAP read-only, Яндекс.Диск, скрипты скиллов в sandbox |
+| 14 | Планировщик и RAG | APScheduler с персистентностью, GlitchTip, task-префиксы эмбеддингов |
+| 15 | Расширения интеграций | Вложения писем, `disk_upload`, cron-парсер, доставка в console/MAX |
+
+</details>
 
 ### Агентный цикл и Multi-agent
 
@@ -119,16 +224,13 @@
 
 ## Целевая система и тюнинг под неё
 
-Дефолты в [`.env.example`](./.env.example) (размер контекста, параллелизм, выбор моделей, `keep_alive`, бюджет VRAM) **подобраны под мощную локальную систему**, на которой ведётся разработка. Это отдельная машина под локальный ИИ: тяжёлые задачи (LLM, эмбеддинги, vision, дообучение) гоняются локально, без облака — данные не покидают устройство, нет внешних API-ключей и лимитов (подробнее о железе — [radif.ru/#hardware](https://radif.ru/#hardware)):
+Дефолты в [`.env.example`](./.env.example) (размер контекста, параллелизм, выбор моделей, `keep_alive`, бюджет VRAM) **подобраны под конкретную рабочую станцию**, на которой ведётся разработка: вся тяжёлая нагрузка (LLM, эмбеддинги, vision, дообучение) считается локально, без облака — данные не покидают устройство, нет внешних API-ключей и лимитов. Полная спецификация — [radif.ru/#hardware](https://radif.ru/#hardware); ниже — только то, что влияет на конфигурацию:
 
-- **Ноутбук:** ASUS ROG Strix SCAR 18 — флагманская мобильная рабочая платформа (быстрая DDR5-память, NVMe SSD (PCIe 5.0 x4), производительное охлаждение).
-- **GPU:** NVIDIA GeForce RTX 5090 Laptop — **24 ГБ GDDR7 VRAM**. Это ключевой ресурс: вся LLM-нагрузка (chat, эмбеддинги, vision) идёт через GPU, а 24 ГБ позволяют держать модель резидентной (`OLLAMA_KEEP_ALIVE=30m`), большой контекст (`OLLAMA_NUM_CTX=32768`) и параллельные сессии (`LLM_MAX_CONCURRENCY=2`).
-- **CPU:** Intel Core Ultra 9 275HX (Arrow Lake-HX) — 24 ядра / 24 потока + интегрированный NPU (Intel AI Boost). Быстрый prefill контекста, параллельная транскрипция речи (`faster-whisper`) и OCR (Tesseract). *Примечание:* текущий стек гоняет LLM на GPU через Ollama; NPU — задел на будущие сценарии локального ускорения.
-- **SSD:** Kingston FURY Renegade G5 4 ТБ (SFYR2S/4T0) — флагманский NVMe-накопитель формата M.2 с интерфейсом PCIe 5.0 x4 и архитектурой 3D TLC NAND. Рекордная производительность для ресурсоёмких приложений, игр и работы с большими объёмами данных.
-- **Экран:** 18″ 2.5K WQXGA (2560×1600, 16:10), ROG Nebula HDR Mini-LED, 240 Гц, 1200 нит, 100% DCI-P3 — комфорт для долгой работы с кодом и точная цветопередача для vision-задач.
-- **Порты:** 2× Thunderbolt 5 (USB-C), 3× USB 3.2 Gen 2 Type-A, HDMI 2.1, 2.5G LAN — в том числе для подключения внешних ускорителей.
+- **GPU: NVIDIA GeForce RTX 5090 Laptop, 24 ГБ GDDR7.** Ключевой ресурс: вся LLM-нагрузка (chat, эмбеддинги, vision) идёт через GPU. 24 ГБ позволяют держать модель резидентной (`OLLAMA_KEEP_ALIVE=30m`), брать большой контекст (`OLLAMA_NUM_CTX=32768`) и обслуживать параллельные сессии (`LLM_MAX_CONCURRENCY=2`).
+- **CPU: Intel Core Ultra 9 275HX, 24 ядра.** Быстрый prefill контекста, параллельная транскрипция речи (`faster-whisper`) и OCR (Tesseract) — они остаются на CPU и не конкурируют с GPU за VRAM. Встроенный NPU в текущем стеке не задействован — задел на будущее.
+- **NVMe PCIe 5.0 x4, 4 ТБ.** Веса моделей и `sqlite-vec`-база лежат на быстром диске: холодная загрузка модели и векторный поиск не становятся узким местом.
 
-Поэтому дефолты «щедрые»: большой `OLLAMA_NUM_CTX`, высокий порог суммаризации (`AGENT_MAX_CONTEXT_CHARS=90000`), крупные документы целиком в контексте (`MAX_DOCUMENT_CHARS=80000`), резидентная модель и бюджет VRAM 24 ГБ для предупреждений (`OLLAMA_VRAM_BUDGET_GB=24.0`).
+Отсюда «щедрые» дефолты: большой `OLLAMA_NUM_CTX`, высокий порог суммаризации (`AGENT_MAX_CONTEXT_CHARS=90000`), крупные документы целиком в контексте (`MAX_DOCUMENT_CHARS=80000`), резидентная модель и бюджет VRAM 24 ГБ для предупреждений (`OLLAMA_VRAM_BUDGET_GB=24.0`). **Это дефолты, а не требования:** система рассчитана на масштабирование вниз — см. ниже.
 
 ### Если ваша система слабее
 
@@ -262,12 +364,14 @@ ollama serve & .venv/bin/python -m app.console_main
 ![Telegram — инструменты, файлы и планировщик](docs/screenshots/Telegram-1.png)
 
 - **Факты — инструментами, а не памятью модели.** «Какая сейчас погода в Казани» → `weather` отдаёт актуальные +25…+27 °C и ветер; «Кто такой Илон Маск» → `web_search` вместо галлюцинации.
-- **Документы целиком.** PDF-руководство на 4.8 МБ: агент отвечает, что это за документ, сколько в нём страниц и какие разделы перечислены в оглавлении на третьей странице.
+- **Документ целиком, а не «первая страница».** Многостраничное PDF-руководство: агент отвечает, что это за документ, сколько в нём страниц и какие разделы перечислены в оглавлении на третьей странице — то есть работает со структурой файла, а не с обрывком текста.
 - **Изоляция пользователей.** На просьбу открыть файл другого пользователя приходит отказ: `read_file` ограничен каталогом `data/tmp/<user_id>` — это контракт, а не решение модели (см. [`_docs/security.md`](./_docs/security.md) §4.2).
 - **Планировщик на естественном языке.** «Создай планировщик, который каждую субботу в 15:20 будет проверять мою почту и присылать сюда отчёт» → задача создана, агент показывает ID, cron-выражение и таймзону.
 - **Результат по расписанию.** В назначенное время приходит структурированная сводка входящих: заявления, финансы, подписки, рекомендации — почта прочитана `email_read`, тело письма обработано как **данные, а не инструкции**.
 - **Управление задачами из диалога.** «Расскажи, какие планировщики сейчас активны» → список ID, расписаний и статусов последнего запуска; лишние отменяются одной фразой. Агент отдельно поясняет расхождение времени в логах: запуск в 12:20 UTC — это и есть 15:20 МСК.
 - **Код.** «Напиши функцию Фибоначчи одной строкой» → рабочий однострочник с честной оговоркой про неэффективность рекурсии.
+
+> **Про размеры файлов.** Потолок здесь конфигурационный, а не архитектурный. Размер входящего файла ограничен `TELEGRAM_MAX_FILE_MB` (default `20` — это лимит самого Telegram Bot API на скачивание, а не системы); объём текста, уходящего в контекст, — `MAX_DOCUMENT_CHARS` (default `80000`, согласован с `OLLAMA_NUM_CTX=32768`); число картинок под OCR — `DOCUMENT_MAX_IMAGES`. Файлы из немессенджерных источников (Яндекс.Диск, вложения писем) проходят по тому же параметру, который поднимается в `.env` под ваш контекст и VRAM. Обе границы предсказуемы: текст сверх `MAX_DOCUMENT_CHARS` усекается по явному лимиту, а разросшаяся история диалога автоматически суммаризируется по `AGENT_MAX_CONTEXT_CHARS`.
 
 ### Мультимодальность: изображения, документы и голос
 
@@ -275,8 +379,8 @@ ollama serve & .venv/bin/python -m app.console_main
 
 - **Изображения.** Фото → `describe_image`: описание сцены, одежды, фона и стиля иллюстрации.
 - **Разные документы за один заход.** Посадочный талон и whois-выписка: агент вытаскивает рейс, класс, время посадки — и отдельно регистратора домена, DNS-серверы, статус и срок регистрации.
-- **Голос.** Голосовое сообщение распознаётся `faster-whisper` на этапе ввода; агент честно объясняет, что транскрипция — часть конвейера, а не отдельный вызываемый инструмент.
-- **Самоописание.** По запросу перечисляет все 19 доступных инструментов с сигнатурами.
+- **Голос.** Голосовое сообщение распознаётся `faster-whisper` на этапе ввода; агент не выдумывает несуществующий tool, а объясняет, что транскрипция — часть конвейера, а не отдельный вызываемый инструмент.
+- **Интроспекция.** По запросу перечисляет все 19 инструментов с сигнатурами: реестр tools реально доходит до модели, а не живёт только в документации.
 - **Краткость по требованию.** «Сколько атомов во Вселенной? Ответь одним предложением» → одна строка с порядком величины.
 
 ### Команды и прозрачность
